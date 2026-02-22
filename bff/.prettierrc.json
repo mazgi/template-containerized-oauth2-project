@@ -1,5 +1,0 @@
-{
-  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
-  "singleQuote": true,
-  "semi": false
-}

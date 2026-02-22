@@ -1,9 +1,5 @@
 # template.containerized-nextjs-project
 
-[![unit-tests](https://github.com/mazgi/template.containerized-nextjs-project/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/mazgi/template.containerized-nextjs-project/actions/workflows/unit-tests.yml)
-[![e2e-tests](https://github.com/mazgi/template.containerized-nextjs-project/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/mazgi/template.containerized-nextjs-project/actions/workflows/e2e-tests.yml)
-[![build-production-images](https://github.com/mazgi/template.containerized-nextjs-project/actions/workflows/build-production-images.yml/badge.svg)](https://github.com/mazgi/template.containerized-nextjs-project/actions/workflows/build-production-images.yml)
-
 This repository is a template for developing Web Applications using [Next.js](https://nextjs.org/) and TypeScript.
 
 ## How to Use
