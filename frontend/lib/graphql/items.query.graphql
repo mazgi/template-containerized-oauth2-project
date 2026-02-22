@@ -1,6 +1,0 @@
-query itemsQuery {
-  items {
-    id
-    text
-  }
-}

@@ -1,0 +1,40 @@
+# Stage 1: deps — install dependencies
+FROM node:24-alpine AS deps
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma
+RUN pnpm install --frozen-lockfile
+
+# Stage 2: builder — build Next.js app
+FROM node:24-alpine AS builder
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+# DATABASE_URL is required by prisma generate (runs via postinstall); a dummy value is sufficient at build time
+ARG DATABASE_URL=postgresql://user:password@localhost:5432/db
+ENV DATABASE_URL=$DATABASE_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm build
+
+# Stage 3: runner — minimal production runtime
+FROM node:24-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# DATABASE_URL, AUTH_SECRET, NEXTAUTH_URL must be injected at runtime
+CMD ["node", "server.js"]

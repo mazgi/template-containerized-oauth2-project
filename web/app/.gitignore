@@ -2,9 +2,13 @@
 node_modules/
 .pnpm-store/
 
-# Environment
-.env
-.env.local
+# Next.js
+.next/
+out/
 
-# macOS
+# Build
+build/
+
+# Misc
 .DS_Store
+*.pem

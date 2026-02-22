@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "dashboard": "ダッシュボード",
+    "items": "アイテム",
+    "signIn": "ログイン",
+    "signUp": "新規登録",
+    "signOut": "ログアウト"
+  },
+  "home": {
+    "title": "ようこそ",
+    "description": "Next.js と Auth.js で作ったローカル認証デモアプリです。",
+    "signInPrompt": "ログインしてダッシュボードにアクセスしてください。",
+    "goToDashboard": "ダッシュボードへ"
+  },
+  "auth": {
+    "signInTitle": "ログイン",
+    "signUpTitle": "アカウント作成",
+    "name": "名前",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "confirmPassword": "パスワード（確認）",
+    "signIn": "ログイン",
+    "signUp": "登録する",
+    "noAccount": "アカウントをお持ちでない方は",
+    "hasAccount": "すでにアカウントをお持ちの方は",
+    "namePlaceholder": "お名前",
+    "emailPlaceholder": "メールアドレス",
+    "passwordPlaceholder": "8文字以上",
+    "errors": {
+      "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
+      "emailExists": "このメールアドレスはすでに登録されています。",
+      "passwordMismatch": "パスワードが一致しません。",
+      "generic": "エラーが発生しました。もう一度お試しください。"
+    }
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "welcome": "{name} さん、おかえりなさい！",
+    "profile": "プロフィール",
+    "email": "メールアドレス",
+    "name": "名前",
+    "memberId": "メンバーID"
+  },
+  "items": {
+    "title": "アイテム",
+    "myItems": "自分のアイテム",
+    "sharedWithMe": "共有されたアイテム",
+    "noItems": "アイテムがありません。",
+    "noSharedItems": "共有されたアイテムはありません。",
+    "newItem": "新しいアイテム",
+    "namePlaceholder": "アイテム名",
+    "create": "作成",
+    "owner": "オーナー",
+    "createdAt": "作成日",
+    "sharedWith": "共有相手",
+    "noShares": "共有されていません。",
+    "shareWith": "ユーザーと共有",
+    "shareEmailPlaceholder": "メールアドレス",
+    "share": "共有する",
+    "unshare": "削除",
+    "deleteItem": "アイテムを削除",
+    "deleteConfirm": "このアイテムを削除してもよいですか？この操作は元に戻せません。",
+    "edit": "編集",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "sharedBy": "{name} さんが共有",
+    "back": "アイテム一覧に戻る",
+    "errors": {
+      "notFound": "アイテムが見つかりません。",
+      "forbidden": "この操作を行う権限がありません。",
+      "userNotFound": "ユーザーが見つかりません。",
+      "alreadyShared": "このアイテムはすでに共有されています。",
+      "cannotShareWithSelf": "自分自身とは共有できません。",
+      "generic": "エラーが発生しました。もう一度お試しください。"
+    }
+  },
+  "language": {
+    "switch": "Language"
+  }
+}
