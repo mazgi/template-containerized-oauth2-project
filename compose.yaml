@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: localauth
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web-app:
+    build:
+      context: ./web/app
+      dockerfile: ../../Dockerfiles.d/web-app/Dockerfile
+    command:
+      - sh
+      - -c
+      - |
+        pnpm install
+        pnpm dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: ""
+    working_dir: /work/web/app
+    volumes:
+      - .:/work
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const n=require('net');const s=n.createConnection(3000,'localhost');s.on('connect',()=>{s.destroy();process.exit(0)});s.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  web-e2e-tests:
+    build:
+      context: ./web/e2e-tests
+      dockerfile: ../../Dockerfiles.d/web-e2e-tests/Dockerfile
+    command:
+      - sh
+      - -c
+      - |
+        pnpm install
+        pnpm exec playwright install --with-deps chromium
+        pnpm test
+    profiles:
+      - web-e2e-tests
+    working_dir: /work/web/e2e-tests
+    volumes:
+      - .:/work
+      - playwright_browsers:/root/.cache/ms-playwright
+    depends_on:
+      web-app:
+        condition: service_healthy
+    environment:
+      BASE_URL: http://web-app:3000
+      CI: ${CI:-}
+
+volumes:
+  postgres_data:
+  playwright_browsers:

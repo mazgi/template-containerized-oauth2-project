@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.local
+
+# macOS
+.DS_Store

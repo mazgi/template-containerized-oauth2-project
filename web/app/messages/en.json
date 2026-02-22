@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "items": "Items",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out"
+  },
+  "home": {
+    "title": "Welcome",
+    "description": "A secure local authentication demo built with Next.js and Auth.js.",
+    "signInPrompt": "Sign in to access your dashboard.",
+    "goToDashboard": "Go to Dashboard"
+  },
+  "auth": {
+    "signInTitle": "Sign In",
+    "signUpTitle": "Create Account",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "At least 8 characters",
+    "errors": {
+      "invalidCredentials": "Invalid email or password.",
+      "emailExists": "This email is already registered.",
+      "passwordMismatch": "Passwords do not match.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {name}!",
+    "profile": "Your Profile",
+    "email": "Email",
+    "name": "Name",
+    "memberId": "Member ID"
+  },
+  "items": {
+    "title": "Items",
+    "myItems": "My Items",
+    "sharedWithMe": "Shared with me",
+    "noItems": "No items yet.",
+    "noSharedItems": "No items shared with you yet.",
+    "newItem": "New Item",
+    "namePlaceholder": "Item name",
+    "create": "Create",
+    "owner": "Owner",
+    "createdAt": "Created",
+    "sharedWith": "Shared with",
+    "noShares": "Not shared with anyone.",
+    "shareWith": "Share with a user",
+    "shareEmailPlaceholder": "Email address",
+    "share": "Share",
+    "unshare": "Remove",
+    "deleteItem": "Delete Item",
+    "deleteConfirm": "Are you sure you want to delete this item? This action cannot be undone.",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "sharedBy": "Shared by {name}",
+    "back": "Back to Items",
+    "errors": {
+      "notFound": "Item not found.",
+      "forbidden": "You do not have permission to perform this action.",
+      "userNotFound": "User not found.",
+      "alreadyShared": "This item is already shared with that user.",
+      "cannotShareWithSelf": "You cannot share an item with yourself.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "language": {
+    "switch": "言語"
+  }
+}
