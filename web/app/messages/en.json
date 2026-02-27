@@ -1,81 +1,65 @@
 {
-  "nav": {
-    "home": "Home",
-    "dashboard": "Dashboard",
-    "items": "Items",
-    "signIn": "Sign In",
-    "signUp": "Sign Up",
-    "signOut": "Sign Out"
-  },
-  "home": {
-    "title": "Welcome",
-    "description": "A secure local authentication demo built with Next.js and Auth.js.",
-    "signInPrompt": "Sign in to access your dashboard.",
-    "goToDashboard": "Go to Dashboard"
-  },
-  "auth": {
-    "signInTitle": "Sign In",
-    "signUpTitle": "Create Account",
-    "name": "Name",
+  "SignIn": {
+    "title": "Sign in",
     "email": "Email",
     "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "signIn": "Sign In",
-    "signUp": "Sign Up",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "orDivider": "or",
+    "appleButton": "Sign in with Apple",
+    "googleButton": "Sign in with Google",
+    "xButton": "Sign in with X",
+    "githubButton": "Sign in with GitHub",
+    "discordButton": "Sign in with Discord",
     "noAccount": "Don't have an account?",
-    "hasAccount": "Already have an account?",
-    "namePlaceholder": "Your name",
-    "emailPlaceholder": "you@example.com",
-    "passwordPlaceholder": "At least 8 characters",
-    "errors": {
-      "invalidCredentials": "Invalid email or password.",
-      "emailExists": "This email is already registered.",
-      "passwordMismatch": "Passwords do not match.",
-      "generic": "Something went wrong. Please try again."
-    }
+    "signUpLink": "Sign up",
+    "errorFallback": "Sign in failed"
   },
-  "dashboard": {
-    "title": "Dashboard",
-    "welcome": "Welcome back, {name}!",
-    "profile": "Your Profile",
+  "SignUp": {
+    "title": "Create account",
     "email": "Email",
-    "name": "Name",
-    "memberId": "Member ID"
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match",
+    "submit": "Create account",
+    "submitting": "Creating account…",
+    "hasAccount": "Already have an account?",
+    "signInLink": "Sign in",
+    "errorFallback": "Sign up failed"
   },
-  "items": {
+  "Dashboard": {
+    "title": "Dashboard",
+    "signOut": "Sign out",
+    "yourAccount": "Your account",
+    "id": "ID",
+    "email": "Email",
+    "created": "Created",
+    "itemsLink": "Manage items"
+  },
+  "Nav": {
+    "dashboard": "Dashboard",
+    "items": "Items",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "Settings": {
+    "title": "Settings",
+    "linkedAccounts": "Linked accounts",
+    "link": "Link",
+    "unlink": "Unlink",
+    "errorFallback": "Something went wrong",
+    "deleteAccount": "Delete account",
+    "deleteAccountDescription": "Permanently delete your account and all associated data. This action cannot be undone.",
+    "deleteAccountConfirm": "Are you sure you want to delete your account? This cannot be undone."
+  },
+  "Items": {
     "title": "Items",
-    "myItems": "My Items",
-    "sharedWithMe": "Shared with me",
-    "noItems": "No items yet.",
-    "noSharedItems": "No items shared with you yet.",
-    "newItem": "New Item",
+    "signOut": "Sign out",
     "namePlaceholder": "Item name",
-    "create": "Create",
-    "owner": "Owner",
-    "createdAt": "Created",
-    "sharedWith": "Shared with",
-    "noShares": "Not shared with anyone.",
-    "shareWith": "Share with a user",
-    "shareEmailPlaceholder": "Email address",
-    "share": "Share",
-    "unshare": "Remove",
-    "deleteItem": "Delete Item",
-    "deleteConfirm": "Are you sure you want to delete this item? This action cannot be undone.",
-    "edit": "Edit",
-    "save": "Save",
-    "cancel": "Cancel",
-    "sharedBy": "Shared by {name}",
-    "back": "Back to Items",
-    "errors": {
-      "notFound": "Item not found.",
-      "forbidden": "You do not have permission to perform this action.",
-      "userNotFound": "User not found.",
-      "alreadyShared": "This item is already shared with that user.",
-      "cannotShareWithSelf": "You cannot share an item with yourself.",
-      "generic": "Something went wrong. Please try again."
-    }
-  },
-  "language": {
-    "switch": "言語"
+    "add": "Add",
+    "adding": "Adding…",
+    "delete": "Delete",
+    "empty": "No items yet.",
+    "errorFallback": "Something went wrong"
   }
 }

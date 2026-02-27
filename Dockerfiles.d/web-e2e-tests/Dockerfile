@@ -20,4 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libatspi2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@latest --activate \
+    && npm install -g npm-check-updates sort-package-json \
+    && npx playwright install --with-deps chromium

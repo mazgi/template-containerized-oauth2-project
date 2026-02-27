@@ -13,6 +13,43 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfiles.d/backend/Dockerfile
+    command:
+      - sh
+      - -c
+      - |
+        npm-check-updates --upgrade
+        sort-package-json
+        pnpm install
+        pnpm audit --fix
+        pnpm install
+        pnpm exec prisma generate
+        pnpm exec prisma db push --accept-data-loss
+        pnpm dev
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    working_dir: /work/backend
+    volumes:
+      - .:/work
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const n=require('net');const s=n.createConnection(4000,'localhost');s.on('connect',()=>{s.destroy();process.exit(0)});s.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
   web-app:
     build:
       context: ./web/app
@@ -21,18 +58,21 @@ services:
       - sh
       - -c
       - |
+        npm-check-updates --upgrade
+        sort-package-json
+        pnpm install
+        pnpm audit --fix
         pnpm install
         pnpm dev
     ports:
       - "3000:3000"
     depends_on:
-      db:
+      backend:
         condition: service_healthy
     env_file:
       - .env
     environment:
-      AUTH_TRUST_HOST: "true"
-      NEXTAUTH_URL: ""
+      BACKEND_URL: http://backend:4000
     working_dir: /work/web/app
     volumes:
       - .:/work
@@ -55,15 +95,17 @@ services:
       - sh
       - -c
       - |
+        npm-check-updates --upgrade
+        sort-package-json
         pnpm install
-        pnpm exec playwright install --with-deps chromium
+        pnpm audit --fix
+        pnpm install
         pnpm test
     profiles:
       - web-e2e-tests
     working_dir: /work/web/e2e-tests
     volumes:
       - .:/work
-      - playwright_browsers:/root/.cache/ms-playwright
     depends_on:
       web-app:
         condition: service_healthy
@@ -73,4 +115,3 @@ services:
 
 volumes:
   postgres_data:
-  playwright_browsers:

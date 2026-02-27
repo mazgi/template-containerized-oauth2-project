@@ -3,11 +3,24 @@ name: E2E Tests for Web App
 on:
   push:
     branches: [main]
+    paths:
+      - 'web/**'
+      - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/**'
+      - '.github/workflows/web.e2e-tests.yaml'
   pull_request:
     branches: [main]
+    paths:
+      - 'web/**'
+      - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/**'
+      - '.github/workflows/web.e2e-tests.yaml'
+  workflow_dispatch:
 
 jobs:
-  e2e:
+  e2e-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -18,22 +31,46 @@ jobs:
         run: |
           cat <<'EOF' > .env
           DATABASE_URL=postgresql://postgres:password@db:5432/localauth
-          NEXTAUTH_URL=http://web-app:3000
+          PORT=4000
+          CORS_ORIGIN=http://localhost:3000,http://web-app:3000
+          JWT_ACCESS_EXPIRATION=15m
+          JWT_REFRESH_EXPIRATION=7d
+          FRONTEND_URL=http://localhost:3000
+          NATIVE_APP_URL_SCHEME=oauth2app
+          APPLE_CALLBACK_URL=http://localhost:4000/auth/apple/callback
+          APPLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/apple/native/callback
+          GH_CALLBACK_URL=http://localhost:4000/auth/github/callback
+          GH_NATIVE_CALLBACK_URL=http://localhost:4000/auth/github/native/callback
+          GOOGLE_CALLBACK_URL=http://localhost:4000/auth/google/callback
+          GOOGLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/google/native/callback
+          TWITTER_CALLBACK_URL=http://localhost:4000/auth/twitter/callback
+          TWITTER_NATIVE_CALLBACK_URL=http://localhost:4000/auth/twitter/native/callback
+          DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
+          DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
           EOF
-          echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> .env
+          echo "APPLE_CLIENT_ID=${{ secrets.APPLE_CLIENT_ID }}" >> .env
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
+          echo "APPLE_KEY_ID=${{ secrets.APPLE_KEY_ID }}" >> .env
+          echo "APPLE_PRIVATE_KEY=${{ secrets.APPLE_PRIVATE_KEY }}" >> .env
+          echo "GH_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}" >> .env
+          echo "GH_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}" >> .env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "TWITTER_CLIENT_ID=${{ secrets.TWITTER_CLIENT_ID }}" >> .env
+          echo "TWITTER_CLIENT_SECRET=${{ secrets.TWITTER_CLIENT_SECRET }}" >> .env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+          echo "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> .env
+          echo "DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> .env
 
       - name: Build images
         run: docker compose --profile web-e2e-tests build
 
-      - name: Start database and wait for healthy
-        run: docker compose up db --wait
-
-      - name: Run database migrations
-        run: |
-          docker compose run --rm web-app \
-            sh -c "pnpm install --frozen-lockfile && pnpm exec prisma migrate deploy"
-
       - name: Run E2E tests
+        # The web-e2e-tests profile starts db → backend (runs
+        # prisma db push automatically) → web-app → web-e2e-tests in order,
+        # waiting for each healthcheck before proceeding.
         run: |
           docker compose --profile web-e2e-tests up \
             --exit-code-from web-e2e-tests \
