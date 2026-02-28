@@ -113,5 +113,17 @@ services:
       BASE_URL: http://web:3000
       CI: ${CI:-}
 
+  iac:
+    build:
+      context: ./iac
+      dockerfile: ../Dockerfiles.d/iac/Dockerfile
+    profiles:
+      - iac
+    working_dir: /work/iac
+    volumes:
+      - .:/work
+    env_file:
+      - .env
+
 volumes:
   postgres_data:
