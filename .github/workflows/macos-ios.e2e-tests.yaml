@@ -1,0 +1,170 @@
+name: E2E Tests for macOS and iOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'macos-ios/**'
+      - 'backend/**'
+      - '.github/workflows/macos-ios.e2e-tests.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'macos-ios/**'
+      - 'backend/**'
+      - '.github/workflows/macos-ios.e2e-tests.yaml'
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install and start PostgreSQL 17
+        # Install PostgreSQL 17 to match the project's database version.
+        # brew install is a no-op if already present.
+        # Create database as runner (current OS user) to avoid peer auth issues:
+        #   macOS socket auth requires OS user == PostgreSQL user, so
+        #   `createdb -U postgres` would be denied when OS user is `runner`.
+        # Append trust rules to pg_hba.conf so Prisma can connect via TCP
+        # regardless of the runner's default auth method.
+        run: |
+          brew install postgresql@17
+          brew services start postgresql@17
+          # postgresql@17 is keg-only; add its bin to PATH for this step
+          export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
+          # `timeout` is not available on macOS; use a for loop instead
+          for i in $(seq 1 30); do pg_isready -h localhost -p 5432 && break; sleep 1; done
+          createdb localauth
+          psql -d localauth -c "CREATE ROLE postgres WITH LOGIN SUPERUSER PASSWORD 'password';"
+          PG_DATA=$(psql -d localauth -c "SHOW data_directory;" -t | xargs)
+          printf 'host all all 127.0.0.1/32 trust\nhost all all ::1/128 trust\n' >> "$PG_DATA/pg_hba.conf"
+          psql -d localauth -c "SELECT pg_reload_conf();"
+
+      - name: Create backend .env
+        # Write non-secret values via heredoc, then append secrets separately
+        # so GitHub Actions can expand ${{ secrets.* }} expressions.
+        # NestJS ConfigModule reads .env from the working directory (backend/).
+        run: |
+          cat <<'EOF' > backend/.env
+          DATABASE_URL=postgresql://postgres:password@localhost:5432/localauth
+          PORT=4000
+          CORS_ORIGIN=http://localhost:3000
+          JWT_ACCESS_EXPIRATION=15m
+          JWT_REFRESH_EXPIRATION=7d
+          FRONTEND_URL=http://localhost:3000
+          NATIVE_APP_URL_SCHEME=oauth2app
+          APPLE_CALLBACK_URL=http://localhost:4000/auth/apple/callback
+          APPLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/apple/native/callback
+          GH_CALLBACK_URL=http://localhost:4000/auth/github/callback
+          GH_NATIVE_CALLBACK_URL=http://localhost:4000/auth/github/native/callback
+          GOOGLE_CALLBACK_URL=http://localhost:4000/auth/google/callback
+          GOOGLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/google/native/callback
+          TWITTER_CALLBACK_URL=http://localhost:4000/auth/twitter/callback
+          TWITTER_NATIVE_CALLBACK_URL=http://localhost:4000/auth/twitter/native/callback
+          DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
+          DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
+          EOF
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend/.env
+          echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> backend/.env
+          echo "APPLE_CLIENT_ID=${{ secrets.APPLE_CLIENT_ID }}" >> backend/.env
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> backend/.env
+          echo "APPLE_KEY_ID=${{ secrets.APPLE_KEY_ID }}" >> backend/.env
+          echo "APPLE_PRIVATE_KEY=${{ secrets.APPLE_PRIVATE_KEY }}" >> backend/.env
+          echo "GH_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}" >> backend/.env
+          echo "GH_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}" >> backend/.env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> backend/.env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> backend/.env
+          echo "TWITTER_CLIENT_ID=${{ secrets.TWITTER_CLIENT_ID }}" >> backend/.env
+          echo "TWITTER_CLIENT_SECRET=${{ secrets.TWITTER_CLIENT_SECRET }}" >> backend/.env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> backend/.env
+          echo "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> backend/.env
+          echo "DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> backend/.env
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pnpm install
+
+      - name: Generate Prisma client and push schema
+        working-directory: backend
+        run: |
+          pnpm prisma:generate
+          pnpm prisma:push
+
+      - name: Start backend
+        # main.ts has no dotenv loading; Docker passes vars via env_file, but
+        # native startup requires explicit sourcing of .env before the process starts.
+        # set -a exports all vars set by source, so pnpm dev inherits them.
+        working-directory: backend
+        run: |
+          set -a && source .env && set +a
+          nohup pnpm dev > /tmp/backend.log 2>&1 &
+
+      - name: Wait for backend to be ready
+        # prisma db push + nest start --watch takes up to ~60s on first run.
+        # Poll until the Swagger UI (GET /api) responds.
+        run: |
+          echo "Waiting for backend at http://localhost:4000..."
+          for i in $(seq 1 24); do
+            curl -sf http://localhost:4000/api > /dev/null && echo "Backend is ready." && break
+            echo "  attempt $i/24 — retrying in 5s..."
+            sleep 5
+          done
+
+      - name: List available iOS simulators
+        # Print available simulators so the destination can be adjusted if needed.
+        run: xcrun simctl list devices available | grep -i iphone
+
+      - name: Cache Xcode derived data
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: xcode-deriveddata-${{ hashFiles('macos-ios/**/*.swift', 'macos-ios/**/*.xcodeproj/**') }}
+          restore-keys: |
+            xcode-deriveddata-
+
+      - name: Run iOS E2E tests
+        # Use the same simulator as local development (CLAUDE.md: iPhone 17).
+        # If this simulator is unavailable on the runner, check the list step above
+        # and update the destination accordingly.
+        # -parallel-testing-enabled NO: Xcode 26 enables parallel testing by default,
+        # spinning up multiple simulator clones (Clone 1, Clone 2, ...) that run tests
+        # concurrently. On a single CI machine this causes CPU/memory contention between
+        # simulator instances and the backend, leading to API timeouts and flaky failures.
+        # Sequential execution eliminates this contention.
+        run: |
+          xcodebuild test \
+            -project macos-ios/app.xcodeproj \
+            -scheme app \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -only-testing:appUITests \
+            -parallel-testing-enabled NO \
+            -resultBundlePath /tmp/ios-e2e-results.xcresult
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-e2e-test-results
+          path: /tmp/ios-e2e-results.xcresult
+          retention-days: 7
+
+      - name: Print backend logs on failure
+        if: failure()
+        run: cat /tmp/backend.log || true
