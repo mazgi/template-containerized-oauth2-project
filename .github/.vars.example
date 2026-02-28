@@ -1,0 +1,27 @@
+# GitHub Actions Variables (non-sensitive)
+# Copy to .vars and fill in your values, then run:
+#   gh variable set --env-file .github/.vars
+
+# AWS
+AWS_TF_STATE_BUCKET=my-terraform-state
+AWS_TF_STATE_REGION=us-east-1
+
+# Azure
+AZURE_TF_STATE_RESOURCE_GROUP=terraform-state-rg
+AZURE_TF_STATE_STORAGE_ACCOUNT=myterraformstate
+AZURE_TF_STATE_LOCATION=eastus
+AZURE_CONTAINER_REGISTRY_NAME=myregistry
+
+# Google Cloud
+GCP_TF_STATE_BUCKET=my-terraform-state
+GCP_TF_STATE_LOCATION=us
+GCP_PROJECT_ID=my-gcp-project
+
+# DNS
+TF_VAR_BASE_DOMAIN_NAME=example.com
+
+# Ephemeral layer — service URLs (per-provider, set after first apply)
+TF_VAR_BASE_DOMAIN_NAME=example.com
+
+# Ephemeral layer — container image tag (registry URL derived from persistent layer outputs)
+# TF_VAR_IMAGE_TAG=latest
