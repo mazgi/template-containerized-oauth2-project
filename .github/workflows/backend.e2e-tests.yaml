@@ -1,0 +1,78 @@
+name: E2E Tests for Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/backend/**'
+      - '.github/workflows/backend.e2e-tests.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/backend/**'
+      - '.github/workflows/backend.e2e-tests.yaml'
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env
+        run: |
+          cat <<'EOF' > .env
+          DATABASE_URL=postgresql://postgres:password@db:5432/localauth
+          PORT=4000
+          CORS_ORIGIN=http://localhost:3000
+          JWT_ACCESS_EXPIRATION=15m
+          JWT_REFRESH_EXPIRATION=7d
+          FRONTEND_URL=http://localhost:3000
+          NATIVE_APP_URL_SCHEME=oauth2app
+          APPLE_CALLBACK_URL=http://localhost:4000/auth/apple/callback
+          APPLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/apple/native/callback
+          GH_CALLBACK_URL=http://localhost:4000/auth/github/callback
+          GH_NATIVE_CALLBACK_URL=http://localhost:4000/auth/github/native/callback
+          GOOGLE_CALLBACK_URL=http://localhost:4000/auth/google/callback
+          GOOGLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/google/native/callback
+          TWITTER_CALLBACK_URL=http://localhost:4000/auth/twitter/callback
+          TWITTER_NATIVE_CALLBACK_URL=http://localhost:4000/auth/twitter/native/callback
+          DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
+          DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
+          EOF
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> .env
+          echo "APPLE_CLIENT_ID=${{ secrets.APPLE_CLIENT_ID }}" >> .env
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
+          echo "APPLE_KEY_ID=${{ secrets.APPLE_KEY_ID }}" >> .env
+          echo "APPLE_PRIVATE_KEY=${{ secrets.APPLE_PRIVATE_KEY }}" >> .env
+          echo "GH_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}" >> .env
+          echo "GH_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}" >> .env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "TWITTER_CLIENT_ID=${{ secrets.TWITTER_CLIENT_ID }}" >> .env
+          echo "TWITTER_CLIENT_SECRET=${{ secrets.TWITTER_CLIENT_SECRET }}" >> .env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+          echo "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> .env
+          echo "DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> .env
+
+      - name: Build backend image
+        run: docker compose build backend
+
+      - name: Run E2E tests
+        run: |
+          docker compose run --rm backend sh -c "\
+            pnpm install && \
+            pnpm exec prisma generate && \
+            pnpm exec prisma db push --accept-data-loss && \
+            pnpm test:e2e"
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
