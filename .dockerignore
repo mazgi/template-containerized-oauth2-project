@@ -1,0 +1,10 @@
+# Ignore node modules and build artifacts in Docker context
+node_modules
+**/node_modules
+.next
+out
+dist
+env.local
+.env
+.git
+Dockerfiles.d

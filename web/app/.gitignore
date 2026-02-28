@@ -1,14 +1,6 @@
-# Dependencies
-node_modules/
-.pnpm-store/
-
-# Next.js
-.next/
-out/
-
-# Build
-build/
-
-# Misc
-.DS_Store
-*.pem
+node_modules
+.next
+out
+dist
+env.local
+.env

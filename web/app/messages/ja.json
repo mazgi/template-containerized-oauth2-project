@@ -1,81 +1,65 @@
 {
-  "nav": {
-    "home": "ホーム",
-    "dashboard": "ダッシュボード",
-    "items": "アイテム",
-    "signIn": "ログイン",
-    "signUp": "新規登録",
-    "signOut": "ログアウト"
+  "SignIn": {
+    "title": "サインイン",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "submit": "サインイン",
+    "submitting": "サインイン中…",
+    "orDivider": "または",
+    "appleButton": "Apple でサインイン",
+    "googleButton": "Google でサインイン",
+    "xButton": "X でサインイン",
+    "githubButton": "GitHub でサインイン",
+    "discordButton": "Discord でサインイン",
+    "noAccount": "アカウントをお持ちでない方は",
+    "signUpLink": "新規登録",
+    "errorFallback": "サインインに失敗しました"
   },
-  "home": {
-    "title": "ようこそ",
-    "description": "Next.js と Auth.js で作ったローカル認証デモアプリです。",
-    "signInPrompt": "ログインしてダッシュボードにアクセスしてください。",
-    "goToDashboard": "ダッシュボードへ"
-  },
-  "auth": {
-    "signInTitle": "ログイン",
-    "signUpTitle": "アカウント作成",
-    "name": "名前",
+  "SignUp": {
+    "title": "アカウント作成",
     "email": "メールアドレス",
     "password": "パスワード",
     "confirmPassword": "パスワード（確認）",
-    "signIn": "ログイン",
-    "signUp": "登録する",
-    "noAccount": "アカウントをお持ちでない方は",
+    "passwordMismatch": "パスワードが一致しません",
+    "submit": "アカウントを作成",
+    "submitting": "作成中…",
     "hasAccount": "すでにアカウントをお持ちの方は",
-    "namePlaceholder": "お名前",
-    "emailPlaceholder": "メールアドレス",
-    "passwordPlaceholder": "8文字以上",
-    "errors": {
-      "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
-      "emailExists": "このメールアドレスはすでに登録されています。",
-      "passwordMismatch": "パスワードが一致しません。",
-      "generic": "エラーが発生しました。もう一度お試しください。"
-    }
+    "signInLink": "サインイン",
+    "errorFallback": "アカウント作成に失敗しました"
   },
-  "dashboard": {
+  "Dashboard": {
     "title": "ダッシュボード",
-    "welcome": "{name} さん、おかえりなさい！",
-    "profile": "プロフィール",
+    "signOut": "サインアウト",
+    "yourAccount": "アカウント情報",
+    "id": "ID",
     "email": "メールアドレス",
-    "name": "名前",
-    "memberId": "メンバーID"
+    "created": "作成日時",
+    "itemsLink": "アイテム管理"
   },
-  "items": {
+  "Nav": {
+    "dashboard": "ダッシュボード",
+    "items": "アイテム",
+    "settings": "設定",
+    "signOut": "サインアウト"
+  },
+  "Settings": {
+    "title": "設定",
+    "linkedAccounts": "連携アカウント",
+    "link": "連携",
+    "unlink": "解除",
+    "errorFallback": "エラーが発生しました",
+    "deleteAccount": "アカウント削除",
+    "deleteAccountDescription": "アカウントと関連するすべてのデータを完全に削除します。この操作は取り消せません。",
+    "deleteAccountConfirm": "本当にアカウントを削除しますか？この操作は取り消せません。"
+  },
+  "Items": {
     "title": "アイテム",
-    "myItems": "自分のアイテム",
-    "sharedWithMe": "共有されたアイテム",
-    "noItems": "アイテムがありません。",
-    "noSharedItems": "共有されたアイテムはありません。",
-    "newItem": "新しいアイテム",
+    "signOut": "サインアウト",
     "namePlaceholder": "アイテム名",
-    "create": "作成",
-    "owner": "オーナー",
-    "createdAt": "作成日",
-    "sharedWith": "共有相手",
-    "noShares": "共有されていません。",
-    "shareWith": "ユーザーと共有",
-    "shareEmailPlaceholder": "メールアドレス",
-    "share": "共有する",
-    "unshare": "削除",
-    "deleteItem": "アイテムを削除",
-    "deleteConfirm": "このアイテムを削除してもよいですか？この操作は元に戻せません。",
-    "edit": "編集",
-    "save": "保存",
-    "cancel": "キャンセル",
-    "sharedBy": "{name} さんが共有",
-    "back": "アイテム一覧に戻る",
-    "errors": {
-      "notFound": "アイテムが見つかりません。",
-      "forbidden": "この操作を行う権限がありません。",
-      "userNotFound": "ユーザーが見つかりません。",
-      "alreadyShared": "このアイテムはすでに共有されています。",
-      "cannotShareWithSelf": "自分自身とは共有できません。",
-      "generic": "エラーが発生しました。もう一度お試しください。"
-    }
-  },
-  "language": {
-    "switch": "Language"
+    "add": "追加",
+    "adding": "追加中…",
+    "delete": "削除",
+    "empty": "アイテムがありません。",
+    "errorFallback": "エラーが発生しました"
   }
 }

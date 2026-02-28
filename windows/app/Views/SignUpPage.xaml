@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="app.Views.SignUpPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Width="360"
+            Padding="24"
+            Spacing="16">
+
+            <FontIcon Glyph="&#xE77B;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
+
+            <TextBlock
+                Text="Sign Up"
+                Style="{StaticResource TitleTextBlockStyle}"
+                HorizontalAlignment="Center" />
+
+            <TextBlock
+                x:Name="ErrorText"
+                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                TextWrapping="Wrap"
+                HorizontalAlignment="Center"
+                Visibility="Collapsed"
+                AutomationProperties.AutomationId="signup_errorText" />
+
+            <TextBox
+                x:Name="EmailBox"
+                Header="Email"
+                PlaceholderText="email@example.com"
+                InputScope="EmailSmtpAddress"
+                AutomationProperties.AutomationId="signup_emailTextBox" />
+
+            <PasswordBox
+                x:Name="PasswordBox"
+                Header="Password"
+                PlaceholderText="Password (min 8 characters)"
+                AutomationProperties.AutomationId="signup_passwordBox" />
+
+            <PasswordBox
+                x:Name="ConfirmPasswordBox"
+                Header="Confirm Password"
+                PlaceholderText="Confirm Password"
+                AutomationProperties.AutomationId="signup_confirmPasswordBox" />
+
+            <TextBlock
+                x:Name="MismatchText"
+                Text="Passwords do not match"
+                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                Visibility="Collapsed"
+                AutomationProperties.AutomationId="signup_mismatchText" />
+
+            <Button
+                x:Name="SignUpButton"
+                Content="Sign Up"
+                HorizontalAlignment="Stretch"
+                Style="{StaticResource AccentButtonStyle}"
+                Click="SignUpButton_Click"
+                AutomationProperties.AutomationId="signup_submitButton" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,8,0,32">
+                <TextBlock Text="Already have an account?" VerticalAlignment="Center" />
+                <HyperlinkButton Content="Sign In" Click="SignInLink_Click"
+                                AutomationProperties.AutomationId="signup_goToSignInButton" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

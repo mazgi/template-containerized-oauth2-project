@@ -1,0 +1,256 @@
+package dev.mazgi.app
+
+import android.content.Context
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.ExternalResource
+import org.junit.rules.RuleChain
+import org.junit.runner.RunWith
+
+/**
+ * E2E tests for the Items screen (create, list, delete) and bottom navigation.
+ *
+ * Mirrors web/e2e-tests/tests/items.spec.ts scenarios:
+ *   - access control (unauthenticated → stays on Sign In)
+ *   - empty state
+ *   - Add button disabled when input is blank
+ *   - create item (appears in list, input cleared)
+ *   - delete item (disappears, empty state restored)
+ *   - multiple items
+ *   - bottom navigation tabs (Dashboard / Items)
+ *
+ * Each test starts with cleared SharedPreferences. The @Before helper signs up
+ * a fresh user and navigates to the Dashboard so every test begins authenticated.
+ *
+ * Prerequisites: the backend must be reachable at http://10.0.2.2:4000.
+ * Run the stack with `docker compose up` before executing these tests.
+ */
+@RunWith(AndroidJUnit4::class)
+class ItemsE2ETest {
+
+    private val composeRule = createAndroidComposeRule<MainActivity>()
+
+    // Outer rule: clear stored tokens BEFORE the Activity is launched.
+    private val clearPrefsRule = object : ExternalResource() {
+        override fun before() {
+            InstrumentationRegistry.getInstrumentation().targetContext
+                .getSharedPreferences("auth", Context.MODE_PRIVATE)
+                .edit().clear().apply()
+        }
+    }
+
+    @get:Rule
+    val ruleChain: RuleChain = RuleChain.outerRule(clearPrefsRule).around(composeRule)
+
+    companion object {
+        private var testCount = 0
+    }
+
+    private fun uniqueEmail() =
+        "e2e_items_${System.currentTimeMillis()}_${testCount++}@example.com"
+
+    // -------------------------------------------------------------------------
+    // @Before: sign up a fresh user and land on Dashboard
+    // -------------------------------------------------------------------------
+
+    @Before
+    fun signUpAndReachDashboard() {
+        // Wait for session restore to finish → Sign In screen
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Don't have an account? Sign Up")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Navigate to Sign Up
+        composeRule.onNodeWithText("Don't have an account? Sign Up").performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithText("Confirm Password").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Fill and submit the Sign Up form
+        composeRule.onNodeWithText("Email").performTextInput(uniqueEmail())
+        composeRule.onNodeWithText("Password").performTextInput("Password1!")
+        composeRule.onNodeWithText("Confirm Password").performTextInput("Password1!")
+        composeRule.onAllNodesWithText("Sign Up").filterToOne(hasClickAction()).performClick()
+
+        // Wait for Dashboard
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Sign Out").fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /** Navigate to the Items tab and wait for the screen to be ready. */
+    private fun navigateToItems() {
+        composeRule.onAllNodesWithText("Items").filterToOne(hasClickAction()).performClick()
+        composeRule.waitUntil(10_000L) {
+            composeRule.onAllNodesWithText("Item name").fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    /**
+     * Wait until the loading spinner is gone — i.e., either the empty state
+     * ("No items yet.") or at least one Delete button is visible.
+     */
+    private fun waitForItemsLoaded() {
+        composeRule.waitUntil(10_000L) {
+            composeRule.onAllNodesWithText("No items yet.").fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodesWithContentDescription("Delete")
+                    .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    /**
+     * Type [name] into the "Item name" field, click Add, and wait until the
+     * item appears in the list and the input is cleared (Add button disabled).
+     */
+    private fun addItem(name: String) {
+        composeRule.onNodeWithText("Item name").performTextInput(name)
+        composeRule.onNodeWithText("Add").assertIsEnabled()
+        composeRule.onNodeWithText("Add").performClick()
+
+        // Item should appear in the list
+        composeRule.waitUntil(10_000L) {
+            composeRule.onAllNodesWithText(name).fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Input should be cleared (newName = "" → Add button disabled)
+        composeRule.waitUntil(5_000L) {
+            try {
+                composeRule.onNodeWithText("Add").assertIsNotEnabled()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Items tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun items_emptyState_shownForNewUser() {
+        navigateToItems()
+        composeRule.waitUntil(10_000L) {
+            composeRule.onAllNodesWithText("No items yet.").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("No items yet.").assertIsDisplayed()
+    }
+
+    @Test
+    fun items_addButton_disabledWhenInputIsBlank() {
+        navigateToItems()
+        // The "Item name" field is empty on load → Add must be disabled
+        composeRule.onNodeWithText("Add").assertIsNotEnabled()
+    }
+
+    @Test
+    fun items_createItem_appearsInList_andInputIsCleared() {
+        navigateToItems()
+        waitForItemsLoaded()
+
+        val itemName = "Test Item ${System.currentTimeMillis()}"
+        composeRule.onNodeWithText("Item name").performTextInput(itemName)
+        composeRule.onNodeWithText("Add").assertIsEnabled()
+        composeRule.onNodeWithText("Add").performClick()
+
+        // Item must appear in the list
+        composeRule.waitUntil(10_000L) {
+            composeRule.onAllNodesWithText(itemName).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(itemName).assertIsDisplayed()
+
+        // Input must be cleared: Add button becomes disabled again
+        composeRule.waitUntil(5_000L) {
+            try {
+                composeRule.onNodeWithText("Add").assertIsNotEnabled()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+        composeRule.onNodeWithText("Add").assertIsNotEnabled()
+    }
+
+    @Test
+    fun items_deleteItem_disappears_andEmptyStateRestored() {
+        navigateToItems()
+        waitForItemsLoaded()
+
+        val itemName = "Item to Delete ${System.currentTimeMillis()}"
+        addItem(itemName)
+        composeRule.onNodeWithText(itemName).assertIsDisplayed()
+
+        // Delete the item
+        composeRule.onNodeWithContentDescription("Delete").performClick()
+
+        // Empty state must be restored
+        composeRule.waitUntil(10_000L) {
+            composeRule.onAllNodesWithText("No items yet.").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("No items yet.").assertIsDisplayed()
+    }
+
+    @Test
+    fun items_multipleItems_allShown() {
+        navigateToItems()
+        waitForItemsLoaded()
+
+        val ts = System.currentTimeMillis()
+        val item1 = "Alpha $ts"
+        val item2 = "Beta $ts"
+        val item3 = "Gamma $ts"
+
+        addItem(item1)
+        addItem(item2)
+        addItem(item3)
+
+        composeRule.onNodeWithText(item1).assertIsDisplayed()
+        composeRule.onNodeWithText(item2).assertIsDisplayed()
+        composeRule.onNodeWithText(item3).assertIsDisplayed()
+    }
+
+    // -------------------------------------------------------------------------
+    // Navigation tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun navigation_bottomTabs_switchBetweenDashboardAndItems() {
+        // @Before lands us on Dashboard — Sign Out button is visible
+        composeRule.onNodeWithText("Sign Out").assertIsDisplayed()
+
+        // Navigate to Items via bottom tab
+        composeRule.onAllNodesWithText("Items").filterToOne(hasClickAction()).performClick()
+        composeRule.waitUntil(10_000L) {
+            composeRule.onAllNodesWithText("Item name").fetchSemanticsNodes().isNotEmpty()
+        }
+        // "Item name" input visible → we are on the Items screen, not Dashboard
+        composeRule.onNodeWithText("Item name").assertIsDisplayed()
+
+        // Navigate back to Dashboard via bottom tab
+        composeRule.onAllNodesWithText("Dashboard").filterToOne(hasClickAction()).performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithText("Sign Out").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Sign Out").assertIsDisplayed()
+    }
+}
