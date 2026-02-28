@@ -120,7 +120,6 @@ jobs:
         with:
           resource-group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
           storage-account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
-          subscription: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           location: ${{ vars.AZURE_TF_STATE_LOCATION }}
 
       - name: Bootstrap GCS tfstate backend

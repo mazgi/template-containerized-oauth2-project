@@ -8,9 +8,6 @@ inputs:
   storage-account:
     description: 'Azure storage account name'
     required: true
-  subscription:
-    description: 'Azure subscription ID or name'
-    required: true
   location:
     description: 'Azure location'
     required: true
