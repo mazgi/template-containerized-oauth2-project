@@ -1,6 +1,13 @@
 locals {
   required_apis = [
+    "artifactregistry.googleapis.com",
+    "compute.googleapis.com",
     "dns.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com",
+    "servicenetworking.googleapis.com",
+    "sqladmin.googleapis.com",
+    "vpcaccess.googleapis.com",
   ]
 }
 
