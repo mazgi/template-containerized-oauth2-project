@@ -50,10 +50,10 @@ services:
       retries: 12
       start_period: 60s
 
-  web-app:
+  web:
     build:
       context: ./web/app
-      dockerfile: ../../Dockerfiles.d/web-app/Dockerfile
+      dockerfile: ../../Dockerfiles.d/web/Dockerfile
     command:
       - sh
       - -c
@@ -107,10 +107,10 @@ services:
     volumes:
       - .:/work
     depends_on:
-      web-app:
+      web:
         condition: service_healthy
     environment:
-      BASE_URL: http://web-app:3000
+      BASE_URL: http://web:3000
       CI: ${CI:-}
 
 volumes:
