@@ -1,4 +1,4 @@
-name: E2E Tests for Web App
+name: E2E Tests for Web
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
           cat <<'EOF' > .env
           DATABASE_URL=postgresql://postgres:password@db:5432/localauth
           PORT=4000
-          CORS_ORIGIN=http://localhost:3000,http://web-app:3000
+          CORS_ORIGIN=http://localhost:3000,http://web:3000
           JWT_ACCESS_EXPIRATION=15m
           JWT_REFRESH_EXPIRATION=7d
           FRONTEND_URL=http://localhost:3000
@@ -69,7 +69,7 @@ jobs:
 
       - name: Run E2E tests
         # The web-e2e-tests profile starts db → backend (runs
-        # prisma db push automatically) → web-app → web-e2e-tests in order,
+        # prisma db push automatically) → web → web-e2e-tests in order,
         # waiting for each healthcheck before proceeding.
         run: |
           docker compose --profile web-e2e-tests up \

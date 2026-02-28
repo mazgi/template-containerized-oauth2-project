@@ -1,6 +1,6 @@
 // Requests are proxied through the Next.js dev server via the /backend rewrite
 // rule in next.config.js. Using a relative path means the same code works for
-// browsers on the host (localhost:3000) and Playwright inside Docker (web-app:3000).
+// browsers on the host (localhost:3000) and Playwright inside Docker (web:3000).
 const API_BASE = '/backend'
 
 export interface User {
