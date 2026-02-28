@@ -7,7 +7,7 @@ on:
       - 'android/**'
       - 'backend/**'
       - 'compose.yaml'
-      - 'Dockerfiles.d/**'
+      - 'Dockerfiles.d/backend/**'
       - '.github/workflows/android.e2e-tests.yaml'
   pull_request:
     branches: [main]
@@ -15,7 +15,7 @@ on:
       - 'android/**'
       - 'backend/**'
       - 'compose.yaml'
-      - 'Dockerfiles.d/**'
+      - 'Dockerfiles.d/backend/**'
       - '.github/workflows/android.e2e-tests.yaml'
   workflow_dispatch:
 

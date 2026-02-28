@@ -6,12 +6,16 @@ on:
     paths:
       - 'macos-ios/**'
       - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/backend/**'
       - '.github/workflows/macos-ios.e2e-tests.yaml'
   pull_request:
     branches: [main]
     paths:
       - 'macos-ios/**'
       - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/backend/**'
       - '.github/workflows/macos-ios.e2e-tests.yaml'
   workflow_dispatch:
 
