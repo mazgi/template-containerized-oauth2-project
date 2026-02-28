@@ -1,0 +1,216 @@
+name: E2E Tests for Windows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'windows/**'
+      - 'backend/**'
+      - '.github/workflows/windows.e2e-tests.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'windows/**'
+      - 'backend/**'
+      - '.github/workflows/windows.e2e-tests.yaml'
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: windows-2025
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- PostgreSQL Setup ---
+      # PostgreSQL 17 is preinstalled on windows-2025 but the default PGDATA
+      # directory has permission issues (https://github.com/actions/runner-images/issues/13040).
+      # Workaround: initialize a new data directory in RUNNER_TEMP and start with pg_ctl.
+      # Uses trust auth so no password is needed for local connections.
+      - name: Start PostgreSQL
+        shell: pwsh
+        run: |
+          $env:Path = "$env:PGBIN;$env:Path"
+          $pgData = Join-Path $env:RUNNER_TEMP "pgdata"
+          & initdb -D $pgData -A trust -U postgres
+          & pg_ctl start -D $pgData -l (Join-Path $pgData "server.log")
+          for ($i = 1; $i -le 30; $i++) {
+            & pg_isready -h localhost -p 5432
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 1
+          }
+          & createdb -h localhost -U postgres localauth
+
+      # --- Node.js + pnpm ---
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # --- Backend Setup ---
+      # Write .env into backend/ (NestJS reads from working directory).
+      # Follows the macOS CI pattern: heredoc for non-secrets, echo for secrets.
+      - name: Create backend .env
+        shell: bash
+        run: |
+          cat <<'EOF' > backend/.env
+          DATABASE_URL=postgresql://postgres@localhost:5432/localauth
+          PORT=4000
+          CORS_ORIGIN=http://localhost:3000
+          JWT_ACCESS_EXPIRATION=15m
+          JWT_REFRESH_EXPIRATION=7d
+          FRONTEND_URL=http://localhost:3000
+          NATIVE_APP_URL_SCHEME=oauth2app
+          APPLE_CALLBACK_URL=http://localhost:4000/auth/apple/callback
+          APPLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/apple/native/callback
+          GH_CALLBACK_URL=http://localhost:4000/auth/github/callback
+          GH_NATIVE_CALLBACK_URL=http://localhost:4000/auth/github/native/callback
+          GOOGLE_CALLBACK_URL=http://localhost:4000/auth/google/callback
+          GOOGLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/google/native/callback
+          TWITTER_CALLBACK_URL=http://localhost:4000/auth/twitter/callback
+          TWITTER_NATIVE_CALLBACK_URL=http://localhost:4000/auth/twitter/native/callback
+          DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
+          DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
+          EOF
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend/.env
+          echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> backend/.env
+          echo "APPLE_CLIENT_ID=${{ secrets.APPLE_CLIENT_ID }}" >> backend/.env
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> backend/.env
+          echo "APPLE_KEY_ID=${{ secrets.APPLE_KEY_ID }}" >> backend/.env
+          echo "APPLE_PRIVATE_KEY=${{ secrets.APPLE_PRIVATE_KEY }}" >> backend/.env
+          echo "GH_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}" >> backend/.env
+          echo "GH_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}" >> backend/.env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> backend/.env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> backend/.env
+          echo "TWITTER_CLIENT_ID=${{ secrets.TWITTER_CLIENT_ID }}" >> backend/.env
+          echo "TWITTER_CLIENT_SECRET=${{ secrets.TWITTER_CLIENT_SECRET }}" >> backend/.env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> backend/.env
+          echo "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> backend/.env
+          echo "DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> backend/.env
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pnpm install
+
+      - name: Generate Prisma client and push schema
+        working-directory: backend
+        run: |
+          pnpm prisma:generate
+          pnpm prisma:push
+
+      - name: Start backend
+        working-directory: backend
+        shell: bash
+        run: |
+          set -a && source .env && set +a
+          nohup pnpm dev > $RUNNER_TEMP/backend.log 2>&1 &
+
+      - name: Wait for backend to be ready
+        shell: bash
+        run: |
+          echo "Waiting for backend at http://localhost:4000..."
+          for i in $(seq 1 36); do
+            curl -sf http://localhost:4000/api > /dev/null && echo "Backend is ready." && break
+            echo "  attempt $i/36 - retrying in 5s..."
+            sleep 5
+          done
+
+      # --- Enable Developer Mode ---
+      # Required for both WinAppDriver and MSIX sideloading (Add-AppxPackage -Register).
+      - name: Enable Developer Mode
+        shell: cmd
+        run: reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+
+      # --- Build and Deploy WinUI App ---
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('windows/**/*.csproj') }}
+          restore-keys: |
+            nuget-
+
+      - name: Build WinUI app
+        run: dotnet build windows/app/app.csproj -c Debug -p:Platform=x64
+
+      - name: Install Windows App SDK runtime
+        # The WinUI 3 app depends on Microsoft.WindowsAppRuntime.1.8 framework which is
+        # not preinstalled on CI runners. Download the installer directly from Microsoft.
+        shell: pwsh
+        run: |
+          $url = "https://aka.ms/windowsappsdk/1.8/latest/windowsappruntimeinstall-x64.exe"
+          $installer = Join-Path $env:RUNNER_TEMP "WindowsAppRuntimeInstall.exe"
+          Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing
+          Write-Host "Installing Windows App Runtime..."
+          & $installer --quiet --force
+          Write-Host "Installer exited with code $LASTEXITCODE"
+
+      - name: Deploy MSIX package (loose registration)
+        shell: pwsh
+        run: Add-AppxPackage -Register "windows\app\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64\AppxManifest.xml"
+
+      - name: Get Package Family Name
+        id: pkg
+        shell: pwsh
+        run: |
+          $pkg = Get-AppxPackage | Where-Object { $_.Name -like "*f0af5309*" }
+          $appId = "$($pkg.PackageFamilyName)!App"
+          echo "APP_ID=$appId" >> $env:GITHUB_OUTPUT
+          echo "Package Family Name: $appId"
+
+      # --- Appium Setup ---
+      # WinAppDriver is preinstalled on windows-2025 runners.
+      # appium-windows-driver discovers it automatically from the default path.
+      - name: Install Appium and Windows driver
+        run: |
+          npm install -g appium
+          appium driver install --source=npm appium-windows-driver
+
+      - name: Start Appium server
+        shell: bash
+        run: |
+          nohup appium server --log "$RUNNER_TEMP/appium.log" 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:4723/status > /dev/null && echo "Appium server is ready." && break
+            echo "  attempt $i/30 - retrying in 2s..."
+            sleep 2
+          done
+
+      # --- Run E2E Tests ---
+      - name: Run Windows E2E tests
+        shell: pwsh
+        run: |
+          $runsettings = @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <RunSettings>
+            <TestRunParameters>
+              <Parameter name="AppId" value="${{ steps.pkg.outputs.APP_ID }}" />
+            </TestRunParameters>
+          </RunSettings>
+          "@
+          $settingsPath = "$env:RUNNER_TEMP\test.runsettings"
+          $runsettings | Out-File -FilePath $settingsPath -Encoding utf8
+          dotnet test windows/e2e-tests/e2e-tests.csproj --settings $settingsPath --logger "trx;LogFileName=results.trx"
+
+      # --- Artifacts and Cleanup ---
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-e2e-test-results
+          path: windows/e2e-tests/TestResults/
+          retention-days: 7
+
+      - name: Print backend logs on failure
+        if: failure()
+        shell: bash
+        run: cat $RUNNER_TEMP/backend.log || true
+
+      - name: Print Appium logs on failure
+        if: failure()
+        shell: pwsh
+        run: Get-Content "$env:RUNNER_TEMP\appium.log" -ErrorAction SilentlyContinue

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <TestRunParameters>
+    <!-- The App ID follows the format: {Package.Identity.Name}_{PublisherIdHash}!App
+         Find your app's Package Family Name with:
+           Get-AppxPackage | Where-Object { $_.Name -like "*f0af5309*" } | Select-Object PackageFamilyName
+         Then append "!App" to the PackageFamilyName value. -->
+    <Parameter name="AppId" value="f0af5309-ba52-4773-93d7-6ff49f9dd240_yzekw4x8qxe1g!App" />
+  </TestRunParameters>
+</RunSettings>

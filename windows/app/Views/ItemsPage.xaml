@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="app.Views.ItemsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid Padding="24" RowDefinitions="Auto,Auto,Auto,*">
+
+        <!-- Input row -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+            <TextBox
+                x:Name="NewNameBox"
+                Grid.Column="0"
+                PlaceholderText="Item name"
+                Margin="0,0,8,0"
+                KeyDown="NewNameBox_KeyDown"
+                AutomationProperties.AutomationId="items_nameTextBox" />
+            <Button
+                x:Name="AddButton"
+                Grid.Column="1"
+                Content="Add"
+                Style="{StaticResource AccentButtonStyle}"
+                Click="AddButton_Click"
+                AutomationProperties.AutomationId="items_addButton" />
+        </Grid>
+
+        <!-- Error text -->
+        <TextBlock
+            x:Name="ErrorText"
+            Grid.Row="1"
+            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+            TextWrapping="Wrap"
+            Visibility="Collapsed"
+            Margin="0,0,0,8"
+            AutomationProperties.AutomationId="items_errorText" />
+
+        <!-- Divider -->
+        <Border
+            Grid.Row="2"
+            Height="1"
+            Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+            Margin="0,0,0,8" />
+
+        <!-- Content area -->
+        <Grid Grid.Row="3">
+            <!-- Loading spinner -->
+            <ProgressRing
+                x:Name="LoadingRing"
+                IsActive="False"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
+
+            <!-- Empty state -->
+            <TextBlock
+                x:Name="EmptyText"
+                Text="No items yet."
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Visibility="Collapsed"
+                AutomationProperties.AutomationId="items_emptyText" />
+
+            <!-- Items list -->
+            <ListView
+                x:Name="ItemsList"
+                SelectionMode="None"
+                Visibility="Collapsed">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                            <TextBlock
+                                Grid.Column="0"
+                                Text="{Binding Name}"
+                                VerticalAlignment="Center" />
+                            <Button
+                                Grid.Column="1"
+                                Click="DeleteButton_Click"
+                                Tag="{Binding Id}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                AutomationProperties.AutomationId="items_deleteButton">
+                                <FontIcon Glyph="&#xE74D;" FontSize="16"
+                                          Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+    </Grid>
+</Page>

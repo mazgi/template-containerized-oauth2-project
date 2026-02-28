@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="app.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            HorizontalAlignment="Center"
+            Width="400"
+            Padding="24"
+            Spacing="16">
+
+            <TextBlock
+                Text="Linked Accounts"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Margin="0,16,0,0" />
+
+            <TextBlock
+                x:Name="ErrorText"
+                Foreground="Red"
+                Visibility="Collapsed"
+                TextWrapping="Wrap" />
+
+            <!-- Apple -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Apple" VerticalAlignment="Center" />
+                <Button
+                    x:Name="AppleButton"
+                    Grid.Column="1"
+                    Click="AppleButton_Click"
+                    AutomationProperties.AutomationId="settings_appleButton" />
+            </Grid>
+
+            <!-- Discord -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Discord" VerticalAlignment="Center" />
+                <Button
+                    x:Name="DiscordButton"
+                    Grid.Column="1"
+                    Click="DiscordButton_Click"
+                    AutomationProperties.AutomationId="settings_discordButton" />
+            </Grid>
+
+            <!-- GitHub -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="GitHub" VerticalAlignment="Center" />
+                <Button
+                    x:Name="GithubButton"
+                    Grid.Column="1"
+                    Click="GithubButton_Click"
+                    AutomationProperties.AutomationId="settings_githubButton" />
+            </Grid>
+
+            <!-- Google -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Google" VerticalAlignment="Center" />
+                <Button
+                    x:Name="GoogleButton"
+                    Grid.Column="1"
+                    Click="GoogleButton_Click"
+                    AutomationProperties.AutomationId="settings_googleButton" />
+            </Grid>
+
+            <!-- X (Twitter) -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="X (Twitter)" VerticalAlignment="Center" />
+                <Button
+                    x:Name="TwitterButton"
+                    Grid.Column="1"
+                    Click="TwitterButton_Click"
+                    AutomationProperties.AutomationId="settings_twitterButton" />
+            </Grid>
+
+            <!-- Delete Account -->
+            <TextBlock
+                Text="Delete Account"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Margin="0,24,0,0" />
+
+            <TextBlock
+                Text="Permanently delete your account and all associated data. This action cannot be undone."
+                TextWrapping="Wrap"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Margin="0,4,0,0" />
+
+            <Button
+                x:Name="DeleteAccountButton"
+                Content="Delete Account"
+                Click="DeleteAccountButton_Click"
+                Foreground="Red"
+                BorderBrush="Red"
+                AutomationProperties.AutomationId="settings_deleteAccountButton"
+                Margin="0,8,0,0" />
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
