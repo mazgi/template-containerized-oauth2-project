@@ -1,0 +1,110 @@
+# Google Cloud Run
+
+See [Cloud Deployment](cloud-deployment.md) for production image builds and architecture overview.
+
+## Prerequisites
+
+- A Google Cloud project with billing enabled
+- `gcloud` CLI authenticated (`gcloud auth application-default login`)
+- Docker Desktop running (Terraform runs inside a container)
+
+## 1. Create the Terraform state bucket
+
+```sh
+gsutil mb -p YOUR_PROJECT_ID -l us-central1 gs://YOUR_BUCKET_NAME
+gsutil versioning set on gs://YOUR_BUCKET_NAME
+```
+
+Then update the `bucket` value in both `iac/google/versions.tf` and `iac/google/ephemeral/versions.tf`.
+
+## 2. Configure variables
+
+```sh
+cp iac/google/terraform.tfvars.example iac/google/terraform.tfvars
+cp iac/google/ephemeral/terraform.tfvars.example iac/google/ephemeral/terraform.tfvars
+```
+
+Edit `iac/google/terraform.tfvars`:
+
+- `gcp_project_id` — your GCP project ID
+
+Edit `iac/google/ephemeral/terraform.tfvars`:
+
+- `gcp_project_id` — your GCP project ID
+- `backend_image` / `web_image` — placeholder values are fine for the first run (Artifact Registry is created in persistent layer)
+- `database_password`, `jwt_secret`, `jwt_refresh_secret`, `session_secret` — generate with `openssl rand -base64 32`
+- `frontend_url` / `backend_base_url` — use placeholder values for the first apply, then update after getting Cloud Run URIs
+
+## 3. Create persistent infrastructure and push images
+
+```sh
+docker compose --profile=iac run --rm iac -chdir=google init
+docker compose --profile=iac run --rm iac -chdir=google apply -var-file=terraform.tfvars
+```
+
+Then build and push the production images:
+
+```sh
+# Authenticate Docker with Artifact Registry
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+# Build and push backend
+docker build \
+  -f Dockerfiles.d/backend-production/Dockerfile \
+  -t us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/backend:latest \
+  backend
+docker push us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/backend:latest
+
+# Build and push web
+docker build \
+  -f Dockerfiles.d/web-production/Dockerfile \
+  -t us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/web:latest \
+  web/app
+docker push us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/web:latest
+```
+
+Update `backend_image` and `web_image` in `iac/google/ephemeral/terraform.tfvars` with the full image URIs.
+
+## 4. Deploy ephemeral infrastructure
+
+```sh
+docker compose --profile=iac run --rm iac -chdir=google/ephemeral init
+docker compose --profile=iac run --rm iac -chdir=google/ephemeral apply -var-file=terraform.tfvars
+```
+
+After the first apply, get the Cloud Run service URLs:
+
+```sh
+docker compose --profile=iac run --rm iac -chdir=google/ephemeral output
+```
+
+Copy the `backend_url` and `web_url` values into `iac/google/ephemeral/terraform.tfvars` as `backend_base_url` and `frontend_url`, then apply again:
+
+```sh
+docker compose --profile=iac run --rm iac -chdir=google/ephemeral apply -var-file=terraform.tfvars
+```
+
+This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth2 callback URLs with the actual Cloud Run URIs.
+
+## 5. Tear down (after testing)
+
+```sh
+docker compose --profile=iac run --rm iac -chdir=google/ephemeral destroy -var-file=terraform.tfvars
+```
+
+Persistent Artifact Registry and API enablement remain — images are available for the next test cycle.
+
+## Resources created
+
+| Layer | Resource | Description |
+|-------|----------|-------------|
+| Persistent | Project Services | API enablement (Cloud Run, SQL Admin, etc.) |
+| Persistent | Artifact Registry | Docker image repository |
+| Persistent | VPC, Subnets, Peering | Private network for Cloud SQL |
+| Ephemeral | VPC Connector | Cloud Run → VPC access (~$20/mo) |
+| Ephemeral | Cloud SQL (PostgreSQL 17) | Database instance + database + user |
+| Ephemeral | Cloud Run (backend) | NestJS API on port 4000 |
+| Ephemeral | Cloud Run (web) | Static site + Go reverse proxy on port 3000 |
+| Ephemeral | IAM bindings | Public access (`allUsers` → `roles/run.invoker`) |
+
+> **Note:** Cloud SQL has `deletion_protection = false` for template convenience. Enable it for production use.
