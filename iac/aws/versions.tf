@@ -8,12 +8,13 @@
 # Then update the backend block below.
 
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 1.10"
 
   backend "s3" {
-    bucket = "REPLACE_WITH_YOUR_BUCKET_NAME"
-    key    = "terraform/state/terraform.tfstate"
-    region = "us-east-1"
+    bucket       = "REPLACE_WITH_YOUR_BUCKET_NAME"
+    key          = "terraform/state/terraform.tfstate"
+    region       = "us-east-1"
+    use_lockfile = true
   }
 
   required_providers {
