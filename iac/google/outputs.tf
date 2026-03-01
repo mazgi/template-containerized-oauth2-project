@@ -34,47 +34,47 @@ output "private_vpc_peering_connection" {
 
 output "secret_database_url_id" {
   description = "Secret Manager secret ID for DATABASE_URL"
-  value       = google_secret_manager_secret.backend_database_url.secret_id
+  value       = google_secret_manager_secret.backend_database_url.id
 }
 
 output "secret_jwt_secret_id" {
   description = "Secret Manager secret ID for AUTH_JWT_SECRET"
-  value       = google_secret_manager_secret.backend_jwt_secret.secret_id
+  value       = google_secret_manager_secret.backend_jwt_secret.id
 }
 
 output "secret_jwt_refresh_secret_id" {
   description = "Secret Manager secret ID for AUTH_JWT_REFRESH_SECRET"
-  value       = google_secret_manager_secret.backend_jwt_refresh_secret.secret_id
+  value       = google_secret_manager_secret.backend_jwt_refresh_secret.id
 }
 
 output "secret_session_secret_id" {
   description = "Secret Manager secret ID for AUTH_SESSION_SECRET"
-  value       = google_secret_manager_secret.backend_session_secret.secret_id
+  value       = google_secret_manager_secret.backend_session_secret.id
 }
 
 output "secret_apple_private_key_id" {
   description = "Secret Manager secret ID for AUTH_APPLE_PRIVATE_KEY"
-  value       = google_secret_manager_secret.backend_apple_private_key.secret_id
+  value       = google_secret_manager_secret.backend_apple_private_key.id
 }
 
 output "secret_discord_client_secret_id" {
   description = "Secret Manager secret ID for AUTH_DISCORD_CLIENT_SECRET"
-  value       = google_secret_manager_secret.backend_discord_client_secret.secret_id
+  value       = google_secret_manager_secret.backend_discord_client_secret.id
 }
 
 output "secret_gh_client_secret_id" {
   description = "Secret Manager secret ID for AUTH_GITHUB_CLIENT_SECRET"
-  value       = google_secret_manager_secret.backend_gh_client_secret.secret_id
+  value       = google_secret_manager_secret.backend_gh_client_secret.id
 }
 
 output "secret_google_client_secret_id" {
   description = "Secret Manager secret ID for AUTH_GOOGLE_CLIENT_SECRET"
-  value       = google_secret_manager_secret.backend_google_client_secret.secret_id
+  value       = google_secret_manager_secret.backend_google_client_secret.id
 }
 
 output "secret_twitter_client_secret_id" {
   description = "Secret Manager secret ID for AUTH_TWITTER_CLIENT_SECRET"
-  value       = google_secret_manager_secret.backend_twitter_client_secret.secret_id
+  value       = google_secret_manager_secret.backend_twitter_client_secret.id
 }
 
 # -----------------------------------------------------------------------------
