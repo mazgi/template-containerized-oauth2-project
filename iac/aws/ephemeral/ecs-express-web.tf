@@ -25,7 +25,7 @@ resource "aws_ecs_express_gateway_service" "web" {
     }
     environment {
       name  = "BACKEND_URL"
-      value = aws_ecs_express_gateway_service.backend.dns_name
+      value = aws_ecs_express_gateway_service.backend.ingress_paths[0].endpoint
     }
   }
 }

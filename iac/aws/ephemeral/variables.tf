@@ -11,6 +11,21 @@ variable "aws_region" {
 }
 
 # -----------------------------------------------------------------------------
+# Terraform remote state (persistent layer)
+# -----------------------------------------------------------------------------
+
+variable "aws_tf_state_bucket" {
+  description = "S3 bucket storing the persistent layer's Terraform state"
+  type        = string
+}
+
+variable "aws_tf_state_region" {
+  description = "AWS region of the S3 state bucket"
+  type        = string
+  default     = "us-east-1"
+}
+
+# -----------------------------------------------------------------------------
 # Container image tag
 # The registry URL is derived from the persistent layer's ECR repository outputs.
 # -----------------------------------------------------------------------------
