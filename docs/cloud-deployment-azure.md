@@ -6,6 +6,10 @@ See [Cloud Deployment](cloud-deployment.md) for production image builds and arch
 
 - An Azure subscription with appropriate permissions
 - Azure CLI authenticated (`az login`)
+- `Microsoft.App` resource provider registered (required for Container Apps):
+  ```sh
+  az provider register --namespace Microsoft.App
+  ```
 - Docker Desktop running (Terraform runs inside a container)
 
 ## 1. Create the Terraform state storage
