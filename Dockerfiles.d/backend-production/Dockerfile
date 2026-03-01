@@ -6,6 +6,10 @@
 # binary works on both amd64 and arm64 (Chainguard Wolfi lacks compatibility).
 FROM node:24-bookworm-slim AS builder
 
+# openssl is required by Prisma to detect the correct engine binary
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
 # enable corepack so pnpm is available
 RUN corepack enable && corepack prepare pnpm@latest --activate \
     && npm install -g npm-check-updates sort-package-json
