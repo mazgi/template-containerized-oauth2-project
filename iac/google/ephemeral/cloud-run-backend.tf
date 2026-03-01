@@ -223,9 +223,10 @@ resource "google_cloud_run_v2_service" "backend" {
         failure_threshold     = 12
       }
 
+      # Cloud Run does not support tcp_socket for liveness probes.
       liveness_probe {
-        tcp_socket {
-          port = 4000
+        http_get {
+          path = "/api"
         }
         period_seconds = 30
       }
