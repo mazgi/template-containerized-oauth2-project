@@ -7,10 +7,10 @@ import { TwitterProfile } from './twitter.strategy';
 export class TwitterNativeStrategy extends PassportStrategy(Strategy, 'twitter-native') {
   constructor() {
     super({
-      clientID: process.env.TWITTER_CLIENT_ID ?? '',
-      clientSecret: process.env.TWITTER_CLIENT_SECRET ?? '',
+      clientID: process.env.AUTH_TWITTER_CLIENT_ID ?? '',
+      clientSecret: process.env.AUTH_TWITTER_CLIENT_SECRET ?? '',
       callbackURL:
-        process.env.TWITTER_NATIVE_CALLBACK_URL ??
+        process.env.AUTH_TWITTER_NATIVE_CALLBACK_URL ??
         'http://localhost:4000/auth/twitter/native/callback',
       clientType: 'confidential',
       scope: ['tweet.read', 'users.read', 'offline.access'],

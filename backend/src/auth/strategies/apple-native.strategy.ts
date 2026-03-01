@@ -8,15 +8,15 @@ import { AppleProfile } from './apple.strategy';
 export class AppleNativeStrategy extends PassportStrategy(AppleStrategyBase, 'apple-native') {
   constructor() {
     super({
-      clientID: process.env.APPLE_CLIENT_ID ?? '',
-      teamID: process.env.APPLE_TEAM_ID ?? '',
-      keyID: process.env.APPLE_KEY_ID ?? '',
-      privateKeyString: (process.env.APPLE_PRIVATE_KEY ?? '').replace(
+      clientID: process.env.AUTH_APPLE_CLIENT_ID ?? '',
+      teamID: process.env.AUTH_APPLE_TEAM_ID ?? '',
+      keyID: process.env.AUTH_APPLE_KEY_ID ?? '',
+      privateKeyString: (process.env.AUTH_APPLE_PRIVATE_KEY ?? '').replace(
         /\\n/g,
         '\n',
       ),
       callbackURL:
-        process.env.APPLE_NATIVE_CALLBACK_URL ??
+        process.env.AUTH_APPLE_NATIVE_CALLBACK_URL ??
         'http://localhost:4000/auth/apple/native/callback',
       passReqToCallback: true,
       scope: ['name', 'email'],

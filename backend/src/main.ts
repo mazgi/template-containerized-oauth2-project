@@ -12,7 +12,7 @@ async function bootstrap() {
 
   app.use(
     session({
-      secret: process.env.SESSION_SECRET ?? 'change-me-session',
+      secret: process.env.AUTH_SESSION_SECRET ?? 'change-me-session',
       resave: false,
       saveUninitialized: false,
     }),

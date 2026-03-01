@@ -12,10 +12,10 @@ export type TwitterProfile = {
 export class TwitterStrategy extends PassportStrategy(Strategy, 'twitter') {
   constructor() {
     super({
-      clientID: process.env.TWITTER_CLIENT_ID ?? '',
-      clientSecret: process.env.TWITTER_CLIENT_SECRET ?? '',
+      clientID: process.env.AUTH_TWITTER_CLIENT_ID ?? '',
+      clientSecret: process.env.AUTH_TWITTER_CLIENT_SECRET ?? '',
       callbackURL:
-        process.env.TWITTER_CALLBACK_URL ??
+        process.env.AUTH_TWITTER_CALLBACK_URL ??
         'http://localhost:4000/auth/twitter/callback',
       clientType: 'confidential',
       scope: ['tweet.read', 'users.read', 'offline.access'],

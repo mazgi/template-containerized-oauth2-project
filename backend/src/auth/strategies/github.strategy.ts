@@ -12,10 +12,10 @@ export type GithubProfile = {
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor() {
     super({
-      clientID: process.env.GH_CLIENT_ID ?? '',
-      clientSecret: process.env.GH_CLIENT_SECRET ?? '',
+      clientID: process.env.AUTH_GITHUB_CLIENT_ID ?? '',
+      clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET ?? '',
       callbackURL:
-        process.env.GH_CALLBACK_URL ??
+        process.env.AUTH_GITHUB_CALLBACK_URL ??
         'http://localhost:4000/auth/github/callback',
       scope: ['read:user'],
     });

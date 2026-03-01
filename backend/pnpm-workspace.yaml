@@ -5,3 +5,5 @@ overrides:
   lodash@>=4.0.0 <=4.17.22: '>=4.17.23'
   minimatch@<3.1.4: '>=3.1.4'
   minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
+  multer@<2.1.0: '>=2.1.0'
+  serialize-javascript@<=7.0.2: '>=7.0.3'

@@ -7,10 +7,10 @@ import { DiscordProfile } from './discord.strategy';
 export class DiscordNativeStrategy extends PassportStrategy(Strategy, 'discord-native') {
   constructor() {
     super({
-      clientID: process.env.DISCORD_CLIENT_ID ?? '',
-      clientSecret: process.env.DISCORD_CLIENT_SECRET ?? '',
+      clientID: process.env.AUTH_DISCORD_CLIENT_ID ?? '',
+      clientSecret: process.env.AUTH_DISCORD_CLIENT_SECRET ?? '',
       callbackURL:
-        process.env.DISCORD_NATIVE_CALLBACK_URL ??
+        process.env.AUTH_DISCORD_NATIVE_CALLBACK_URL ??
         'http://localhost:4000/auth/discord/native/callback',
       scope: ['identify', 'email'],
     });

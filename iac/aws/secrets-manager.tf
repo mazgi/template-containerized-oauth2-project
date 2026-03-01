@@ -9,49 +9,49 @@ resource "aws_secretsmanager_secret" "backend_database_url" {
 }
 
 resource "aws_secretsmanager_secret" "backend_jwt_secret" {
-  name                    = "${var.app_unique_id}/backend/JWT_SECRET"
+  name                    = "${var.app_unique_id}/backend/AUTH_JWT_SECRET"
   description             = "JWT access token signing secret"
   recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "backend_jwt_refresh_secret" {
-  name                    = "${var.app_unique_id}/backend/JWT_REFRESH_SECRET"
+  name                    = "${var.app_unique_id}/backend/AUTH_JWT_REFRESH_SECRET"
   description             = "JWT refresh token signing secret"
   recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "backend_session_secret" {
-  name                    = "${var.app_unique_id}/backend/SESSION_SECRET"
+  name                    = "${var.app_unique_id}/backend/AUTH_SESSION_SECRET"
   description             = "Express session secret"
   recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "backend_apple_private_key" {
-  name                    = "${var.app_unique_id}/backend/APPLE_PRIVATE_KEY"
+  name                    = "${var.app_unique_id}/backend/AUTH_APPLE_PRIVATE_KEY"
   description             = "Apple Sign-in private key (.p8)"
   recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "backend_discord_client_secret" {
-  name                    = "${var.app_unique_id}/backend/DISCORD_CLIENT_SECRET"
+  name                    = "${var.app_unique_id}/backend/AUTH_DISCORD_CLIENT_SECRET"
   description             = "Discord OAuth2 client secret"
   recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "backend_gh_client_secret" {
-  name                    = "${var.app_unique_id}/backend/GH_CLIENT_SECRET"
+  name                    = "${var.app_unique_id}/backend/AUTH_GITHUB_CLIENT_SECRET"
   description             = "GitHub OAuth App client secret"
   recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "backend_google_client_secret" {
-  name                    = "${var.app_unique_id}/backend/GOOGLE_CLIENT_SECRET"
+  name                    = "${var.app_unique_id}/backend/AUTH_GOOGLE_CLIENT_SECRET"
   description             = "Google OAuth2 client secret"
   recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "backend_twitter_client_secret" {
-  name                    = "${var.app_unique_id}/backend/TWITTER_CLIENT_SECRET"
+  name                    = "${var.app_unique_id}/backend/AUTH_TWITTER_CLIENT_SECRET"
   description             = "X (Twitter) OAuth2 client secret"
   recovery_window_in_days = 0
 }

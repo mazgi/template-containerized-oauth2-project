@@ -12,10 +12,10 @@ export type DiscordProfile = {
 export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
   constructor() {
     super({
-      clientID: process.env.DISCORD_CLIENT_ID ?? '',
-      clientSecret: process.env.DISCORD_CLIENT_SECRET ?? '',
+      clientID: process.env.AUTH_DISCORD_CLIENT_ID ?? '',
+      clientSecret: process.env.AUTH_DISCORD_CLIENT_SECRET ?? '',
       callbackURL:
-        process.env.DISCORD_CALLBACK_URL ??
+        process.env.AUTH_DISCORD_CALLBACK_URL ??
         'http://localhost:4000/auth/discord/callback',
       scope: ['identify', 'email'],
     });

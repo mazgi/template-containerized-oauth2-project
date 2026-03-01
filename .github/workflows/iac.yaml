@@ -104,8 +104,8 @@ jobs:
         if: matrix.provider == 'google'
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_SERVICE_ACCOUNT }}
 
       - name: Bootstrap S3 tfstate backend
         if: matrix.provider == 'aws'
@@ -126,9 +126,9 @@ jobs:
         if: matrix.provider == 'google'
         uses: ./.github/actions/bootstrap-tfstate-gcs
         with:
-          bucket: ${{ vars.GCP_TF_STATE_BUCKET }}
-          location: ${{ vars.GCP_TF_STATE_LOCATION }}
-          project-id: ${{ vars.GCP_PROJECT_ID }}
+          bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
+          location: ${{ vars.GOOGLE_TF_STATE_LOCATION }}
+          project-id: ${{ vars.GOOGLE_PROJECT_ID }}
 
       - name: Terraform Init
         run: |
@@ -146,7 +146,7 @@ jobs:
               ;;
             google)
               terraform -chdir=iac/google init \
-                -backend-config="bucket=${{ vars.GCP_TF_STATE_BUCKET }}"
+                -backend-config="bucket=${{ vars.GOOGLE_TF_STATE_BUCKET }}"
               ;;
           esac
 
@@ -156,9 +156,9 @@ jobs:
       - name: Terraform Plan
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
-          TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-          TF_VAR_gcp_region: ${{ vars.GCP_REGION }}
-          TF_VAR_gcp_zone: ${{ vars.GCP_ZONE }}
+          TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
+          TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
+          TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
         run: |
@@ -174,9 +174,9 @@ jobs:
         if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
-          TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-          TF_VAR_gcp_region: ${{ vars.GCP_REGION }}
-          TF_VAR_gcp_zone: ${{ vars.GCP_ZONE }}
+          TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
+          TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
+          TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
         run: terraform -chdir=iac/${{ matrix.provider }} apply -auto-approve -input=false
