@@ -5,7 +5,7 @@ resource "google_compute_network" "main" {
 
 resource "google_compute_subnetwork" "main" {
   name          = "${var.app_unique_id}-subnet"
-  ip_cidr_range = "10.0.0.0/24"
+  ip_cidr_range = "10.1.0.0/24"
   region        = var.gcp_region
   network       = google_compute_network.main.id
 }
@@ -23,6 +23,8 @@ resource "google_service_networking_connection" "private_vpc" {
   network                 = google_compute_network.main.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip.name]
+
+  depends_on = [google_project_service.apis["servicenetworking.googleapis.com"]]
 }
 
 # Dedicated subnet for VPC connector (requires /28)
