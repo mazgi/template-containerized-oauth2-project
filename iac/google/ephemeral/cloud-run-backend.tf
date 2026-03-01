@@ -26,10 +26,7 @@ resource "google_cloud_run_v2_service" "backend" {
         container_port = 4000
       }
 
-      env {
-        name  = "PORT"
-        value = "4000"
-      }
+      # PORT is reserved by Cloud Run — set automatically from container_port.
       env {
         name  = "CORS_ORIGIN"
         value = local.frontend_url

@@ -17,10 +17,7 @@ resource "google_cloud_run_v2_service" "web" {
         container_port = 3000
       }
 
-      env {
-        name  = "PORT"
-        value = "3000"
-      }
+      # PORT is reserved by Cloud Run — set automatically from container_port.
       env {
         name  = "BACKEND_URL"
         value = google_cloud_run_v2_service.backend.uri
