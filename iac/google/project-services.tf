@@ -4,6 +4,7 @@ locals {
     "cloudresourcemanager.googleapis.com",
     "compute.googleapis.com",
     "dns.googleapis.com",
+    "iam.googleapis.com",
     "run.googleapis.com",
     "secretmanager.googleapis.com",
     "servicenetworking.googleapis.com",
