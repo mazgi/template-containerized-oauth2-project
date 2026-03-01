@@ -10,6 +10,15 @@ variable "gcp_project_id" {
 }
 
 # -----------------------------------------------------------------------------
+# Terraform remote state (persistent layer)
+# -----------------------------------------------------------------------------
+
+variable "google_tf_state_bucket" {
+  description = "GCS bucket storing the persistent layer's Terraform state"
+  type        = string
+}
+
+# -----------------------------------------------------------------------------
 # Container image tag
 # The registry URL is derived from the persistent layer's Artifact Registry output.
 # -----------------------------------------------------------------------------

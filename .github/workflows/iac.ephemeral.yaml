@@ -163,6 +163,11 @@ jobs:
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
           TF_VAR_image_tag: ${{ vars.TF_VAR_IMAGE_TAG || 'latest' }}
+          TF_VAR_aws_tf_state_bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
+          TF_VAR_aws_tf_state_region: ${{ vars.AWS_TF_STATE_REGION }}
+          TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
+          TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
+          TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
         run: |
           terraform -chdir=iac/${{ inputs.provider }}/ephemeral plan -no-color -input=false 2>&1 | tee plan-output.txt
           {
@@ -183,6 +188,11 @@ jobs:
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
           TF_VAR_image_tag: ${{ vars.TF_VAR_IMAGE_TAG || 'latest' }}
+          TF_VAR_aws_tf_state_bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
+          TF_VAR_aws_tf_state_region: ${{ vars.AWS_TF_STATE_REGION }}
+          TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
+          TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
+          TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral apply -auto-approve -input=false
 
       - name: Terraform Destroy
@@ -196,4 +206,9 @@ jobs:
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
           TF_VAR_image_tag: ${{ vars.TF_VAR_IMAGE_TAG || 'latest' }}
+          TF_VAR_aws_tf_state_bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
+          TF_VAR_aws_tf_state_region: ${{ vars.AWS_TF_STATE_REGION }}
+          TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
+          TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
+          TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral destroy -auto-approve -input=false
