@@ -1,0 +1,192 @@
+name: IaC Ephemeral
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: 'Cloud provider'
+        required: true
+        type: choice
+        options:
+          - aws
+          - azure
+          - google
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials
+        if: inputs.provider == 'aws'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Authenticate to Azure
+        if: inputs.provider == 'azure'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ secrets.ARM_TENANT_ID }}
+          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      - name: Set Azure OIDC environment for Terraform
+        if: inputs.provider == 'azure'
+        run: |
+          echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+          echo "ARM_CLIENT_ID=${{ secrets.ARM_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+
+      - name: Authenticate to GCP
+        if: inputs.provider == 'google'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Bootstrap S3 tfstate backend
+        if: inputs.provider == 'aws'
+        uses: ./.github/actions/bootstrap-tfstate-s3
+        with:
+          bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
+          region: ${{ vars.AWS_TF_STATE_REGION }}
+
+      - name: Bootstrap Azure tfstate backend
+        if: inputs.provider == 'azure'
+        uses: ./.github/actions/bootstrap-tfstate-azurerm
+        with:
+          resource-group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
+          storage-account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
+          location: ${{ vars.AZURE_TF_STATE_LOCATION }}
+
+      - name: Bootstrap GCS tfstate backend
+        if: inputs.provider == 'google'
+        uses: ./.github/actions/bootstrap-tfstate-gcs
+        with:
+          bucket: ${{ vars.GCP_TF_STATE_BUCKET }}
+          location: ${{ vars.GCP_TF_STATE_LOCATION }}
+          project-id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Terraform Init (persistent)
+        run: |
+          case "${{ inputs.provider }}" in
+            aws)
+              terraform -chdir=iac/aws init \
+                -backend-config="bucket=${{ vars.AWS_TF_STATE_BUCKET }}" \
+                -backend-config="region=${{ vars.AWS_TF_STATE_REGION }}"
+              ;;
+            azure)
+              terraform -chdir=iac/azure init \
+                -backend-config="resource_group_name=${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}" \
+                -backend-config="storage_account_name=${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}" \
+                -backend-config="container_name=tfstate"
+              ;;
+            google)
+              terraform -chdir=iac/google init \
+                -backend-config="bucket=${{ vars.GCP_TF_STATE_BUCKET }}"
+              ;;
+          esac
+
+      - name: Verify persistent layer has no drift
+        env:
+          TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
+          TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_azure_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_azure_container_registry_name: ${{ vars.AZURE_CONTAINER_REGISTRY_NAME }}
+          TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
+        run: |
+          set +e
+          terraform -chdir=iac/${{ inputs.provider }} plan -no-color -detailed-exitcode -input=false
+          exit_code=$?
+          set -e
+          if [ "$exit_code" -eq 1 ]; then
+            echo "::error::Persistent layer plan failed."
+            exit 1
+          elif [ "$exit_code" -eq 2 ]; then
+            echo "::error::Persistent layer has pending changes. Apply them via the 'IaC Persistent' workflow first."
+            exit 1
+          fi
+
+      - name: Terraform Init (ephemeral)
+        run: |
+          case "${{ inputs.provider }}" in
+            aws)
+              terraform -chdir=iac/aws/ephemeral init \
+                -backend-config="bucket=${{ vars.AWS_TF_STATE_BUCKET }}" \
+                -backend-config="region=${{ vars.AWS_TF_STATE_REGION }}"
+              ;;
+            azure)
+              terraform -chdir=iac/azure/ephemeral init \
+                -backend-config="resource_group_name=${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}" \
+                -backend-config="storage_account_name=${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}" \
+                -backend-config="container_name=tfstate"
+              ;;
+            google)
+              terraform -chdir=iac/google/ephemeral init \
+                -backend-config="bucket=${{ vars.GCP_TF_STATE_BUCKET }}"
+              ;;
+          esac
+
+      - name: Terraform Validate
+        if: inputs.action != 'destroy'
+        run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral validate
+
+      - name: Terraform Plan
+        if: inputs.action == 'plan' || inputs.action == 'apply'
+        env:
+          TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
+          TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_azure_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
+          TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
+          TF_VAR_image_tag: ${{ vars.TF_VAR_IMAGE_TAG || 'latest' }}
+        run: |
+          terraform -chdir=iac/${{ inputs.provider }}/ephemeral plan -no-color -input=false 2>&1 | tee plan-output.txt
+          {
+            echo "### Terraform Plan — ${{ inputs.provider }}/ephemeral"
+            echo '```'
+            cat plan-output.txt
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Terraform Apply
+        if: inputs.action == 'apply'
+        env:
+          TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
+          TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_azure_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
+          TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
+          TF_VAR_image_tag: ${{ vars.TF_VAR_IMAGE_TAG || 'latest' }}
+        run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral apply -auto-approve -input=false
+
+      - name: Terraform Destroy
+        if: inputs.action == 'destroy'
+        env:
+          TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
+          TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_azure_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
+          TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
+          TF_VAR_image_tag: ${{ vars.TF_VAR_IMAGE_TAG || 'latest' }}
+        run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral destroy -auto-approve -input=false

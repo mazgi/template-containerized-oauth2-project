@@ -17,6 +17,9 @@ GCP_TF_STATE_BUCKET=my-terraform-state
 GCP_TF_STATE_LOCATION=us
 GCP_PROJECT_ID=my-gcp-project
 
+# App
+TF_VAR_APP_UNIQUE_ID=oauth2-app
+
 # DNS (service URLs are derived: https://{web,backend}.{cdp}.{app_unique_id}.{domain})
 TF_VAR_BASE_DOMAIN_NAME=example.com
 
