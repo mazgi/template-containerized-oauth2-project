@@ -157,8 +157,9 @@ jobs:
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
           TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_gcp_region: ${{ vars.GCP_REGION }}
+          TF_VAR_gcp_zone: ${{ vars.GCP_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_container_registry_name: ${{ vars.AZURE_CONTAINER_REGISTRY_NAME }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
         run: |
           terraform -chdir=iac/${{ matrix.provider }} plan -no-color -input=false 2>&1 | tee plan-output.txt
@@ -174,7 +175,8 @@ jobs:
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
           TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_gcp_region: ${{ vars.GCP_REGION }}
+          TF_VAR_gcp_zone: ${{ vars.GCP_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_container_registry_name: ${{ vars.AZURE_CONTAINER_REGISTRY_NAME }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
         run: terraform -chdir=iac/${{ matrix.provider }} apply -auto-approve -input=false

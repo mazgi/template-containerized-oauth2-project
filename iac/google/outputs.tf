@@ -1,3 +1,13 @@
+output "gcp_region" {
+  description = "GCP region"
+  value       = var.gcp_region
+}
+
+output "gcp_zone" {
+  description = "GCP zone"
+  value       = var.gcp_zone
+}
+
 output "artifact_registry_repository" {
   description = "Artifact Registry repository path for docker push"
   value       = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/${google_artifact_registry_repository.docker.repository_id}"

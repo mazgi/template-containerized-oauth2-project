@@ -16,12 +16,6 @@ variable "azure_location" {
   default     = "eastus"
 }
 
-variable "azure_container_registry_name" {
-  description = "Azure Container Registry name (must be globally unique, alphanumeric only)"
-  type        = string
-  default     = ""
-}
-
 variable "base_domain_name" {
   description = "Base domain name for DNS zone (e.g. example.com). Zone: azure.{app_unique_id}.{base_domain_name}"
   type        = string

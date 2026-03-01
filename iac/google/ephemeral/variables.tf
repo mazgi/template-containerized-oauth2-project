@@ -9,18 +9,6 @@ variable "gcp_project_id" {
   type        = string
 }
 
-variable "gcp_region" {
-  description = "GCP region"
-  type        = string
-  default     = "us-central1"
-}
-
-variable "gcp_zone" {
-  description = "GCP zone"
-  type        = string
-  default     = "us-central1-a"
-}
-
 # -----------------------------------------------------------------------------
 # Container image tag
 # The registry URL is derived from the persistent layer's Artifact Registry output.

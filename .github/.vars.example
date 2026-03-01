@@ -24,9 +24,6 @@ AZURE_TF_STATE_STORAGE_ACCOUNT=myterraformstate
 # Azure region for the Terraform state storage account.
 AZURE_TF_STATE_LOCATION=eastus
 
-# Azure Container Registry name (used by persistent layer and production image push).
-AZURE_CONTAINER_REGISTRY_NAME=myregistry
-
 # Azure AD application (service principal) client ID for OIDC authentication.
 ARM_CLIENT_ID=00000000-0000-0000-0000-000000000000
 
@@ -47,8 +44,11 @@ GCP_TF_STATE_LOCATION=us
 # GCP project ID (used for IaC and production image push).
 GCP_PROJECT_ID=my-gcp-project
 
-# GCP region for Artifact Registry (optional, defaults to us-central1).
+# GCP region (optional, defaults to us-central1).
 GCP_REGION=us-central1
+
+# GCP zone (optional, defaults to us-central1-a).
+GCP_ZONE=us-central1-a
 
 # Workload Identity Federation provider resource name for OIDC authentication.
 GCP_WORKLOAD_IDENTITY_PROVIDER=projects/123456789/locations/global/workloadIdentityPools/github/providers/github
