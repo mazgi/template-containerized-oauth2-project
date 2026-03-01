@@ -84,7 +84,7 @@ export class AuthService {
     let payload: { sub: string; email: string };
     try {
       payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET ?? 'change-me-refresh',
+        secret: process.env.AUTH_JWT_REFRESH_SECRET ?? 'change-me-refresh',
       });
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
@@ -474,13 +474,13 @@ export class AuthService {
     // expiresIn is typed as StringValue | number in @types/jsonwebtoken,
     // but env vars are plain string. Cast via unknown to satisfy the type.
     const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET ?? 'change-me',
-      expiresIn: (process.env.JWT_ACCESS_EXPIRATION ?? '15m') as unknown as number,
+      secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
+      expiresIn: (process.env.AUTH_JWT_ACCESS_EXPIRATION ?? '15m') as unknown as number,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET ?? 'change-me-refresh',
-      expiresIn: (process.env.JWT_REFRESH_EXPIRATION ?? '7d') as unknown as number,
+      secret: process.env.AUTH_JWT_REFRESH_SECRET ?? 'change-me-refresh',
+      expiresIn: (process.env.AUTH_JWT_REFRESH_EXPIRATION ?? '7d') as unknown as number,
     });
 
     // Query social accounts for flat response

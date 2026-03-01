@@ -462,7 +462,7 @@ export class AuthController {
     let payload: { sub: string };
     try {
       payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET ?? 'change-me',
+        secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
       });
     } catch {
       throw new UnauthorizedException('Invalid token');

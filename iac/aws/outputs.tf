@@ -81,42 +81,42 @@ output "secret_database_url_arn" {
 }
 
 output "secret_jwt_secret_arn" {
-  description = "Secrets Manager ARN for JWT_SECRET"
+  description = "Secrets Manager ARN for AUTH_JWT_SECRET"
   value       = aws_secretsmanager_secret.backend_jwt_secret.arn
 }
 
 output "secret_jwt_refresh_secret_arn" {
-  description = "Secrets Manager ARN for JWT_REFRESH_SECRET"
+  description = "Secrets Manager ARN for AUTH_JWT_REFRESH_SECRET"
   value       = aws_secretsmanager_secret.backend_jwt_refresh_secret.arn
 }
 
 output "secret_session_secret_arn" {
-  description = "Secrets Manager ARN for SESSION_SECRET"
+  description = "Secrets Manager ARN for AUTH_SESSION_SECRET"
   value       = aws_secretsmanager_secret.backend_session_secret.arn
 }
 
 output "secret_apple_private_key_arn" {
-  description = "Secrets Manager ARN for APPLE_PRIVATE_KEY"
+  description = "Secrets Manager ARN for AUTH_APPLE_PRIVATE_KEY"
   value       = aws_secretsmanager_secret.backend_apple_private_key.arn
 }
 
 output "secret_discord_client_secret_arn" {
-  description = "Secrets Manager ARN for DISCORD_CLIENT_SECRET"
+  description = "Secrets Manager ARN for AUTH_DISCORD_CLIENT_SECRET"
   value       = aws_secretsmanager_secret.backend_discord_client_secret.arn
 }
 
 output "secret_gh_client_secret_arn" {
-  description = "Secrets Manager ARN for GH_CLIENT_SECRET"
+  description = "Secrets Manager ARN for AUTH_GITHUB_CLIENT_SECRET"
   value       = aws_secretsmanager_secret.backend_gh_client_secret.arn
 }
 
 output "secret_google_client_secret_arn" {
-  description = "Secrets Manager ARN for GOOGLE_CLIENT_SECRET"
+  description = "Secrets Manager ARN for AUTH_GOOGLE_CLIENT_SECRET"
   value       = aws_secretsmanager_secret.backend_google_client_secret.arn
 }
 
 output "secret_twitter_client_secret_arn" {
-  description = "Secrets Manager ARN for TWITTER_CLIENT_SECRET"
+  description = "Secrets Manager ARN for AUTH_TWITTER_CLIENT_SECRET"
   value       = aws_secretsmanager_secret.backend_twitter_client_secret.arn
 }
 

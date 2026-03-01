@@ -13,7 +13,7 @@ resource "google_secret_manager_secret" "backend_database_url" {
 }
 
 resource "google_secret_manager_secret" "backend_jwt_secret" {
-  secret_id = "${var.app_unique_id}-backend-jwt-secret"
+  secret_id = "${var.app_unique_id}-backend-auth-jwt-secret"
 
   replication {
     auto {}
@@ -23,7 +23,7 @@ resource "google_secret_manager_secret" "backend_jwt_secret" {
 }
 
 resource "google_secret_manager_secret" "backend_jwt_refresh_secret" {
-  secret_id = "${var.app_unique_id}-backend-jwt-refresh-secret"
+  secret_id = "${var.app_unique_id}-backend-auth-jwt-refresh-secret"
 
   replication {
     auto {}
@@ -33,7 +33,7 @@ resource "google_secret_manager_secret" "backend_jwt_refresh_secret" {
 }
 
 resource "google_secret_manager_secret" "backend_session_secret" {
-  secret_id = "${var.app_unique_id}-backend-session-secret"
+  secret_id = "${var.app_unique_id}-backend-auth-session-secret"
 
   replication {
     auto {}
@@ -43,7 +43,7 @@ resource "google_secret_manager_secret" "backend_session_secret" {
 }
 
 resource "google_secret_manager_secret" "backend_apple_private_key" {
-  secret_id = "${var.app_unique_id}-backend-apple-private-key"
+  secret_id = "${var.app_unique_id}-backend-auth-apple-private-key"
 
   replication {
     auto {}
@@ -53,7 +53,7 @@ resource "google_secret_manager_secret" "backend_apple_private_key" {
 }
 
 resource "google_secret_manager_secret" "backend_discord_client_secret" {
-  secret_id = "${var.app_unique_id}-backend-discord-client-secret"
+  secret_id = "${var.app_unique_id}-backend-auth-discord-client-secret"
 
   replication {
     auto {}
@@ -63,7 +63,7 @@ resource "google_secret_manager_secret" "backend_discord_client_secret" {
 }
 
 resource "google_secret_manager_secret" "backend_gh_client_secret" {
-  secret_id = "${var.app_unique_id}-backend-gh-client-secret"
+  secret_id = "${var.app_unique_id}-backend-auth-gh-client-secret"
 
   replication {
     auto {}
@@ -73,7 +73,7 @@ resource "google_secret_manager_secret" "backend_gh_client_secret" {
 }
 
 resource "google_secret_manager_secret" "backend_google_client_secret" {
-  secret_id = "${var.app_unique_id}-backend-google-client-secret"
+  secret_id = "${var.app_unique_id}-backend-auth-google-client-secret"
 
   replication {
     auto {}
@@ -83,7 +83,7 @@ resource "google_secret_manager_secret" "backend_google_client_secret" {
 }
 
 resource "google_secret_manager_secret" "backend_twitter_client_secret" {
-  secret_id = "${var.app_unique_id}-backend-twitter-client-secret"
+  secret_id = "${var.app_unique_id}-backend-auth-twitter-client-secret"
 
   replication {
     auto {}

@@ -38,42 +38,42 @@ output "secret_database_url_id" {
 }
 
 output "secret_jwt_secret_id" {
-  description = "Secret Manager secret ID for JWT_SECRET"
+  description = "Secret Manager secret ID for AUTH_JWT_SECRET"
   value       = google_secret_manager_secret.backend_jwt_secret.secret_id
 }
 
 output "secret_jwt_refresh_secret_id" {
-  description = "Secret Manager secret ID for JWT_REFRESH_SECRET"
+  description = "Secret Manager secret ID for AUTH_JWT_REFRESH_SECRET"
   value       = google_secret_manager_secret.backend_jwt_refresh_secret.secret_id
 }
 
 output "secret_session_secret_id" {
-  description = "Secret Manager secret ID for SESSION_SECRET"
+  description = "Secret Manager secret ID for AUTH_SESSION_SECRET"
   value       = google_secret_manager_secret.backend_session_secret.secret_id
 }
 
 output "secret_apple_private_key_id" {
-  description = "Secret Manager secret ID for APPLE_PRIVATE_KEY"
+  description = "Secret Manager secret ID for AUTH_APPLE_PRIVATE_KEY"
   value       = google_secret_manager_secret.backend_apple_private_key.secret_id
 }
 
 output "secret_discord_client_secret_id" {
-  description = "Secret Manager secret ID for DISCORD_CLIENT_SECRET"
+  description = "Secret Manager secret ID for AUTH_DISCORD_CLIENT_SECRET"
   value       = google_secret_manager_secret.backend_discord_client_secret.secret_id
 }
 
 output "secret_gh_client_secret_id" {
-  description = "Secret Manager secret ID for GH_CLIENT_SECRET"
+  description = "Secret Manager secret ID for AUTH_GITHUB_CLIENT_SECRET"
   value       = google_secret_manager_secret.backend_gh_client_secret.secret_id
 }
 
 output "secret_google_client_secret_id" {
-  description = "Secret Manager secret ID for GOOGLE_CLIENT_SECRET"
+  description = "Secret Manager secret ID for AUTH_GOOGLE_CLIENT_SECRET"
   value       = google_secret_manager_secret.backend_google_client_secret.secret_id
 }
 
 output "secret_twitter_client_secret_id" {
-  description = "Secret Manager secret ID for TWITTER_CLIENT_SECRET"
+  description = "Secret Manager secret ID for AUTH_TWITTER_CLIENT_SECRET"
   value       = google_secret_manager_secret.backend_twitter_client_secret.secret_id
 }
 

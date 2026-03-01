@@ -7,10 +7,10 @@ import { GoogleProfile } from './google.strategy';
 export class GoogleNativeStrategy extends PassportStrategy(Strategy, 'google-native') {
   constructor() {
     super({
-      clientID: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      clientID: process.env.AUTH_GOOGLE_CLIENT_ID ?? '',
+      clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET ?? '',
       callbackURL:
-        process.env.GOOGLE_NATIVE_CALLBACK_URL ??
+        process.env.AUTH_GOOGLE_NATIVE_CALLBACK_URL ??
         'http://localhost:4000/auth/google/native/callback',
       scope: ['email', 'profile'],
     });
