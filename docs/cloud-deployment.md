@@ -38,6 +38,10 @@ Each provider has two Terraform layers:
 
 Each ephemeral layer reads outputs from its persistent layer via `terraform_remote_state` (see `remote-state.tf` in each ephemeral directory).
 
+## Secrets
+
+Each provider stores 9 backend secrets (JWT keys, OAuth2 client secrets, etc.). The persistent layer creates empty secret containers; 8 of the 9 must be populated manually before deploying the ephemeral layer. See [Secrets Management](secrets.md) for the full list, naming conventions, and CLI commands.
+
 ## Terraform commands
 
 All commands run via Docker Compose with `-chdir` to select the provider and layer:
