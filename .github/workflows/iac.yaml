@@ -81,31 +81,31 @@ jobs:
         if: matrix.provider == 'aws'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_IAM_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Authenticate to Azure
         if: matrix.provider == 'azure'
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.ARM_CLIENT_ID }}
-          tenant-id: ${{ secrets.ARM_TENANT_ID }}
-          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Set Azure OIDC environment for Terraform
         if: matrix.provider == 'azure'
         run: |
           echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-          echo "ARM_CLIENT_ID=${{ secrets.ARM_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          echo "ARM_CLIENT_ID=${{ vars.ARM_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=${{ vars.ARM_TENANT_ID }}" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=${{ vars.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
 
       - name: Authenticate to GCP
         if: matrix.provider == 'google'
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
 
       - name: Bootstrap S3 tfstate backend
         if: matrix.provider == 'aws'
@@ -157,8 +157,9 @@ jobs:
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
           TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-          TF_VAR_azure_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_container_registry_name: ${{ vars.AZURE_CONTAINER_REGISTRY_NAME }}
+          TF_VAR_gcp_region: ${{ vars.GCP_REGION }}
+          TF_VAR_gcp_zone: ${{ vars.GCP_ZONE }}
+          TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
         run: |
           terraform -chdir=iac/${{ matrix.provider }} plan -no-color -input=false 2>&1 | tee plan-output.txt
@@ -174,7 +175,8 @@ jobs:
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_APP_UNIQUE_ID }}
           TF_VAR_gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-          TF_VAR_azure_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_container_registry_name: ${{ vars.AZURE_CONTAINER_REGISTRY_NAME }}
+          TF_VAR_gcp_region: ${{ vars.GCP_REGION }}
+          TF_VAR_gcp_zone: ${{ vars.GCP_ZONE }}
+          TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_BASE_DOMAIN_NAME }}
         run: terraform -chdir=iac/${{ matrix.provider }} apply -auto-approve -input=false

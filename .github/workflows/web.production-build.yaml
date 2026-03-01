@@ -6,12 +6,18 @@ on:
     paths:
       - 'web/app/**'
       - 'Dockerfiles.d/web-production/**'
+      - 'iac/aws/*'
+      - 'iac/azure/*'
+      - 'iac/google/*'
       - '.github/workflows/web.production-build.yaml'
   pull_request:
     branches: [main]
     paths:
       - 'web/app/**'
       - 'Dockerfiles.d/web-production/**'
+      - 'iac/aws/*'
+      - 'iac/azure/*'
+      - 'iac/google/*'
       - '.github/workflows/web.production-build.yaml'
   workflow_dispatch: {}
 
@@ -41,6 +47,139 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # --- AWS ECR ---
+      - name: Configure AWS credentials
+        if: vars.AWS_IAM_ROLE_ARN != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_TF_STATE_REGION || 'us-east-1' }}
+
+      - name: Log in to Amazon ECR
+        if: vars.AWS_IAM_ROLE_ARN != ''
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Terraform (AWS)
+        if: vars.AWS_IAM_ROLE_ARN != ''
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Get ECR repository URL from Terraform
+        if: vars.AWS_IAM_ROLE_ARN != ''
+        id: ecr
+        run: |
+          terraform -chdir=iac/aws init \
+            -backend-config="bucket=${{ vars.AWS_TF_STATE_BUCKET }}" \
+            -backend-config="region=${{ vars.AWS_TF_STATE_REGION }}"
+          echo "repo=$(terraform -chdir=iac/aws output -raw ecr_web_repository_url)" >> "$GITHUB_OUTPUT"
+
+      - name: Build ECR tags
+        id: ecr-tags
+        if: vars.AWS_IAM_ROLE_ARN != ''
+        run: |
+          repo="${{ steps.ecr.outputs.repo }}"
+          {
+            echo "tags<<EOF"
+            echo "${repo}:latest"
+            echo "${repo}:${{ github.sha }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # --- Azure ACR ---
+      - name: Authenticate to Azure
+        if: vars.ARM_CLIENT_ID != ''
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform (Azure)
+        if: vars.ARM_CLIENT_ID != ''
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Get ACR login server from Terraform
+        if: vars.ARM_CLIENT_ID != ''
+        id: acr
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+        run: |
+          terraform -chdir=iac/azure init \
+            -backend-config="resource_group_name=${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=tfstate"
+          login_server=$(terraform -chdir=iac/azure output -raw container_registry_login_server)
+          echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
+          echo "name=${login_server%%.*}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Azure Container Registry
+        if: vars.ARM_CLIENT_ID != ''
+        run: az acr login --name "${{ steps.acr.outputs.name }}"
+
+      - name: Build ACR tags
+        id: acr-tags
+        if: vars.ARM_CLIENT_ID != ''
+        run: |
+          repo="${{ steps.acr.outputs.login_server }}/web"
+          {
+            echo "tags<<EOF"
+            echo "${repo}:latest"
+            echo "${repo}:${{ github.sha }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # --- Google Artifact Registry ---
+      - name: Authenticate to GCP
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup Terraform (Google)
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Get Artifact Registry repository from Terraform
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+        id: gar
+        run: |
+          terraform -chdir=iac/google init \
+            -backend-config="bucket=${{ vars.GCP_TF_STATE_BUCKET }}"
+          repo=$(terraform -chdir=iac/google output -raw artifact_registry_repository)
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          registry_host="${repo%%/*}"
+          echo "registry_host=$registry_host" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Artifact Registry
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+        run: gcloud auth configure-docker "${{ steps.gar.outputs.registry_host }}"
+
+      - name: Build Artifact Registry tags
+        id: gar-tags
+        if: vars.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+        run: |
+          repo="${{ steps.gar.outputs.repo }}/web"
+          {
+            echo "tags<<EOF"
+            echo "${repo}:latest"
+            echo "${repo}:${{ github.sha }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # --- Build and push ---
       - name: Build and push web image
         id: build
         uses: docker/build-push-action@v4
@@ -51,6 +190,9 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/web:latest
             ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+            ${{ steps.ecr-tags.outputs.tags }}
+            ${{ steps.acr-tags.outputs.tags }}
+            ${{ steps.gar-tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
