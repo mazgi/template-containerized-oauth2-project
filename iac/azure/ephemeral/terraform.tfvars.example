@@ -1,0 +1,34 @@
+app_unique_id = "oauth2-app"
+
+azure_subscription_id = "your-azure-subscription-id"
+
+# DNS (service URLs are derived: https://{web,backend}.azure.{app_unique_id}.{base_domain_name})
+base_domain_name = "example.com"
+
+# Container image tag (registry URL is derived from ACR login server output)
+# image_tag = "latest"
+
+# Database
+# NOTE: database_password is stored in Key Vault (as part of DATABASE_URL)
+# at runtime — never exposed as a plaintext Container App environment variable.
+database_password = "CHANGE_ME"
+
+# JWT, Session, and OAuth2 client secrets are stored directly in Key Vault.
+# Populate them externally (CI or Azure Portal) — not managed by Terraform.
+
+# OAuth2 — Apple (non-sensitive config only)
+apple_client_id = ""
+apple_team_id   = ""
+apple_key_id    = ""
+
+# OAuth2 — Discord
+discord_client_id = ""
+
+# OAuth2 — GitHub
+gh_client_id = ""
+
+# OAuth2 — Google
+google_oauth_client_id = ""
+
+# OAuth2 — X (Twitter)
+twitter_client_id = ""
