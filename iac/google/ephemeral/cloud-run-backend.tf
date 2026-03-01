@@ -236,14 +236,6 @@ resource "google_cloud_run_v2_service" "backend" {
     google_sql_database.main,
     google_sql_user.main,
     google_secret_manager_secret_version.backend_database_url,
-    google_secret_manager_secret_version.backend_jwt_secret,
-    google_secret_manager_secret_version.backend_jwt_refresh_secret,
-    google_secret_manager_secret_version.backend_session_secret,
-    google_secret_manager_secret_version.backend_apple_private_key,
-    google_secret_manager_secret_version.backend_discord_client_secret,
-    google_secret_manager_secret_version.backend_gh_client_secret,
-    google_secret_manager_secret_version.backend_google_client_secret,
-    google_secret_manager_secret_version.backend_twitter_client_secret,
     google_secret_manager_secret_iam_member.backend_accessor,
   ]
 }
