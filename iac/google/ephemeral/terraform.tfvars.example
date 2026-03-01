@@ -1,0 +1,34 @@
+app_unique_id = "oauth2-app"
+
+gcp_project_id = "your-gcp-project-id"
+
+# DNS (service URLs are derived: https://{web,backend}.google.{app_unique_id}.{base_domain_name})
+base_domain_name = "example.com"
+
+# Container image tag (registry URL is derived from Artifact Registry output)
+# image_tag = "latest"
+
+# Database
+# NOTE: database_password is stored in Secret Manager (as part of DATABASE_URL)
+# at runtime — never exposed as a plaintext Cloud Run environment variable.
+database_password = "CHANGE_ME"
+
+# JWT, Session, and OAuth2 client secrets are stored directly in Secret Manager.
+# Populate them externally (CI or GCP Console) — not managed by Terraform.
+
+# OAuth2 — Apple (non-sensitive config only)
+apple_client_id = ""
+apple_team_id   = ""
+apple_key_id    = ""
+
+# OAuth2 — Discord
+discord_client_id = ""
+
+# OAuth2 — GitHub
+gh_client_id = ""
+
+# OAuth2 — Google
+google_oauth_client_id = ""
+
+# OAuth2 — X (Twitter)
+twitter_client_id = ""
