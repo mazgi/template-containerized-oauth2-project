@@ -1,0 +1,42 @@
+name: Bootstrap Azure tfstate backend
+description: Create Azure Blob Storage for Terraform state if it does not exist
+
+inputs:
+  resource-group:
+    description: 'Azure resource group name'
+    required: true
+  storage-account:
+    description: 'Azure storage account name'
+    required: true
+  location:
+    description: 'Azure location'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Bootstrap Azure tfstate backend
+      shell: bash
+      run: |
+        az provider register \
+          --namespace Microsoft.Storage
+        az group create \
+          --name "${{ inputs.resource-group }}" \
+          --location "${{ inputs.location }}" \
+          --output none
+        if ! az storage account show \
+          --name "${{ inputs.storage-account }}" \
+          --resource-group "${{ inputs.resource-group }}" &>/dev/null; then
+          echo "Creating storage account: ${{ inputs.storage-account }}"
+          az storage account create \
+            --name "${{ inputs.storage-account }}" \
+            --resource-group "${{ inputs.resource-group }}" \
+            --location "${{ inputs.location }}" \
+            --sku Standard_LRS \
+            --min-tls-version TLS1_2
+        fi
+        az storage container create \
+          --name tfstate \
+          --account-name "${{ inputs.storage-account }}" \
+          --auth-mode login \
+          --output none 2>/dev/null || true

@@ -1,0 +1,10 @@
+app_unique_id = "oauth2-app"
+
+azure_subscription_id = "your-azure-subscription-id"
+azure_location        = "eastus"
+
+# Container Registry (must be globally unique, alphanumeric only)
+azure_container_registry_name = "oauth2appacr"
+
+# DNS
+base_domain_name = "example.com"

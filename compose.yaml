@@ -1,18 +1,4 @@
 services:
-  db:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: localauth
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./backend
@@ -29,16 +15,11 @@ services:
         pnpm exec prisma generate
         pnpm exec prisma db push --accept-data-loss
         pnpm dev
-    ports:
-      - "4000:4000"
     depends_on:
       db:
         condition: service_healthy
     env_file:
       - .env
-    working_dir: /work/backend
-    volumes:
-      - .:/work
     healthcheck:
       test:
         - CMD
@@ -49,6 +30,37 @@ services:
       timeout: 5s
       retries: 12
       start_period: 60s
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/work
+    working_dir: /work/backend
+
+  db:
+    environment:
+      POSTGRES_DB: localauth
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    image: postgres:17-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  iac:
+    build:
+      context: ./iac
+      dockerfile: ../Dockerfiles.d/iac/Dockerfile
+    env_file:
+      - .env
+    profiles:
+      - iac
+    volumes:
+      - .:/work
+    working_dir: /work/iac
 
   web:
     build:
@@ -64,8 +76,6 @@ services:
         pnpm audit --fix
         pnpm install
         pnpm dev
-    ports:
-      - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
@@ -73,9 +83,6 @@ services:
       - .env
     environment:
       BACKEND_URL: http://backend:4000
-    working_dir: /work/web/app
-    volumes:
-      - .:/work
     healthcheck:
       test:
         - CMD
@@ -86,6 +93,11 @@ services:
       timeout: 5s
       retries: 12
       start_period: 60s
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/work
+    working_dir: /work/web/app
 
   web-e2e-tests:
     build:
@@ -101,17 +113,17 @@ services:
         pnpm audit --fix
         pnpm install
         pnpm test
-    profiles:
-      - web-e2e-tests
-    working_dir: /work/web/e2e-tests
-    volumes:
-      - .:/work
     depends_on:
       web:
         condition: service_healthy
     environment:
       BASE_URL: http://web:3000
       CI: ${CI:-}
+    profiles:
+      - web-e2e-tests
+    volumes:
+      - .:/work
+    working_dir: /work/web/e2e-tests
 
 volumes:
   postgres_data:

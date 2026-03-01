@@ -6,12 +6,16 @@ on:
     paths:
       - 'windows/**'
       - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/backend/**'
       - '.github/workflows/windows.e2e-tests.yaml'
   pull_request:
     branches: [main]
     paths:
       - 'windows/**'
       - 'backend/**'
+      - 'compose.yaml'
+      - 'Dockerfiles.d/backend/**'
       - '.github/workflows/windows.e2e-tests.yaml'
   workflow_dispatch:
 

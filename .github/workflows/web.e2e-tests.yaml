@@ -7,7 +7,8 @@ on:
       - 'web/**'
       - 'backend/**'
       - 'compose.yaml'
-      - 'Dockerfiles.d/**'
+      - 'Dockerfiles.d/backend/**'
+      - 'Dockerfiles.d/web/**'
       - '.github/workflows/web.e2e-tests.yaml'
   pull_request:
     branches: [main]
@@ -15,7 +16,8 @@ on:
       - 'web/**'
       - 'backend/**'
       - 'compose.yaml'
-      - 'Dockerfiles.d/**'
+      - 'Dockerfiles.d/backend/**'
+      - 'Dockerfiles.d/web/**'
       - '.github/workflows/web.e2e-tests.yaml'
   workflow_dispatch:
 

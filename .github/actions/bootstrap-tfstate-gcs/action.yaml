@@ -1,0 +1,28 @@
+name: Bootstrap GCS tfstate backend
+description: Create a GCS bucket for Terraform state if it does not exist
+
+inputs:
+  bucket:
+    description: 'GCS bucket name'
+    required: true
+  location:
+    description: 'GCS bucket location'
+    required: true
+  project-id:
+    description: 'GCP project ID'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Bootstrap GCS tfstate backend
+      shell: bash
+      run: |
+        if ! gcloud storage buckets describe "gs://${{ inputs.bucket }}" --project="${{ inputs.project-id }}" &>/dev/null; then
+          echo "Creating GCS bucket: ${{ inputs.bucket }}"
+          gcloud storage buckets create "gs://${{ inputs.bucket }}" \
+            --project="${{ inputs.project-id }}" \
+            --location="${{ inputs.location }}" \
+            --uniform-bucket-level-access
+          gcloud storage buckets update "gs://${{ inputs.bucket }}" --versioning
+        fi
