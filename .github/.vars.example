@@ -3,25 +3,68 @@
 #   gh variable set --env-file .github/.vars
 
 # AWS
+
+# IAM role ARN with GitHub OIDC trust policy (used for IaC and production image push).
+AWS_IAM_ROLE_ARN=arn:aws:iam::123456789012:role/github-actions-iac
+
+# S3 bucket name for Terraform state storage.
 AWS_TF_STATE_BUCKET=my-terraform-state
+
+# AWS region where the S3 state bucket is located.
 AWS_TF_STATE_REGION=us-east-1
 
 # Azure
+
+# Resource group that contains the Terraform state storage account.
 AZURE_TF_STATE_RESOURCE_GROUP=terraform-state-rg
+
+# Storage account name for Terraform state (must be globally unique).
 AZURE_TF_STATE_STORAGE_ACCOUNT=myterraformstate
+
+# Azure region for the Terraform state storage account.
 AZURE_TF_STATE_LOCATION=eastus
+
+# Azure Container Registry name (used by persistent layer and production image push).
 AZURE_CONTAINER_REGISTRY_NAME=myregistry
 
+# Azure AD application (service principal) client ID for OIDC authentication.
+ARM_CLIENT_ID=00000000-0000-0000-0000-000000000000
+
+# Azure AD tenant ID.
+ARM_TENANT_ID=00000000-0000-0000-0000-000000000000
+
+# Azure subscription ID.
+ARM_SUBSCRIPTION_ID=00000000-0000-0000-0000-000000000000
+
 # Google Cloud
+
+# GCS bucket name for Terraform state storage.
 GCP_TF_STATE_BUCKET=my-terraform-state
+
+# GCS bucket location (e.g. us, eu, asia).
 GCP_TF_STATE_LOCATION=us
+
+# GCP project ID (used for IaC and production image push).
 GCP_PROJECT_ID=my-gcp-project
 
+# GCP region for Artifact Registry (optional, defaults to us-central1).
+GCP_REGION=us-central1
+
+# Workload Identity Federation provider resource name for OIDC authentication.
+GCP_WORKLOAD_IDENTITY_PROVIDER=projects/123456789/locations/global/workloadIdentityPools/github/providers/github
+
+# GCP service account email for GitHub Actions to impersonate.
+GCP_SERVICE_ACCOUNT=github-actions@my-gcp-project.iam.gserviceaccount.com
+
 # App
+
+# Unique prefix for all cloud resource names (e.g. ECR repos, resource groups, Cloud Run services).
 TF_VAR_APP_UNIQUE_ID=oauth2-app
 
-# DNS (service URLs are derived: https://{web,backend}.{cdp}.{app_unique_id}.{domain})
+# Base domain for DNS and service URLs.
+# Service URLs are derived as: https://{web,backend}.{cdp}.{app_unique_id}.{domain}
 TF_VAR_BASE_DOMAIN_NAME=example.com
 
-# Ephemeral layer — container image tag (registry URL derived from persistent layer outputs)
+# Container image tag for the ephemeral layer (optional, defaults to latest).
+# Registry URLs are derived from the persistent layer's Terraform outputs.
 # TF_VAR_IMAGE_TAG=latest
