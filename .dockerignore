@@ -5,6 +5,7 @@ node_modules
 out
 dist
 env.local
+.secrets.env
 .env
 .git
 Dockerfiles.d

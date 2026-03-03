@@ -62,12 +62,8 @@ jobs:
           psql -d localauth -c "SELECT pg_reload_conf();"
 
       - name: Create backend .env
-        # Write non-secret values via heredoc, then append secrets separately
-        # so GitHub Actions can expand ${{ secrets.* }} expressions.
-        # NestJS ConfigModule reads .env from the working directory (backend/).
         run: |
           cat <<'EOF' > backend/.env
-          DATABASE_URL=postgresql://postgres:password@localhost:5432/localauth
           PORT=4000
           CORS_ORIGIN=http://localhost:3000
           AUTH_JWT_ACCESS_EXPIRATION=15m
@@ -85,21 +81,29 @@ jobs:
           AUTH_DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
           AUTH_DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
           EOF
-          echo "AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}" >> backend/.env
-          echo "AUTH_JWT_REFRESH_SECRET=${{ secrets.AUTH_JWT_REFRESH_SECRET }}" >> backend/.env
-          echo "AUTH_APPLE_CLIENT_ID=${{ secrets.AUTH_APPLE_CLIENT_ID }}" >> backend/.env
-          echo "AUTH_APPLE_TEAM_ID=${{ secrets.AUTH_APPLE_TEAM_ID }}" >> backend/.env
-          echo "AUTH_APPLE_KEY_ID=${{ secrets.AUTH_APPLE_KEY_ID }}" >> backend/.env
-          echo "AUTH_APPLE_PRIVATE_KEY=${{ secrets.AUTH_APPLE_PRIVATE_KEY }}" >> backend/.env
-          echo "AUTH_GITHUB_CLIENT_ID=${{ secrets.AUTH_GITHUB_CLIENT_ID }}" >> backend/.env
-          echo "AUTH_GITHUB_CLIENT_SECRET=${{ secrets.AUTH_GITHUB_CLIENT_SECRET }}" >> backend/.env
-          echo "AUTH_GOOGLE_CLIENT_ID=${{ secrets.AUTH_GOOGLE_CLIENT_ID }}" >> backend/.env
-          echo "AUTH_GOOGLE_CLIENT_SECRET=${{ secrets.AUTH_GOOGLE_CLIENT_SECRET }}" >> backend/.env
-          echo "AUTH_TWITTER_CLIENT_ID=${{ secrets.AUTH_TWITTER_CLIENT_ID }}" >> backend/.env
-          echo "AUTH_TWITTER_CLIENT_SECRET=${{ secrets.AUTH_TWITTER_CLIENT_SECRET }}" >> backend/.env
-          echo "AUTH_SESSION_SECRET=${{ secrets.AUTH_SESSION_SECRET }}" >> backend/.env
-          echo "AUTH_DISCORD_CLIENT_ID=${{ secrets.AUTH_DISCORD_CLIENT_ID }}" >> backend/.env
-          echo "AUTH_DISCORD_CLIENT_SECRET=${{ secrets.AUTH_DISCORD_CLIENT_SECRET }}" >> backend/.env
+
+      - name: Create backend .secrets.env
+        # Append secrets separately so GitHub Actions can expand ${{ secrets.* }}.
+        # Prisma reads .secrets.env from the working directory (backend/).
+        run: |
+          cat <<'EOF' > backend/.secrets.env
+          DATABASE_URL=postgresql://postgres:password@localhost:5432/localauth
+          EOF
+          echo "AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}" >> backend/.secrets.env
+          echo "AUTH_JWT_REFRESH_SECRET=${{ secrets.AUTH_JWT_REFRESH_SECRET }}" >> backend/.secrets.env
+          echo "AUTH_APPLE_CLIENT_ID=${{ secrets.AUTH_APPLE_CLIENT_ID }}" >> backend/.secrets.env
+          echo "AUTH_APPLE_TEAM_ID=${{ secrets.AUTH_APPLE_TEAM_ID }}" >> backend/.secrets.env
+          echo "AUTH_APPLE_KEY_ID=${{ secrets.AUTH_APPLE_KEY_ID }}" >> backend/.secrets.env
+          echo "AUTH_APPLE_PRIVATE_KEY=${{ secrets.AUTH_APPLE_PRIVATE_KEY }}" >> backend/.secrets.env
+          echo "AUTH_GITHUB_CLIENT_ID=${{ secrets.AUTH_GITHUB_CLIENT_ID }}" >> backend/.secrets.env
+          echo "AUTH_GITHUB_CLIENT_SECRET=${{ secrets.AUTH_GITHUB_CLIENT_SECRET }}" >> backend/.secrets.env
+          echo "AUTH_GOOGLE_CLIENT_ID=${{ secrets.AUTH_GOOGLE_CLIENT_ID }}" >> backend/.secrets.env
+          echo "AUTH_GOOGLE_CLIENT_SECRET=${{ secrets.AUTH_GOOGLE_CLIENT_SECRET }}" >> backend/.secrets.env
+          echo "AUTH_TWITTER_CLIENT_ID=${{ secrets.AUTH_TWITTER_CLIENT_ID }}" >> backend/.secrets.env
+          echo "AUTH_TWITTER_CLIENT_SECRET=${{ secrets.AUTH_TWITTER_CLIENT_SECRET }}" >> backend/.secrets.env
+          echo "AUTH_SESSION_SECRET=${{ secrets.AUTH_SESSION_SECRET }}" >> backend/.secrets.env
+          echo "AUTH_DISCORD_CLIENT_ID=${{ secrets.AUTH_DISCORD_CLIENT_ID }}" >> backend/.secrets.env
+          echo "AUTH_DISCORD_CLIENT_SECRET=${{ secrets.AUTH_DISCORD_CLIENT_SECRET }}" >> backend/.secrets.env
 
       - name: Install backend dependencies
         working-directory: backend
@@ -113,11 +117,11 @@ jobs:
 
       - name: Start backend
         # main.ts has no dotenv loading; Docker passes vars via env_file, but
-        # native startup requires explicit sourcing of .env before the process starts.
+        # native startup requires explicit sourcing of env files before the process starts.
         # set -a exports all vars set by source, so pnpm dev inherits them.
         working-directory: backend
         run: |
-          set -a && source .env && set +a
+          set -a && source .env && source .secrets.env && set +a
           nohup pnpm dev > /tmp/backend.log 2>&1 &
 
       - name: Wait for backend to be ready

@@ -1,6 +1,6 @@
 # Environment
+.secrets.env
 .env
-.github/.vars
 
 # macOS
 .DS_Store
