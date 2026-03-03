@@ -4,9 +4,9 @@
 data "terraform_remote_state" "persistent" {
   backend = "s3"
   config = {
-    bucket = "REPLACE_WITH_YOUR_BUCKET_NAME"
+    bucket = var.aws_tf_state_bucket
     key    = "terraform/state/terraform.tfstate"
-    region = "us-east-1"
+    region = var.aws_tf_state_region
   }
 }
 

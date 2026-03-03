@@ -8,7 +8,7 @@ resource "aws_route53_record" "backend" {
   name    = "backend.${local.persistent.dns_zone_name}"
   type    = "CNAME"
   ttl     = 300
-  records = [aws_ecs_express_gateway_service.backend.dns_name]
+  records = [aws_ecs_express_gateway_service.backend.ingress_paths[0].endpoint]
 }
 
 resource "aws_route53_record" "web" {
@@ -16,5 +16,5 @@ resource "aws_route53_record" "web" {
   name    = "web.${local.persistent.dns_zone_name}"
   type    = "CNAME"
   ttl     = 300
-  records = [aws_ecs_express_gateway_service.web.dns_name]
+  records = [aws_ecs_express_gateway_service.web.ingress_paths[0].endpoint]
 }

@@ -38,17 +38,23 @@ Each provider has two Terraform layers:
 
 Each ephemeral layer reads outputs from its persistent layer via `terraform_remote_state` (see `remote-state.tf` in each ephemeral directory).
 
+## Secrets
+
+Each provider stores 9 backend secrets (JWT keys, OAuth2 client secrets, etc.). The persistent layer creates empty secret containers; 8 of the 9 must be populated manually before deploying the ephemeral layer. See [Secrets Management](secrets.md) for the full list, naming conventions, and CLI commands.
+
 ## Terraform commands
 
-All commands run via Docker Compose with `-chdir` to select the provider and layer:
+All commands run via Docker Compose with `-chdir` to select the provider and layer. The `init` command requires `-backend-config` to inject the state backend location (see each provider guide for the specific flags):
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=<provider> init
-docker compose --profile=iac run --rm iac -chdir=<provider> apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=<provider> init \
+  -backend-config="..."
+docker compose --profile=iac run --rm iac terraform -chdir=<provider> apply -var-file=terraform.tfvars
 
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral init
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral apply -var-file=terraform.tfvars
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral destroy -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral init \
+  -backend-config="..."
+docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral destroy -var-file=terraform.tfvars
 ```
 
 ## Provider guides

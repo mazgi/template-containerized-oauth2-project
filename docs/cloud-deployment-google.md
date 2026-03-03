@@ -5,8 +5,45 @@ See [Cloud Deployment](cloud-deployment.md) for production image builds and arch
 ## Prerequisites
 
 - A Google Cloud project with billing enabled
-- `gcloud` CLI authenticated (`gcloud auth application-default login`)
+- `gcloud` CLI installed on the host
 - Docker Desktop running (Terraform runs inside a container)
+
+### Authenticate with Google Cloud on the host
+
+The `iac` container mounts `~/.config/gcloud` as read-only, so credentials configured on the host are automatically available inside the container.
+
+**Option A — User account (interactive)**
+
+```sh
+gcloud auth login
+gcloud auth application-default login
+# A browser window opens for each command. Sign in with your Google account.
+# This writes credentials to ~/.config/gcloud/.
+```
+
+**Option B — Service account**
+
+```sh
+gcloud auth activate-service-account \
+  --key-file=path/to/key.json
+
+export GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json
+```
+
+**Set the default project**
+
+```sh
+gcloud config set project YOUR_PROJECT_ID
+```
+
+**Verify**
+
+```sh
+gcloud auth list
+gcloud config get project
+```
+
+If these return your active account and project, the credentials are ready and will be available in the `iac` container.
 
 ## 1. Create the Terraform state bucket
 
@@ -15,7 +52,7 @@ gsutil mb -p YOUR_PROJECT_ID -l us-central1 gs://YOUR_BUCKET_NAME
 gsutil versioning set on gs://YOUR_BUCKET_NAME
 ```
 
-Then update the `bucket` value in both `iac/google/versions.tf` and `iac/google/ephemeral/versions.tf`.
+The bucket name is passed via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
 
 ## 2. Configure variables
 
@@ -38,8 +75,9 @@ Edit `iac/google/ephemeral/terraform.tfvars`:
 ## 3. Create persistent infrastructure and push images
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=google init
-docker compose --profile=iac run --rm iac -chdir=google apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=google init \
+  -backend-config="bucket=YOUR_BUCKET_NAME"
+docker compose --profile=iac run --rm iac terraform -chdir=google apply -var-file=terraform.tfvars
 ```
 
 Then build and push the production images:
@@ -68,20 +106,21 @@ Update `backend_image` and `web_image` in `iac/google/ephemeral/terraform.tfvars
 ## 4. Deploy ephemeral infrastructure
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=google/ephemeral init
-docker compose --profile=iac run --rm iac -chdir=google/ephemeral apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral init \
+  -backend-config="bucket=YOUR_BUCKET_NAME"
+docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral apply -var-file=terraform.tfvars
 ```
 
 After the first apply, get the Cloud Run service URLs:
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=google/ephemeral output
+docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral output
 ```
 
 Copy the `backend_url` and `web_url` values into `iac/google/ephemeral/terraform.tfvars` as `backend_base_url` and `frontend_url`, then apply again:
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=google/ephemeral apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral apply -var-file=terraform.tfvars
 ```
 
 This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth2 callback URLs with the actual Cloud Run URIs.
@@ -89,7 +128,7 @@ This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth
 ## 5. Tear down (after testing)
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=google/ephemeral destroy -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral destroy -var-file=terraform.tfvars
 ```
 
 Persistent Artifact Registry and API enablement remain — images are available for the next test cycle.

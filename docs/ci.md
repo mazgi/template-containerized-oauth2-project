@@ -125,7 +125,7 @@ All three cloud providers use OIDC (OpenID Connect) for keyless authentication f
 
 | Secret | Description |
 |--------|-------------|
-| `TF_VAR_DATABASE_PASSWORD` | PostgreSQL password (used to construct `DATABASE_URL`) |
+| `TF_VAR_database_password` | PostgreSQL password (used to construct `DATABASE_URL`) |
 
 All other backend secrets (`AUTH_JWT_SECRET`, `AUTH_JWT_REFRESH_SECRET`, `AUTH_SESSION_SECRET`, OAuth2 client secrets) are populated directly in the cloud provider's secret store (AWS Secrets Manager / Azure Key Vault / GCP Secret Manager) — not managed by Terraform.
 
@@ -151,14 +151,14 @@ Service URLs (`frontend_url`, `backend_base_url`) are derived as `https://{web,b
 
 | Variable | Example | Description |
 |----------|---------|-------------|
-| `TF_VAR_BASE_DOMAIN_NAME` | `example.com` | Base domain for DNS and service URLs |
-| `TF_VAR_IMAGE_TAG` | `latest` | Container image tag (optional, defaults to `latest`) |
+| `TF_VAR_base_domain_name` | `example.com` | Base domain for DNS and service URLs |
+| `TF_VAR_image_tag` | `latest` | Container image tag (optional, defaults to `latest`) |
 
 ### Other
 
 | Variable | Used by | Example | Description |
 |----------|---------|---------|-------------|
-| `TF_VAR_APP_UNIQUE_ID` | aws, aws/ephemeral, azure, azure/ephemeral, google, google/ephemeral | `oauth2-app` | Unique identifier used as a prefix for all resource names |
+| `TF_VAR_app_unique_id` | aws, aws/ephemeral, azure, azure/ephemeral, google, google/ephemeral | `oauth2-app` | Unique identifier used as a prefix for all resource names |
 | `AWS_IAM_ROLE_ARN` | aws, aws/ephemeral, production builds | `arn:aws:iam::123456789012:role/github-actions-iac` | IAM role ARN with GitHub OIDC trust policy |
 | `ARM_CLIENT_ID` | azure, azure/ephemeral, production builds | `00000000-0000-0000-0000-000000000000` | Azure AD application (client) ID |
 | `ARM_TENANT_ID` | azure, azure/ephemeral, production builds | `00000000-0000-0000-0000-000000000000` | Azure AD tenant ID |

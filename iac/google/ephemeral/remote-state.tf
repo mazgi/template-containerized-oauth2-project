@@ -4,7 +4,7 @@
 data "terraform_remote_state" "persistent" {
   backend = "gcs"
   config = {
-    bucket = "REPLACE_WITH_YOUR_BUCKET_NAME"
+    bucket = var.google_tf_state_bucket
     prefix = "terraform/state"
   }
 }

@@ -2,11 +2,13 @@
 # suitable for Cloud Run or any container-hosted environment.
 
 # --- build stage -----------------------------------------------------------
-# Wolfi-based image with shell, apk, and corepack included
-FROM cgr.dev/chainguard/node:latest-dev AS builder
+# Use Debian-based Node image for the builder so that Prisma's schema-engine
+# binary works on both amd64 and arm64 (Chainguard Wolfi lacks compatibility).
+FROM node:24-bookworm-slim AS builder
 
-# Default user is nonroot; switch to root for global installs
-USER root
+# openssl is required by Prisma to detect the correct engine binary
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
 
 # enable corepack so pnpm is available
 RUN corepack enable && corepack prepare pnpm@latest --activate \

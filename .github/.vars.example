@@ -56,15 +56,28 @@ GOOGLE_WORKLOAD_IDENTITY_PROVIDER=projects/123456789/locations/global/workloadId
 # Google Cloud service account email for GitHub Actions to impersonate.
 GOOGLE_SERVICE_ACCOUNT=github-actions@my-gcp-project.iam.gserviceaccount.com
 
+# Terraform variable mappings (TF_VAR_*)
+# These map the provider-specific variables above to Terraform input variable names.
+# Used by the iac container (via env_file) and GitHub Actions workflows (via env).
+TF_VAR_aws_tf_state_bucket=my-terraform-state
+TF_VAR_aws_tf_state_region=us-east-1
+TF_VAR_azure_subscription_id=00000000-0000-0000-0000-000000000000
+TF_VAR_azure_tf_state_resource_group=terraform-state-rg
+TF_VAR_azure_tf_state_storage_account=myterraformstate
+TF_VAR_gcp_project_id=my-gcp-project
+TF_VAR_gcp_region=us-central1
+TF_VAR_gcp_zone=us-central1-a
+TF_VAR_google_tf_state_bucket=my-terraform-state
+
 # App
 
 # Unique prefix for all cloud resource names (e.g. ECR repos, resource groups, Cloud Run services).
-TF_VAR_APP_UNIQUE_ID=oauth2-app
+TF_VAR_app_unique_id=oauth2-app
 
 # Base domain for DNS and service URLs.
 # Service URLs are derived as: https://{web,backend}.{cdp}.{app_unique_id}.{domain}
-TF_VAR_BASE_DOMAIN_NAME=example.com
+TF_VAR_base_domain_name=example.com
 
 # Container image tag for the ephemeral layer (optional, defaults to latest).
 # Registry URLs are derived from the persistent layer's Terraform outputs.
-# TF_VAR_IMAGE_TAG=latest
+# TF_VAR_image_tag=latest

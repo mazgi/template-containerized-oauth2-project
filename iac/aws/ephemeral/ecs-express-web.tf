@@ -11,8 +11,10 @@ resource "aws_ecs_express_gateway_service" "web" {
   }
 
   scaling_target {
-    min_task_count = 1
-    max_task_count = 2
+    min_task_count              = 1
+    max_task_count              = 2
+    auto_scaling_metric         = "AVERAGE_CPU"
+    auto_scaling_target_value   = 60
   }
 
   primary_container {
@@ -20,12 +22,12 @@ resource "aws_ecs_express_gateway_service" "web" {
     container_port = 3000
 
     environment {
-      name  = "PORT"
-      value = "3000"
+      name  = "BACKEND_URL"
+      value = aws_ecs_express_gateway_service.backend.ingress_paths[0].endpoint
     }
     environment {
-      name  = "BACKEND_URL"
-      value = aws_ecs_express_gateway_service.backend.dns_name
+      name  = "PORT"
+      value = "3000"
     }
   }
 }

@@ -26,10 +26,7 @@ resource "google_cloud_run_v2_service" "backend" {
         container_port = 4000
       }
 
-      env {
-        name  = "PORT"
-        value = "4000"
-      }
+      # PORT is reserved by Cloud Run — set automatically from container_port.
       env {
         name  = "CORS_ORIGIN"
         value = local.frontend_url
@@ -223,9 +220,10 @@ resource "google_cloud_run_v2_service" "backend" {
         failure_threshold     = 12
       }
 
+      # Cloud Run does not support tcp_socket for liveness probes.
       liveness_probe {
-        tcp_socket {
-          port = 4000
+        http_get {
+          path = "/api"
         }
         period_seconds = 30
       }
@@ -236,14 +234,6 @@ resource "google_cloud_run_v2_service" "backend" {
     google_sql_database.main,
     google_sql_user.main,
     google_secret_manager_secret_version.backend_database_url,
-    google_secret_manager_secret_version.backend_jwt_secret,
-    google_secret_manager_secret_version.backend_jwt_refresh_secret,
-    google_secret_manager_secret_version.backend_session_secret,
-    google_secret_manager_secret_version.backend_apple_private_key,
-    google_secret_manager_secret_version.backend_discord_client_secret,
-    google_secret_manager_secret_version.backend_gh_client_secret,
-    google_secret_manager_secret_version.backend_google_client_secret,
-    google_secret_manager_secret_version.backend_twitter_client_secret,
     google_secret_manager_secret_iam_member.backend_accessor,
   ]
 }

@@ -17,6 +17,20 @@ variable "azure_location" {
 }
 
 # -----------------------------------------------------------------------------
+# Terraform remote state (persistent layer)
+# -----------------------------------------------------------------------------
+
+variable "azure_tf_state_resource_group" {
+  description = "Azure resource group storing the persistent layer's Terraform state"
+  type        = string
+}
+
+variable "azure_tf_state_storage_account" {
+  description = "Azure storage account storing the persistent layer's Terraform state"
+  type        = string
+}
+
+# -----------------------------------------------------------------------------
 # Container image tag
 # The registry URL is derived from the persistent layer's ACR login server output.
 # -----------------------------------------------------------------------------

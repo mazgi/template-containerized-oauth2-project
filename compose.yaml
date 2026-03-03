@@ -56,10 +56,14 @@ services:
       dockerfile: ../Dockerfiles.d/iac/Dockerfile
     env_file:
       - .env
+      - .github/.vars
     profiles:
       - iac
     volumes:
       - .:/work
+      - ~/.aws:/root/.aws:ro
+      - ~/.azure:/root/.azure:ro
+      - ~/.config/gcloud:/root/.config/gcloud:ro
     working_dir: /work/iac
 
   web:
