@@ -3,10 +3,21 @@
 ## 1. Set up environment variables
 
 ```sh
-cp .env.example .env
+cp .secrets.example.env .secrets.env
 ```
 
-Edit `.env` and replace the placeholder values.
+Edit `.secrets.env` and replace the placeholder values.
+
+**Container user** — on Linux, set `UID` and `GID` to your host user's IDs so that files written to bind-mounted volumes (`node_modules`, `.pnpm-store`, etc.) are owned by you rather than root. The command is a no-op on macOS:
+
+```sh
+test $(uname -s) = 'Linux' && {
+  echo "GID=$(id -g)"
+  echo "UID=$(id -u)"
+} >> .secrets.env || :
+```
+
+These values are baked into the container image at build time. Run `docker compose build` after changing them.
 
 **JWT secrets** — generate strong random values:
 
@@ -22,7 +33,7 @@ openssl rand -base64 32
    - `http://localhost:4000/auth/apple/callback` (web)
    - `http://localhost:4000/auth/apple/native/callback` (native apps)
 4. Create a **Sign in with Apple key** and download the `.p8` file
-5. Copy the **Team ID**, **Key ID**, **Services ID**, and `.p8` file contents into `.env` (replace newlines with `\n`)
+5. Copy the **Team ID**, **Key ID**, **Services ID**, and `.p8` file contents into `.secrets.env` (replace newlines with `\n`)
 
 **Discord OAuth2** — create an application in the [Discord Developer Portal](https://discord.com/developers/applications):
 
@@ -30,13 +41,13 @@ openssl rand -base64 32
 2. Go to **OAuth2** > **Redirects** and add both callback URLs:
    - `http://localhost:4000/auth/discord/callback` (web)
    - `http://localhost:4000/auth/discord/native/callback` (native apps)
-3. Copy the **Client ID** and **Client Secret** into `.env`
+3. Copy the **Client ID** and **Client Secret** into `.secrets.env`
 
 **GitHub OAuth2** — create an OAuth App in [GitHub Developer Settings](https://github.com/settings/developers):
 
 1. Click **New OAuth App** (use **OAuth Apps**, not GitHub Apps)
 2. Set **Authorization callback URL** to `http://localhost:4000/auth/github/callback`
-3. Copy the **Client ID** and generate a **Client Secret**, paste both into `.env`
+3. Copy the **Client ID** and generate a **Client Secret**, paste both into `.secrets.env`
 4. To support native apps (iOS/macOS/Android), register a **second OAuth App** with callback URL `http://localhost:4000/auth/github/native/callback` and use its credentials for `GH_NATIVE_CALLBACK_URL` (the `GH_CLIENT_ID` and `GH_CLIENT_SECRET` can be shared between both apps if you prefer a single app with one registered callback)
 
 > **Scope note:** The backend uses `read:user` scope (not `user:email`). This avoids a separate `/user/emails` API call that can return 403 on some OAuth App configurations. Users with a public GitHub email will have it stored; others get a `github_{id}@github.invalid` placeholder.
@@ -48,7 +59,7 @@ openssl rand -base64 32
 3. Add **all** URLs to **Authorized redirect URIs**:
    - `http://localhost:4000/auth/google/callback` (web)
    - `http://localhost:4000/auth/google/native/callback` (iOS/macOS and Android native apps)
-4. Copy the **Client ID** and **Client Secret** into `.env`
+4. Copy the **Client ID** and **Client Secret** into `.secrets.env`
 
 **X (Twitter) OAuth2** — create an OAuth 2.0 app in the [Twitter Developer Portal](https://developer.twitter.com/):
 
@@ -57,9 +68,9 @@ openssl rand -base64 32
 3. Add **all** URLs to **Callback URI / Redirect URL**:
    - `http://localhost:4000/auth/twitter/callback` (web)
    - `http://localhost:4000/auth/twitter/native/callback` (iOS/macOS and Android native apps)
-4. Copy the **Client ID** and **Client Secret** into `.env`
+4. Copy the **Client ID** and **Client Secret** into `.secrets.env`
 
-See [.env.example](../.env.example) for descriptions of all variables.
+See [.secrets.example.env](../.secrets.example.env) for descriptions of all variables.
 
 ## 2. Start the backend and web
 

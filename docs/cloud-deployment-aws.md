@@ -41,7 +41,7 @@ When using an SSO profile, set the `AWS_PROFILE` environment variable so the con
 export AWS_PROFILE=YOUR_PROFILE
 ```
 
-Or add `AWS_PROFILE` to your `.env` file — the `iac` service loads it via `env_file`.
+Or add `AWS_PROFILE` to your `.secrets.env` file — the `iac` service loads it via `env_file`.
 
 **Verify**
 

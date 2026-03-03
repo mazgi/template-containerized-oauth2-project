@@ -22,7 +22,7 @@ A multi-platform OAuth2 template project with a NestJS backend, a Next.js web cl
 ## Quick Start
 
 ```sh
-cp .env.example .env   # then fill in secrets — see docs/local-development.md
+cp .secrets.example.env .secrets.env   # then fill in secrets — see docs/local-development.md
 docker compose up
 ```
 
@@ -38,7 +38,7 @@ See [Local Development](docs/local-development.md) for detailed setup instructio
 
 After creating a repository from this template, follow these steps. Only step 1 is required — the rest are optional depending on your needs.
 
-1. **Local development** — Copy `.env.example` → `.env`, fill in secrets, and run `docker compose up`. See [Local Development](docs/local-development.md).
+1. **Local development** — Copy `.secrets.example.env` → `.secrets.env`, fill in secrets, and run `docker compose up`. See [Local Development](docs/local-development.md).
 2. **E2E tests on CI** — Add GitHub Actions secrets for JWT and OAuth2 providers. See [CI — Setup for E2E tests](docs/ci.md#for-e2e-tests-only).
 3. **Cloud deployment via CI** — Set up OIDC authentication, configure GitHub Actions variables, and run IaC workflows. See [CI — Setup for cloud deployment](docs/ci.md#for-cloud-deployment-e2e-tests--production-builds--iac).
 4. **Manual cloud deployment** — Deploy directly with Terraform. See [Cloud Deployment](docs/cloud-deployment.md).
@@ -48,7 +48,7 @@ After creating a repository from this template, follow these steps. Only step 1 
 ```
 .
 ├── compose.yaml
-├── .env.example
+├── .secrets.example.env
 ├── backend/               # NestJS API
 ├── web/
 │   ├── app/               # Next.js SPA
@@ -75,5 +75,5 @@ After creating a repository from this template, follow these steps. Only step 1 
 - Cloud Deployment — [overview](docs/cloud-deployment.md) / [AWS](docs/cloud-deployment-aws.md) / [Azure](docs/cloud-deployment-azure.md) / [Google Cloud](docs/cloud-deployment-google.md)
 - [CI / GitHub Actions](docs/ci.md) — workflows, required secrets and variables
 - [OIDC Setup](docs/oidc-setup.md) — one-time cloud provider authentication setup (AWS, Azure, GCP)
-- [Environment Variables](.env.example) — backend config and secrets
-- [GitHub Actions Variables](.github/.vars.example) — CI/CD and cloud deployment variables
+- [Environment Variables](.secrets.example.env) — backend config and secrets
+- [GitHub Actions Variables](.env.example) — CI/CD and cloud deployment variables
