@@ -44,15 +44,17 @@ Each provider stores 9 backend secrets (JWT keys, OAuth2 client secrets, etc.). 
 
 ## Terraform commands
 
-All commands run via Docker Compose with `-chdir` to select the provider and layer:
+All commands run via Docker Compose with `-chdir` to select the provider and layer. The `init` command requires `-backend-config` to inject the state backend location (see each provider guide for the specific flags):
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=<provider> init
-docker compose --profile=iac run --rm iac -chdir=<provider> apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=<provider> init \
+  -backend-config="..."
+docker compose --profile=iac run --rm iac terraform -chdir=<provider> apply -var-file=terraform.tfvars
 
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral init
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral apply -var-file=terraform.tfvars
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral destroy -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral init \
+  -backend-config="..."
+docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral destroy -var-file=terraform.tfvars
 ```
 
 ## Provider guides

@@ -5,12 +5,41 @@ See [Cloud Deployment](cloud-deployment.md) for production image builds and arch
 ## Prerequisites
 
 - An Azure subscription with appropriate permissions
-- Azure CLI authenticated (`az login`)
-- `Microsoft.App` resource provider registered (required for Container Apps):
-  ```sh
-  az provider register --namespace Microsoft.App
-  ```
+- Azure CLI installed on the host
 - Docker Desktop running (Terraform runs inside a container)
+
+### Authenticate with Azure on the host
+
+The `iac` container mounts `~/.azure` as read-only, so credentials configured on the host are automatically available inside the container.
+
+**Option A — Interactive login**
+
+```sh
+az login
+# A browser window opens. Sign in with your Azure account.
+# This writes tokens to ~/.azure/.
+```
+
+**Option B — Service principal**
+
+```sh
+az login --service-principal \
+  -u APP_ID -p CLIENT_SECRET --tenant TENANT_ID
+```
+
+**Register the Container Apps resource provider** (required once per subscription):
+
+```sh
+az provider register --namespace Microsoft.App
+```
+
+**Verify**
+
+```sh
+az account show
+```
+
+If this returns your subscription details, the credentials are ready and will be available in the `iac` container.
 
 ## 1. Create the Terraform state storage
 
@@ -21,7 +50,7 @@ az storage account create --name YOUR_STORAGE_ACCOUNT --resource-group terraform
 az storage container create --name tfstate --account-name YOUR_STORAGE_ACCOUNT
 ```
 
-Then update `resource_group_name` and `storage_account_name` in both `iac/azure/versions.tf` and `iac/azure/ephemeral/versions.tf`. Also update `iac/azure/ephemeral/remote-state.tf` to match.
+The resource group and storage account names are passed via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
 
 ## 2. Configure variables
 
@@ -47,8 +76,10 @@ Edit `iac/azure/ephemeral/terraform.tfvars`:
 ## 3. Create persistent infrastructure and push images
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=azure init
-docker compose --profile=iac run --rm iac -chdir=azure apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=azure init \
+  -backend-config="resource_group_name=terraform-state-rg" \
+  -backend-config="storage_account_name=YOUR_STORAGE_ACCOUNT"
+docker compose --profile=iac run --rm iac terraform -chdir=azure apply -var-file=terraform.tfvars
 ```
 
 Then build and push the production images:
@@ -77,20 +108,22 @@ Update `backend_image` and `web_image` in `iac/azure/ephemeral/terraform.tfvars`
 ## 4. Deploy ephemeral infrastructure
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=azure/ephemeral init
-docker compose --profile=iac run --rm iac -chdir=azure/ephemeral apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral init \
+  -backend-config="resource_group_name=terraform-state-rg" \
+  -backend-config="storage_account_name=YOUR_STORAGE_ACCOUNT"
+docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral apply -var-file=terraform.tfvars
 ```
 
 After the first apply, get the Container Apps FQDNs:
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=azure/ephemeral output
+docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral output
 ```
 
 Copy the `backend_url` and `web_url` values into `iac/azure/ephemeral/terraform.tfvars` as `backend_base_url` and `frontend_url`, then apply again:
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=azure/ephemeral apply -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral apply -var-file=terraform.tfvars
 ```
 
 This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth2 callback URLs with the actual Container Apps FQDNs.
@@ -98,7 +131,7 @@ This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth
 ## 5. Tear down (after testing)
 
 ```sh
-docker compose --profile=iac run --rm iac -chdir=azure/ephemeral destroy -var-file=terraform.tfvars
+docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral destroy -var-file=terraform.tfvars
 ```
 
 Persistent ACR remains — images are available for the next test cycle.
