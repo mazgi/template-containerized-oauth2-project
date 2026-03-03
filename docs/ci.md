@@ -14,6 +14,8 @@ Five workflows run on every push and pull request to `main`:
 | `.github/workflows/macos-ios.e2e-tests.yaml` | `macos-15` | Starts PostgreSQL + backend natively, runs XCUITest E2E tests on iPhone 17 simulator |
 | `.github/workflows/windows.e2e-tests.yaml` | `windows-2025` | Starts PostgreSQL + backend natively, builds and deploys WinUI app, runs Appium E2E tests |
 
+> **`UID` / `GID` in CI:** The `backend` and `web` development images accept `UID` and `GID` build args (see [local-development.md](local-development.md)). The E2E test workflows append `UID=$(id -u)` and `GID=$(id -g)` to `.secrets.env` before `docker compose build` so that the container user matches the runner (UID 1001 on `ubuntu-latest`). Without this, the container user (defaulting to 1000) would not have write access to the runner-owned workspace, causing `EACCES` errors during `pnpm install`.
+
 ### Production Builds
 
 | Workflow | Runner | Description |
@@ -39,16 +41,16 @@ Two workflows manage infrastructure across AWS, Azure, and GCP:
 
 ### For E2E tests only
 
-Only **Step 1** is required. The E2E test workflows need the same secrets as your local `.env` file.
+Only **Step 1** is required. The E2E test workflows need the same secrets as your local `.secrets.env` file.
 
 #### Step 1: E2E test secrets
 
-Copy `.env.example` → `.env`, fill in your values, then set them as GitHub Actions secrets:
+Copy `.secrets.example.env` → `.secrets.env`, fill in your values, then set them as GitHub Actions secrets:
 
 ```sh
-cp .env.example .env
-# Edit .env with your values
-gh secret set --env-file .env
+cp .secrets.example.env .secrets.env
+# Edit .secrets.env with your values
+gh secret set --env-file .secrets.env
 ```
 
 See [Required secrets — E2E test secrets](#e2e-test-secrets) for the full list.
@@ -72,9 +74,9 @@ See [OIDC Setup](oidc-setup.md) for step-by-step instructions for AWS, Azure, an
 Configure Terraform state backends, cloud provider identifiers, and app settings:
 
 ```sh
-cp .github/.vars.example .github/.vars
-# Edit .github/.vars with your values
-gh variable set --env-file .github/.vars
+cp .env.example .env
+# Edit .env with your values
+gh variable set --env-file .env
 ```
 
 See [Required variables](#required-variables) for the full list.
