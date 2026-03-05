@@ -3,6 +3,7 @@ resource "azurerm_container_app" "backend" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
   revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
 
   identity {
     type         = "UserAssigned"
@@ -201,35 +202,35 @@ resource "azurerm_container_app" "backend" {
         secret_name = "database-url"
       }
       env {
-        name  = "AUTH_JWT_SECRET"
+        name        = "AUTH_JWT_SECRET"
         secret_name = "jwt-secret"
       }
       env {
-        name  = "AUTH_JWT_REFRESH_SECRET"
+        name        = "AUTH_JWT_REFRESH_SECRET"
         secret_name = "jwt-refresh-secret"
       }
       env {
-        name  = "AUTH_SESSION_SECRET"
+        name        = "AUTH_SESSION_SECRET"
         secret_name = "session-secret"
       }
       env {
-        name  = "AUTH_APPLE_PRIVATE_KEY"
+        name        = "AUTH_APPLE_PRIVATE_KEY"
         secret_name = "apple-private-key"
       }
       env {
-        name  = "AUTH_DISCORD_CLIENT_SECRET"
+        name        = "AUTH_DISCORD_CLIENT_SECRET"
         secret_name = "discord-client-secret"
       }
       env {
-        name  = "AUTH_GITHUB_CLIENT_SECRET"
+        name        = "AUTH_GITHUB_CLIENT_SECRET"
         secret_name = "gh-client-secret"
       }
       env {
-        name  = "AUTH_GOOGLE_CLIENT_SECRET"
+        name        = "AUTH_GOOGLE_CLIENT_SECRET"
         secret_name = "google-client-secret"
       }
       env {
-        name  = "AUTH_TWITTER_CLIENT_SECRET"
+        name        = "AUTH_TWITTER_CLIENT_SECRET"
         secret_name = "twitter-client-secret"
       }
     }

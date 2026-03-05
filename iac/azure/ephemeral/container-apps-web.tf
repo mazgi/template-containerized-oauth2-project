@@ -3,6 +3,7 @@ resource "azurerm_container_app" "web" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
   revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
 
   registry {
     server               = local.persistent.container_registry_login_server

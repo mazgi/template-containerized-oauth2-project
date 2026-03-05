@@ -7,6 +7,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   sku_name                      = var.database_sku
   version                       = "17"
   storage_mb                    = 32768
+  zone                          = "1"
   backup_retention_days         = 7
   delegated_subnet_id           = azurerm_subnet.postgresql.id
   private_dns_zone_id           = azurerm_private_dns_zone.postgresql.id
