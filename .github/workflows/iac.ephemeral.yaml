@@ -110,10 +110,12 @@ jobs:
       - name: Verify persistent layer has no drift
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
         run: |
           set +e
@@ -156,10 +158,12 @@ jobs:
         if: inputs.action == 'plan' || inputs.action == 'apply'
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_database_password }}
           TF_VAR_image_tag: ${{ vars.TF_VAR_image_tag || 'latest' }}
@@ -181,10 +185,12 @@ jobs:
         if: inputs.action == 'apply'
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_database_password }}
           TF_VAR_image_tag: ${{ vars.TF_VAR_image_tag || 'latest' }}
@@ -199,10 +205,12 @@ jobs:
         if: inputs.action == 'destroy'
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_database_password }}
           TF_VAR_image_tag: ${{ vars.TF_VAR_image_tag || 'latest' }}

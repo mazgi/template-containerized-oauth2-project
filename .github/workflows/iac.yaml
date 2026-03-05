@@ -157,10 +157,12 @@ jobs:
       - name: Terraform Plan
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
         run: |
           terraform -chdir=iac/${{ matrix.provider }} plan -no-color -input=false 2>&1 | tee plan-output.txt
@@ -175,9 +177,11 @@ jobs:
         if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         env:
           TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
           TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
         run: terraform -chdir=iac/${{ matrix.provider }} apply -auto-approve -input=false
