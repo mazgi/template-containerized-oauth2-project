@@ -31,7 +31,7 @@ resource "azurerm_container_app" "web" {
 
     container {
       name   = "web"
-      image  = "${local.persistent.container_registry_login_server}/${var.app_unique_id}-web:${var.image_tag}"
+      image  = "${local.persistent.container_registry_login_server}/web:${var.image_tag}"
       cpu    = 0.25
       memory = "0.5Gi"
 
