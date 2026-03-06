@@ -1,6 +1,8 @@
 using System;
+using System.Text.Json;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using app.Services;
 
 namespace app;
 
@@ -9,6 +11,29 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        GitSHAText.Text = BuildConfig.GitSHA;
+        FetchBackendSha();
+    }
+
+    private async void FetchBackendSha()
+    {
+        var front = BuildConfig.GitSHA;
+        try
+        {
+            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+            var response = await http.GetAsync($"{ApiClient.Shared.BaseUrl}/health");
+            if (!response.IsSuccessStatusCode) return;
+            var text = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(text);
+            if (!doc.RootElement.TryGetProperty("gitSha", out var shaEl)) return;
+            var back = shaEl.GetString();
+            if (string.IsNullOrEmpty(back)) return;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                GitSHAText.Text = front == back ? $"f/b: {front}" : $"f: {front}, b: {back}";
+            });
+        }
+        catch { }
     }
 
     public void NavigateToPage(Type pageType)

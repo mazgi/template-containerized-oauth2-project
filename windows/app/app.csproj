@@ -51,6 +51,22 @@
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
 
+  <!-- Git SHA for version display: generate before any compilation (including XAML) -->
+  <Target Name="SetGitSHA" BeforeTargets="BeforeBuild">
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitSHA" />
+    </Exec>
+    <PropertyGroup>
+      <GitSHA Condition="'$(GitSHA)' == ''">unknown</GitSHA>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)GitSHA.g.cs" Overwrite="true"
+      Lines="namespace app { partial class BuildConfig { public const string GitSHA = &quot;$(GitSHA)&quot;%3B } }" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)GitSHA.g.cs" />
+    </ItemGroup>
+  </Target>
+
   <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
