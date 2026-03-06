@@ -51,4 +51,6 @@ ENV GIT_SHA=$GIT_SHA
 ENV PORT=4000
 EXPOSE 4000
 
-CMD ["dist/main"]
+# nest build outputs to dist/src/ because prisma.config.ts at the project root
+# causes TypeScript to infer rootDir as "." instead of "./src".
+CMD ["dist/src/main"]
