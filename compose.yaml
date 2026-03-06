@@ -10,6 +10,7 @@ services:
       - sh
       - -c
       - |
+        export GIT_SHA=$(git -C /work rev-parse --short HEAD 2>/dev/null || echo undefined)
         npm-check-updates --upgrade
         sort-package-json
         pnpm install
