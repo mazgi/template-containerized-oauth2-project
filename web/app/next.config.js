@@ -1,5 +1,18 @@
+const { execSync } = require('child_process')
+
+const gitSHA = process.env.NEXT_PUBLIC_GIT_SHA || (() => {
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim()
+  } catch {
+    return 'unknown'
+  }
+})()
+
 /** @type {import('next').NextConfig} */
 module.exports = {
+  env: {
+    NEXT_PUBLIC_GIT_SHA: gitSHA,
+  },
   reactStrictMode: true,
   // Static export-friendly; suitable for SPA static hosting
   output: 'export',

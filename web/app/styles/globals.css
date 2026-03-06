@@ -609,3 +609,16 @@ button {
   display: inline-block;
   text-align: center;
 }
+
+/* Git SHA overlay */
+
+.git-sha {
+  position: fixed;
+  bottom: 0.375rem;
+  right: 0.5rem;
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 9999;
+}
