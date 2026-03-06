@@ -25,6 +25,14 @@ android {
         // Twitter OAuth requires localhost for PKCE session cookie domain consistency
         // (requires `adb reverse tcp:4000 tcp:4000`)
         buildConfigField("String", "TWITTER_AUTH_BASE_URL", "\"http://localhost:4000\"")
+        buildConfigField(
+            "String",
+            "GIT_SHA",
+            "\"${
+                providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }
+                    .standardOutput.asText.get().trim()
+            }\""
+        )
     }
 
     buildTypes {
