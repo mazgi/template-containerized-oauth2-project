@@ -2,213 +2,110 @@
 
 ## Workflows
 
-### E2E Tests
-
-Five workflows run on every push and pull request to `main`:
+### E2E Tests (on push/PR to `main`)
 
 | Workflow | Runner | Description |
 |----------|--------|-------------|
-| `.github/workflows/backend.e2e-tests.yaml` | `ubuntu-latest` | Builds the backend image, runs NestJS E2E tests via `docker compose run` |
-| `.github/workflows/web.e2e-tests.yaml` | `ubuntu-latest` | Starts the full stack via Docker Compose, runs Playwright E2E tests |
-| `.github/workflows/android.e2e-tests.yaml` | `ubuntu-latest` | Starts the backend via Docker Compose, boots an API-35 emulator (KVM + AVD cache), runs Espresso E2E tests |
-| `.github/workflows/macos-ios.e2e-tests.yaml` | `macos-15` | Starts PostgreSQL + backend natively, runs XCUITest E2E tests on iPhone 17 simulator |
-| `.github/workflows/windows.e2e-tests.yaml` | `windows-2025` | Starts PostgreSQL + backend natively, builds and deploys WinUI app, runs Appium E2E tests |
+| `backend.e2e-tests.yaml` | `ubuntu-latest` | Backend image + NestJS E2E tests via Docker Compose |
+| `web.e2e-tests.yaml` | `ubuntu-latest` | Full stack + Playwright E2E tests |
+| `android.e2e-tests.yaml` | `ubuntu-latest` | Backend + API-35 emulator (KVM + AVD cache) + Espresso |
+| `macos-ios.e2e-tests.yaml` | `macos-15` | PostgreSQL + backend natively + XCUITest on iPhone 17 sim |
+| `windows.e2e-tests.yaml` | `windows-2025` | PostgreSQL + backend natively + Appium E2E |
 
-> **`UID` / `GID` in CI:** The `backend` and `web` development images accept `UID` and `GID` build args (see [local-development.md](local-development.md)). The E2E test workflows append `UID=$(id -u)` and `GID=$(id -g)` to `.secrets.env` before `docker compose build` so that the container user matches the runner (UID 1001 on `ubuntu-latest`). Without this, the container user (defaulting to 1000) would not have write access to the runner-owned workspace, causing `EACCES` errors during `pnpm install`.
+> **UID/GID in CI:** E2E workflows append `UID=$(id -u)` and `GID=$(id -g)` to `.secrets.env` before `docker compose build` so container user matches the runner (avoids `EACCES` errors).
 
 ### Production Builds
 
-| Workflow | Runner | Description |
-|----------|--------|-------------|
-| `.github/workflows/backend.production-build.yaml` | `ubuntu-latest` | Builds and pushes backend Docker image to GHCR (+ ECR / ACR / Artifact Registry if configured) |
-| `.github/workflows/web.production-build.yaml` | `ubuntu-latest` | Builds and pushes web Docker image to GHCR (+ ECR / ACR / Artifact Registry if configured) |
+| Workflow | Description |
+|----------|-------------|
+| `backend.production-build.yaml` | Builds + pushes backend image to GHCR (+ ECR/ACR/Artifact Registry if configured). Passes `GIT_SHA` build-arg. |
+| `web.production-build.yaml` | Builds + pushes web image to GHCR (+ ECR/ACR/Artifact Registry if configured). Passes `GIT_SHA` build-arg for `NEXT_PUBLIC_GIT_SHA`. |
 
 ### IaC (Terraform)
 
-Two workflows manage infrastructure across AWS, Azure, and GCP:
-
-| Workflow | Runner | Description |
-|----------|--------|-------------|
-| `.github/workflows/iac.yaml` | `ubuntu-latest` | Validates/plans on PR, applies on main — container registries & API enablement |
-| `.github/workflows/iac.ephemeral.yaml` | `ubuntu-latest` | Manual dispatch only (plan/apply/destroy) — VPC, DB, compute |
-
-**How it works:**
-
-- **`iac.yaml` (persistent):** `dorny/paths-filter` detects which providers changed; only affected providers run in the matrix. PR → plan only. Push to main → plan + apply. Manual dispatch → plan all providers.
-- **`iac.ephemeral.yaml` (ephemeral):** Manual dispatch only — select a provider and action (plan/apply/destroy) from the Actions UI.
+| Workflow | Description |
+|----------|-------------|
+| `iac.yaml` | Persistent layer: `dorny/paths-filter` → affected providers only. PR = plan, push to main = apply. |
+| `iac.ephemeral.yaml` | Ephemeral layer: manual dispatch (plan/apply/destroy). |
 
 ## Setup
 
-### For E2E tests only
+### E2E tests only
 
-Only **Step 1** is required. The E2E test workflows need the same secrets as your local `.secrets.env` file.
-
-#### Step 1: E2E test secrets
-
-Copy `.secrets.example.env` → `.secrets.env`, fill in your values, then set them as GitHub Actions secrets:
+Copy `.secrets.example.env` → `.secrets.env`, fill values, then:
 
 ```sh
-cp .secrets.example.env .secrets.env
-# Edit .secrets.env with your values
 gh secret set --env-file .secrets.env
 ```
 
-See [Required secrets — E2E test secrets](#e2e-test-secrets) for the full list.
+### Cloud deployment (E2E + production builds + IaC)
 
-### For cloud deployment (E2E tests + production builds + IaC)
+1. **E2E secrets** — same as above
+2. **OIDC auth** — see [OIDC Setup](oidc-setup.md)
+3. **Variables** — `cp .example.env .env`, edit, then `gh variable set --env-file .env`
 
-All three steps are required.
-
-#### Step 1: E2E test secrets
-
-Same as above — see [For E2E tests only](#for-e2e-tests-only).
-
-#### Step 2: OIDC authentication
-
-Set up keyless authentication between GitHub Actions and your cloud provider(s). This is a one-time setup per provider.
-
-See [OIDC Setup](oidc-setup.md) for step-by-step instructions for AWS, Azure, and GCP.
-
-#### Step 3: GitHub Actions variables
-
-Configure Terraform state backends, cloud provider identifiers, and app settings:
+### Reset secrets/variables
 
 ```sh
-cp .env.example .env
-# Edit .env with your values
-gh variable set --env-file .env
-```
-
-See [Required variables](#required-variables) for the full list.
-
-### Resetting secrets and variables
-
-```sh
-# Delete all secrets
 gh secret list --json name --jq '.[].name' | xargs -I {} gh secret delete {}
-
-# Delete all variables
 gh variable list --json name --jq '.[].name' | xargs -I {} gh variable delete {}
 ```
 
-## Required secrets
-
-Add the following under **Settings > Secrets and variables > Actions** in the GitHub repository:
+## Required Secrets
 
 ### E2E test secrets
 
 | Secret | Description |
 |--------|-------------|
-| `AUTH_JWT_SECRET` | Signs access tokens — generate with `openssl rand -base64 32` |
-| `AUTH_JWT_REFRESH_SECRET` | Signs refresh tokens — must differ from `AUTH_JWT_SECRET` |
+| `AUTH_JWT_SECRET` | Access token signing — `openssl rand -base64 32` |
+| `AUTH_JWT_REFRESH_SECRET` | Refresh token signing (must differ) |
 | `AUTH_APPLE_CLIENT_ID` | Apple Services ID |
 | `AUTH_APPLE_TEAM_ID` | Apple Developer Team ID |
 | `AUTH_APPLE_KEY_ID` | Apple Sign In key ID |
-| `AUTH_APPLE_PRIVATE_KEY` | Apple `.p8` private key content (newlines replaced with `\n`) |
-| `AUTH_DISCORD_CLIENT_ID` | Discord OAuth2 Client ID |
-| `AUTH_DISCORD_CLIENT_SECRET` | Discord OAuth2 Client Secret |
-| `AUTH_GITHUB_CLIENT_ID` | GitHub OAuth App Client ID |
-| `AUTH_GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret |
-| `AUTH_GOOGLE_CLIENT_ID` | Google OAuth2 Client ID |
-| `AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth2 Client Secret |
-| `AUTH_TWITTER_CLIENT_ID` | X (Twitter) OAuth2 Client ID |
-| `AUTH_TWITTER_CLIENT_SECRET` | X (Twitter) OAuth2 Client Secret |
-| `AUTH_SESSION_SECRET` | Signs session cookies for Twitter PKCE — generate with `openssl rand -base64 32` |
+| `AUTH_APPLE_PRIVATE_KEY` | Apple `.p8` key (newlines → `\n`) |
+| `AUTH_DISCORD_CLIENT_ID` / `_SECRET` | Discord OAuth2 credentials |
+| `AUTH_GITHUB_CLIENT_ID` / `_SECRET` | GitHub OAuth App credentials |
+| `AUTH_GOOGLE_CLIENT_ID` / `_SECRET` | Google OAuth2 credentials |
+| `AUTH_TWITTER_CLIENT_ID` / `_SECRET` | X (Twitter) OAuth2 credentials |
+| `AUTH_SESSION_SECRET` | Session cookies (Twitter PKCE) — `openssl rand -base64 32` |
 
-`AUTH_JWT_SECRET` and `AUTH_JWT_REFRESH_SECRET` are required by all workflows. The OAuth2 secrets (Apple, Discord, GitHub, Google, Twitter, Session) are required by the Android, macOS/iOS, and Windows workflows so the NestJS backend starts successfully — even though those E2E tests only exercise email/password auth and the items API.
+All OAuth2 secrets required so backend starts, even though Android/iOS/Windows E2E tests only exercise email/password auth.
 
 ### IaC secrets
 
-**Cloud authentication (OIDC):**
-
-All three cloud providers use OIDC (OpenID Connect) for keyless authentication from GitHub Actions. No static credentials (access keys, client secrets, or JSON keys) are stored as secrets. Cloud identity variables are stored as GitHub Actions **variables** (not secrets). See [OIDC Setup](oidc-setup.md) for one-time setup instructions.
-
-**Ephemeral-layer Terraform secrets:**
+Cloud auth uses OIDC (no static credentials). Only additional secret:
 
 | Secret | Description |
 |--------|-------------|
-| `TF_VAR_database_password` | PostgreSQL password (used to construct `DATABASE_URL`) |
+| `TF_VAR_database_password` | PostgreSQL password |
 
-All other backend secrets (`AUTH_JWT_SECRET`, `AUTH_JWT_REFRESH_SECRET`, `AUTH_SESSION_SECRET`, OAuth2 client secrets) are populated directly in the cloud provider's secret store (AWS Secrets Manager / Azure Key Vault / GCP Secret Manager) — not managed by Terraform.
+Other backend secrets are stored directly in cloud secret stores (not Terraform-managed).
 
-## Required variables
-
-Add the following under **Settings > Variables > Actions**:
+## Required Variables
 
 ### Terraform state backends
 
-| Variable | Used by | Example | Description |
-|----------|---------|---------|-------------|
-| `AWS_TF_STATE_BUCKET` | aws, aws/ephemeral | `my-tf-state-bucket` | S3 bucket name for AWS Terraform state |
-| `AWS_TF_STATE_REGION` | aws, aws/ephemeral | `us-east-1` | S3 bucket region |
-| `AZURE_TF_STATE_RESOURCE_GROUP` | azure, azure/ephemeral | `terraform-state-rg` | Resource group for Azure state storage |
-| `AZURE_TF_STATE_STORAGE_ACCOUNT` | azure, azure/ephemeral | `mytfstatestorage` | Storage account for Azure state |
-| `AZURE_TF_STATE_LOCATION` | azure, azure/ephemeral | `eastus` | Azure region for state storage (used by bootstrap action) |
-| `GOOGLE_TF_STATE_BUCKET` | google, google/ephemeral | `my-tf-state-bucket` | GCS bucket name for Google Terraform state |
-| `GOOGLE_TF_STATE_LOCATION` | google, google/ephemeral | `us-central1` | GCS bucket location (used by bootstrap action) |
+| Variable | Example |
+|----------|---------|
+| `AWS_TF_STATE_BUCKET` | `my-tf-state-bucket` |
+| `AWS_TF_STATE_REGION` | `us-east-1` |
+| `AZURE_TF_STATE_RESOURCE_GROUP` | `terraform-state-rg` |
+| `AZURE_TF_STATE_STORAGE_ACCOUNT` | `mytfstatestorage` |
+| `AZURE_TF_STATE_LOCATION` | `eastus` |
+| `GOOGLE_TF_STATE_BUCKET` | `my-tf-state-bucket` |
+| `GOOGLE_TF_STATE_LOCATION` | `us-central1` |
 
-### Ephemeral layer
+### Cloud provider identifiers
 
-Service URLs (`frontend_url`, `backend_base_url`) are derived as `https://{web,backend}.{cdp}.{app_unique_id}.{base_domain_name}`. Container image registry URLs are derived from the persistent layer's remote state (ECR / ACR / Artifact Registry outputs). Only the tag is configurable:
-
-| Variable | Example | Description |
-|----------|---------|-------------|
-| `TF_VAR_base_domain_name` | `example.com` | Base domain for DNS and service URLs |
-| `TF_VAR_image_tag` | `latest` | Container image tag (optional, defaults to `latest`) |
-
-### Other
-
-| Variable | Used by | Example | Description |
-|----------|---------|---------|-------------|
-| `TF_VAR_app_unique_id` | aws, aws/ephemeral, azure, azure/ephemeral, google, google/ephemeral | `oauth2-app` | Unique identifier used as a prefix for all resource names |
-| `AWS_IAM_ROLE_ARN` | aws, aws/ephemeral, production builds | `arn:aws:iam::123456789012:role/github-actions-iac` | IAM role ARN with GitHub OIDC trust policy |
-| `ARM_CLIENT_ID` | azure, azure/ephemeral, production builds | `00000000-0000-0000-0000-000000000000` | Azure AD application (client) ID |
-| `ARM_TENANT_ID` | azure, azure/ephemeral, production builds | `00000000-0000-0000-0000-000000000000` | Azure AD tenant ID |
-| `ARM_SUBSCRIPTION_ID` | azure, azure/ephemeral, production builds | `00000000-0000-0000-0000-000000000000` | Azure subscription ID |
-| `GOOGLE_PROJECT_ID` | google, google/ephemeral | `my-project-id` | Google Cloud project ID |
-| `GOOGLE_REGION` | google, google/ephemeral | `us-central1` | Google Cloud region (defaults to `us-central1` if not set) |
-| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` | google, google/ephemeral, production builds | `projects/123456789/locations/global/workloadIdentityPools/github/providers/github` | Workload Identity Federation provider resource name |
-| `GOOGLE_SERVICE_ACCOUNT` | google, google/ephemeral, production builds | `github-actions@project.iam.gserviceaccount.com` | Google Cloud service account email for impersonation |
-| `AZURE_CONTAINER_REGISTRY_NAME` | azure | `oauth2appacr` | ACR name (used by azure persistent layer) |
-
-## Deployment Workflow Order
-
-Infrastructure must be deployed in a specific order because the ephemeral layer depends on resources and secrets created in earlier steps.
-
-### 1. Deploy the persistent layer
-
-```sh
-# For each provider (aws / azure / google):
-docker compose --profile=iac run --rm iac -chdir=<provider> init
-docker compose --profile=iac run --rm iac -chdir=<provider> apply -var-file=terraform.tfvars
-```
-
-This creates container registries (ECR / ACR / Artifact Registry), secret store containers (Secrets Manager / Key Vault / Secret Manager), VPC/networking, and IAM resources.
-
-### 2. Populate secrets in the cloud provider's secret store
-
-After the persistent layer is up, manually set the following secrets via the cloud console, CLI, or CI pipeline:
-
-| Secret | Description |
-|--------|-------------|
-| `jwt-secret` | Signs access tokens — generate with `openssl rand -base64 32` |
-| `jwt-refresh-secret` | Signs refresh tokens — must differ from `jwt-secret` |
-| `session-secret` | Signs session cookies (used by Twitter PKCE) — generate with `openssl rand -base64 32` |
-| `apple-private-key` | Apple `.p8` private key content (newlines replaced with `\n`) |
-| `discord-client-secret` | Discord OAuth2 Client Secret |
-| `gh-client-secret` | GitHub OAuth App Client Secret |
-| `google-client-secret` | Google OAuth2 Client Secret |
-| `twitter-client-secret` | X (Twitter) OAuth2 Client Secret |
-
-These secrets are **not managed by Terraform**. The ephemeral layer's compute resources (ECS / Container Apps / Cloud Run) reference them at runtime from the secret store.
-
-> **Note:** `DATABASE_URL` is the only secret populated by Terraform because it depends on the database endpoint created in the ephemeral layer.
-
-### 3. Deploy the ephemeral layer
-
-```sh
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral init
-docker compose --profile=iac run --rm iac -chdir=<provider>/ephemeral apply -var-file=terraform.tfvars
-```
-
-This creates compute services, databases, and the `DATABASE_URL` secret version.
+| Variable | Example |
+|----------|---------|
+| `TF_VAR_app_unique_id` | `oauth2-app` |
+| `TF_VAR_base_domain_name` | `example.com` |
+| `TF_VAR_image_tag` | `latest` (optional) |
+| `AWS_IAM_ROLE_ARN` | `arn:aws:iam::123456789012:role/github-actions-iac` |
+| `ARM_CLIENT_ID` / `ARM_TENANT_ID` / `ARM_SUBSCRIPTION_ID` | Azure AD identifiers |
+| `AZURE_CONTAINER_REGISTRY_NAME` | `oauth2appacr` |
+| `GOOGLE_PROJECT_ID` | `my-project-id` |
+| `GOOGLE_REGION` | `us-central1` |
+| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` | `projects/.../providers/github` |
+| `GOOGLE_SERVICE_ACCOUNT` | `github-actions@project.iam.gserviceaccount.com` |

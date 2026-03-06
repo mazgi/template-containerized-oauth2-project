@@ -76,4 +76,4 @@ After creating a repository from this template, follow these steps. Only step 1 
 - [CI / GitHub Actions](docs/ci.md) — workflows, required secrets and variables
 - [OIDC Setup](docs/oidc-setup.md) — one-time cloud provider authentication setup (AWS, Azure, GCP)
 - [Environment Variables](.secrets.example.env) — backend config and secrets
-- [GitHub Actions Variables](.env.example) — CI/CD and cloud deployment variables
+- [GitHub Actions Variables](.example.env) — CI/CD and cloud deployment variables
