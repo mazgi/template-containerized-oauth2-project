@@ -119,9 +119,11 @@ jobs:
         # main.ts has no dotenv loading; Docker passes vars via env_file, but
         # native startup requires explicit sourcing of env files before the process starts.
         # set -a exports all vars set by source, so pnpm dev inherits them.
+        # GIT_SHA is set so the /health endpoint returns the commit SHA.
         working-directory: backend
         run: |
           set -a && source .env && source .secrets.env && set +a
+          export GIT_SHA=${GITHUB_SHA::7}
           nohup pnpm dev > /tmp/backend.log 2>&1 &
 
       - name: Wait for backend to be ready
@@ -146,6 +148,14 @@ jobs:
           key: xcode-deriveddata-${{ hashFiles('macos-ios/**/*.swift', 'macos-ios/**/*.xcodeproj/**') }}
           restore-keys: |
             xcode-deriveddata-
+
+      - name: Generate BuildConfig.generated.swift
+        # The Xcode Run Script build phase that normally generates this file
+        # may be blocked by script sandboxing on newer Xcode versions in CI.
+        # Pre-generate it so the build always finds it.
+        run: |
+          SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          printf '// Auto-generated — do not edit manually\nenum BuildConfig {\n    static let gitSHA = "%s"\n}\n' "$SHA" > macos-ios/app/BuildConfig.generated.swift
 
       - name: Run iOS E2E tests
         # Use the same simulator as local development (CLAUDE.md: iPhone 17).

@@ -43,6 +43,10 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/prisma ./prisma
 
+# Git SHA for version identification (pass via --build-arg GIT_SHA=...)
+ARG GIT_SHA=undefined
+ENV GIT_SHA=$GIT_SHA
+
 # default port; Cloud Run will override via PORT env var
 ENV PORT=4000
 EXPOSE 4000

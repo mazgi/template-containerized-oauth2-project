@@ -13,21 +13,31 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.mazgi.app.ui.theme.AppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
 
@@ -49,6 +59,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 val uiState by authViewModel.uiState.collectAsState()
 
+                Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     uiState.isRestoringSession -> {
                         Box(
@@ -183,6 +194,36 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+                val frontSha = BuildConfig.GIT_SHA
+                var shaLabel by remember { mutableStateOf(frontSha) }
+                LaunchedEffect(Unit) {
+                    val backSha = try {
+                        withContext(Dispatchers.IO) {
+                            val conn = java.net.URL("${BuildConfig.API_BASE_URL}/health")
+                                .openConnection() as java.net.HttpURLConnection
+                            conn.connectTimeout = 3000
+                            conn.readTimeout = 3000
+                            if (conn.responseCode == 200) {
+                                JSONObject(conn.inputStream.bufferedReader().readText())
+                                    .optString("gitSha", "")
+                            } else ""
+                        }
+                    } catch (_: Exception) { "" }
+                    if (backSha.isNotEmpty()) {
+                        shaLabel = if (frontSha == backSha) "f/b: $frontSha"
+                            else "f: $frontSha, b: $backSha"
+                    }
+                }
+                Text(
+                    text = shaLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 8.dp, bottom = 4.dp)
+                        .testTag("gitShaLabel"),
+                )
+                } // Box
             }
         }
     }
