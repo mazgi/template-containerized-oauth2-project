@@ -57,6 +57,7 @@ struct SettingsView: View {
                         .font(.caption)
                 }
             }
+
         }
         .navigationTitle("Settings")
         .alert("Delete Account", isPresented: $showDeleteConfirmation) {
