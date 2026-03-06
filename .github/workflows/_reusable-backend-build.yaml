@@ -1,30 +1,17 @@
-name: Build & publish backend image
+name: Reusable backend build
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'backend/**'
-      - 'Dockerfiles.d/backend-production/**'
-      - 'iac/aws/*'
-      - 'iac/azure/*'
-      - 'iac/google/*'
-      - '.github/workflows/backend.production-build.yaml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'backend/**'
-      - 'Dockerfiles.d/backend-production/**'
-      - 'iac/aws/*'
-      - 'iac/azure/*'
-      - 'iac/google/*'
-      - '.github/workflows/backend.production-build.yaml'
-  workflow_dispatch: {}
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: ${{ inputs.environment }}
     permissions:
       contents: read
       packages: write
@@ -180,7 +167,23 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Build Artifact Registry db-push tags
+        id: gar-db-push-tags
+        if: vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER != ''
+        run: |
+          repo="${{ steps.gar.outputs.repo }}/backend-db-push"
+          {
+            echo "tags<<EOF"
+            echo "${repo}:latest"
+            echo "${repo}:${{ github.sha }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       # --- Build and push ---
+      - name: Set short Git SHA
+        id: git
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push backend image
         id: build
         uses: docker/build-push-action@v4
@@ -189,6 +192,8 @@ jobs:
           file: Dockerfiles.d/backend-production/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            GIT_SHA=${{ steps.git.outputs.short_sha }}
           tags: |
             ghcr.io/${{ github.repository }}/backend:latest
             ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
@@ -201,3 +206,24 @@ jobs:
       - name: Image digest
         run: |
           echo "Image pushed with digest: ${{ steps.build.outputs.digest }}"
+
+      # --- Build and push db-push image (Prisma schema sync for Cloud Run Job) ---
+      - name: Build and push db-push image
+        if: vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER != ''
+        id: build-db-push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          file: Dockerfiles.d/backend-production/Dockerfile
+          target: db-push
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.gar-db-push-tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: db-push image digest
+        if: steps.build-db-push.outcome == 'success'
+        run: |
+          echo "db-push image pushed with digest: ${{ steps.build-db-push.outputs.digest }}"

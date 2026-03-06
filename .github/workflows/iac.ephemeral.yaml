@@ -3,6 +3,10 @@ name: IaC Ephemeral
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: environment
       provider:
         description: 'Cloud provider'
         required: true
@@ -28,6 +32,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 

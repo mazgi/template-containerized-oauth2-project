@@ -1,30 +1,17 @@
-name: Build & publish web image
+name: Reusable web build
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'web/app/**'
-      - 'Dockerfiles.d/web-production/**'
-      - 'iac/aws/*'
-      - 'iac/azure/*'
-      - 'iac/google/*'
-      - '.github/workflows/web.production-build.yaml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'web/app/**'
-      - 'Dockerfiles.d/web-production/**'
-      - 'iac/aws/*'
-      - 'iac/azure/*'
-      - 'iac/google/*'
-      - '.github/workflows/web.production-build.yaml'
-  workflow_dispatch: {}
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: ${{ inputs.environment }}
     permissions:
       contents: read
       packages: write
@@ -181,6 +168,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       # --- Build and push ---
+      - name: Set short Git SHA
+        id: git
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push web image
         id: build
         uses: docker/build-push-action@v4
@@ -189,6 +180,8 @@ jobs:
           file: Dockerfiles.d/web-production/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            GIT_SHA=${{ steps.git.outputs.short_sha }}
           tags: |
             ghcr.io/${{ github.repository }}/web:latest
             ghcr.io/${{ github.repository }}/web:${{ github.sha }}
