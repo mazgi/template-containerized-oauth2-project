@@ -117,6 +117,7 @@ jobs:
         shell: bash
         run: |
           set -a && source .env && source .secrets.env && set +a
+          export GIT_SHA=${GITHUB_SHA::7}
           nohup pnpm dev > $RUNNER_TEMP/backend.log 2>&1 &
 
       - name: Wait for backend to be ready

@@ -21,6 +21,10 @@ COPY pnpm-lock.yaml package.json ./
 RUN pnpm install --frozen-lockfile
 
 COPY . ./
+
+ARG GIT_SHA=unknown
+ENV NEXT_PUBLIC_GIT_SHA=$GIT_SHA
+
 RUN pnpm build
 
 # --- server build stage ----------------------------------------------------
