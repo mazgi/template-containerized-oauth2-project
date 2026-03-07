@@ -37,7 +37,9 @@ public class AppiumSetup
         options.AddAdditionalAppiumOption("appium:appArguments", "--uitesting");
         options.AddAdditionalAppiumOption("ms:waitForAppLaunch", 10);
 
-        _driver = new WindowsDriver(new Uri(appiumUrl), options);
+        // Use 120s command timeout: WinUI 3 cold-start with Windows App SDK runtime
+        // initialization can exceed the default 60s on CI runners.
+        _driver = new WindowsDriver(new Uri(appiumUrl), options, TimeSpan.FromSeconds(120));
         _driver.Manage().Window.Maximize();
         _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
 
