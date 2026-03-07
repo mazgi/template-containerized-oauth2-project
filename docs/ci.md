@@ -32,24 +32,28 @@
 
 ### E2E tests only
 
-Copy `.secrets.example.env` → `.secrets.env`, fill values, then:
+Copy `.example.secrets.env` → `.secrets.env`, fill values, then:
 
 ```sh
-gh secret set --env-file .secrets.env
+gh secret set --env Staging --env-file .staging.secrets.env
 ```
+
+Replace `Staging` with `Production` for the production environment.
 
 ### Cloud deployment (E2E + production builds + IaC)
 
 1. **E2E secrets** — same as above
 2. **OIDC auth** — see [OIDC Setup](oidc-setup.md)
-3. **Variables** — `cp .example.env .env`, edit, then `gh variable set --env-file .env`
+3. **Variables** — `cp .example.env .env`, edit, then `gh variable set --env Staging --env-file .staging.env`
 
 ### Reset secrets/variables
 
 ```sh
-gh secret list --json name --jq '.[].name' | xargs -I {} gh secret delete {}
-gh variable list --json name --jq '.[].name' | xargs -I {} gh variable delete {}
+gh secret list --env Staging --json name --jq '.[].name' | xargs -I {} gh secret delete --env Staging {}
+gh variable list --env Staging --json name --jq '.[].name' | xargs -I {} gh variable delete --env Staging {}
 ```
+
+Replace `Staging` with `Production` for the production environment.
 
 ## Required Secrets
 

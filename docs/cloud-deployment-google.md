@@ -8,6 +8,14 @@ See [Cloud Deployment](cloud-deployment.md) for production image builds and arch
 - `gcloud` CLI installed on the host
 - Docker Desktop running (Terraform runs inside a container)
 
+### Enable required APIs
+
+The IAM Service Account Credentials API must be enabled for Workload Identity Federation (used by CI) to impersonate service accounts:
+
+```sh
+gcloud services enable iamcredentials.googleapis.com --project=YOUR_PROJECT_ID
+```
+
 ### Authenticate with Google Cloud on the host
 
 The `iac` container mounts `~/.config/gcloud` as read-only, so credentials configured on the host are automatically available inside the container.
