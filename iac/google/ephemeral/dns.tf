@@ -8,7 +8,7 @@ resource "google_dns_record_set" "backend" {
   name         = "backend.${local.persistent.dns_zone_dns_name}"
   type         = google_cloud_run_domain_mapping.backend.status[0].resource_records[0].type
   ttl          = 300
-  rrdatas      = ["${google_cloud_run_domain_mapping.backend.status[0].resource_records[0].rrdata}."]
+  rrdatas      = [google_cloud_run_domain_mapping.backend.status[0].resource_records[0].rrdata]
 }
 
 resource "google_dns_record_set" "web" {
@@ -16,5 +16,5 @@ resource "google_dns_record_set" "web" {
   name         = "web.${local.persistent.dns_zone_dns_name}"
   type         = google_cloud_run_domain_mapping.web.status[0].resource_records[0].type
   ttl          = 300
-  rrdatas      = ["${google_cloud_run_domain_mapping.web.status[0].resource_records[0].rrdata}."]
+  rrdatas      = [google_cloud_run_domain_mapping.web.status[0].resource_records[0].rrdata]
 }
