@@ -72,9 +72,12 @@ resource "google_cloud_run_v2_service" "backend" {
         name  = "AUTH_APPLE_KEY_ID"
         value = var.apple_key_id
       }
+      # Web callback URLs use the frontend proxy (frontend_url/backend/...)
+      # so the session cookie stays on the same domain throughout the OAuth flow.
+      # Native callback URLs use the backend directly (native apps connect to the backend).
       env {
         name  = "AUTH_APPLE_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/apple/callback"
+        value = "${local.frontend_url}/backend/auth/apple/callback"
       }
       env {
         name  = "AUTH_APPLE_NATIVE_CALLBACK_URL"
@@ -88,7 +91,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_DISCORD_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/discord/callback"
+        value = "${local.frontend_url}/backend/auth/discord/callback"
       }
       env {
         name  = "AUTH_DISCORD_NATIVE_CALLBACK_URL"
@@ -102,7 +105,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_GITHUB_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/github/callback"
+        value = "${local.frontend_url}/backend/auth/github/callback"
       }
       env {
         name  = "AUTH_GITHUB_NATIVE_CALLBACK_URL"
@@ -116,7 +119,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_GOOGLE_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/google/callback"
+        value = "${local.frontend_url}/backend/auth/google/callback"
       }
       env {
         name  = "AUTH_GOOGLE_NATIVE_CALLBACK_URL"
@@ -130,7 +133,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_TWITTER_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/twitter/callback"
+        value = "${local.frontend_url}/backend/auth/twitter/callback"
       }
       env {
         name  = "AUTH_TWITTER_NATIVE_CALLBACK_URL"
