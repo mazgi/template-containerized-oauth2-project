@@ -27,6 +27,8 @@
 		CEBAFB562F4C45C6001E246C /* app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = app.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEBAFB652F4C45C7001E246C /* appTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = appTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEBAFB6F2F4C45C7001E246C /* appUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = appUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE00BBB12F4C45C7001E246C /* Config.Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.Debug.xcconfig; sourceTree = "<group>"; };
+		CE00BBB22F4C45C7001E246C /* Config.Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.Release.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +77,8 @@
 		CEBAFB4D2F4C45C6001E246C = {
 			isa = PBXGroup;
 			children = (
+				CE00BBB12F4C45C7001E246C /* Config.Debug.xcconfig */,
+				CE00BBB22F4C45C7001E246C /* Config.Release.xcconfig */,
 				CEBAFB582F4C45C6001E246C /* app */,
 				CEBAFB682F4C45C7001E246C /* appTests */,
 				CEBAFB722F4C45C7001E246C /* appUITests */,
@@ -406,6 +410,7 @@
 		};
 		CEBAFB7A2F4C45C7001E246C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CE00BBB12F4C45C7001E246C /* Config.Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -450,6 +455,7 @@
 		};
 		CEBAFB7B2F4C45C7001E246C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CE00BBB22F4C45C7001E246C /* Config.Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
