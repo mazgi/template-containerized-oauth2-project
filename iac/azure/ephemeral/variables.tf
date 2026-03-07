@@ -1,13 +1,11 @@
 variable "app_unique_id" {
   description = "Unique identifier used as a prefix for all resource names"
   type        = string
-  default     = "oauth2-app"
 }
 
 variable "azure_subscription_id" {
   description = "Azure subscription ID"
   type        = string
-  default     = ""
 }
 
 variable "azure_location" {
@@ -55,19 +53,18 @@ variable "database_password" {
   description = "PostgreSQL user password"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "database_name" {
   description = "PostgreSQL database name"
   type        = string
-  default     = "oauth2app"
+  default     = "app"
 }
 
 variable "database_user" {
   description = "PostgreSQL user name"
   type        = string
-  default     = "oauth2app"
+  default     = "user"
 }
 
 # -----------------------------------------------------------------------------
@@ -95,19 +92,16 @@ variable "jwt_refresh_expiration" {
 variable "apple_client_id" {
   description = "Apple Services ID"
   type        = string
-  default     = ""
 }
 
 variable "apple_team_id" {
   description = "Apple Team ID"
   type        = string
-  default     = ""
 }
 
 variable "apple_key_id" {
   description = "Apple Key ID"
   type        = string
-  default     = ""
 }
 
 # -----------------------------------------------------------------------------
@@ -117,7 +111,6 @@ variable "apple_key_id" {
 variable "discord_client_id" {
   description = "Discord OAuth2 Client ID"
   type        = string
-  default     = ""
 }
 
 # -----------------------------------------------------------------------------
@@ -127,7 +120,6 @@ variable "discord_client_id" {
 variable "gh_client_id" {
   description = "GitHub OAuth App Client ID"
   type        = string
-  default     = ""
 }
 
 # -----------------------------------------------------------------------------
@@ -137,7 +129,6 @@ variable "gh_client_id" {
 variable "google_oauth_client_id" {
   description = "Google OAuth2 Client ID"
   type        = string
-  default     = ""
 }
 
 # -----------------------------------------------------------------------------
@@ -147,7 +138,6 @@ variable "google_oauth_client_id" {
 variable "twitter_client_id" {
   description = "X (Twitter) OAuth2 Client ID"
   type        = string
-  default     = ""
 }
 
 # -----------------------------------------------------------------------------
@@ -157,7 +147,6 @@ variable "twitter_client_id" {
 variable "native_app_url_scheme" {
   description = "Native app URL scheme for OAuth2 callbacks"
   type        = string
-  default     = "oauth2app"
 }
 
 # -----------------------------------------------------------------------------

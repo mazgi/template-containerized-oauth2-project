@@ -1,7 +1,6 @@
 variable "app_unique_id" {
   description = "Unique identifier used as a prefix for all resource names"
   type        = string
-  default     = "oauth2-app"
 }
 
 variable "aws_region" {
