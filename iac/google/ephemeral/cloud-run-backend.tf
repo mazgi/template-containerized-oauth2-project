@@ -238,6 +238,19 @@ resource "google_cloud_run_v2_service" "backend" {
   ]
 }
 
+resource "google_cloud_run_domain_mapping" "backend" {
+  location = local.gcp_region
+  name     = "backend.${var.app_unique_id}-google.${var.base_domain_name}"
+
+  metadata {
+    namespace = var.gcp_project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.backend.name
+  }
+}
+
 resource "google_cloud_run_v2_service_iam_member" "backend_public" {
   name     = google_cloud_run_v2_service.backend.name
   location = local.gcp_region

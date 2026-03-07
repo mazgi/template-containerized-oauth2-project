@@ -43,6 +43,19 @@ resource "google_cloud_run_v2_service" "web" {
   }
 }
 
+resource "google_cloud_run_domain_mapping" "web" {
+  location = local.gcp_region
+  name     = "web.${var.app_unique_id}-google.${var.base_domain_name}"
+
+  metadata {
+    namespace = var.gcp_project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.web.name
+  }
+}
+
 resource "google_cloud_run_v2_service_iam_member" "web_public" {
   name     = google_cloud_run_v2_service.web.name
   location = local.gcp_region
