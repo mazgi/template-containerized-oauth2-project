@@ -1,0 +1,5 @@
+services:
+  iac:
+    env_file:
+      - .staging.secrets.env
+      - .staging.env

@@ -57,6 +57,24 @@ docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral 
 docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral destroy -var-file=terraform.tfvars
 ```
 
+## Using staging environment variables
+
+By default, the `iac` service loads `.env` and `.secrets.env`. To use staging-specific files (`.staging.env` and `.staging.secrets.env`), pass the `compose.staging.yaml` override:
+
+```sh
+docker compose -f compose.yaml -f compose.staging.yaml \
+  --profile=iac run --rm iac \
+  terraform -chdir=<provider>/ephemeral apply
+```
+
+To force-update a resource when Terraform cannot detect changes (e.g. the image tag is unchanged but the image contents have been updated):
+
+```sh
+docker compose -f compose.yaml -f compose.staging.yaml \
+  --profile=iac run --rm iac \
+  terraform -chdir=google/ephemeral apply -replace="google_cloud_run_v2_job.db_push"
+```
+
 ## Provider guides
 
 - [AWS ECS Express Mode](cloud-deployment-aws.md)
