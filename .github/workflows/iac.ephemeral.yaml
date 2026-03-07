@@ -29,7 +29,8 @@ permissions:
   id-token: write
 
 jobs:
-  run:
+  ephemeral:
+    name: "Ephemeral — ${{ inputs.environment }} / ${{ inputs.provider }} / ${{ inputs.action }}"
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: ${{ inputs.environment }}

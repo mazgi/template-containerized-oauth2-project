@@ -31,6 +31,7 @@ permissions:
 
 jobs:
   detect-changes:
+    name: Detect changed providers
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -71,6 +72,7 @@ jobs:
           fi
 
   staging:
+    name: Persistent — Staging
     needs: detect-changes
     if: needs.detect-changes.outputs.providers != '[]'
     uses: ./.github/workflows/_reusable-iac.yaml
@@ -81,6 +83,7 @@ jobs:
     secrets: inherit
 
   production:
+    name: Persistent — Production
     needs: [detect-changes, staging]
     if: github.event_name == 'workflow_dispatch' && inputs.environment == 'Production'
     uses: ./.github/workflows/_reusable-iac.yaml
