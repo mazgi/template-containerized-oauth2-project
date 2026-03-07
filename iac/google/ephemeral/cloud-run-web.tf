@@ -4,6 +4,8 @@ resource "google_cloud_run_v2_service" "web" {
 
   deletion_protection = false
 
+  scaling {}
+
   template {
     scaling {
       min_instance_count = 0
