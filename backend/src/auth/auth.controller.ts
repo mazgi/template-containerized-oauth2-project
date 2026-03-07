@@ -310,7 +310,7 @@ export class AuthController {
   @ApiResponse({ status: 302, description: 'Redirects to Apple consent screen for account linking' })
   async linkApple(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
     this.storeLinkState(token, req, 'web');
-    res.redirect(this.webProxyUrl('/auth/apple'));
+    res.redirect(this.selfUrl(req, '/auth/apple'));
   }
 
   @Get('link/discord')
@@ -318,7 +318,7 @@ export class AuthController {
   @ApiResponse({ status: 302, description: 'Redirects to Discord consent screen for account linking' })
   async linkDiscord(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
     this.storeLinkState(token, req, 'web');
-    res.redirect(this.webProxyUrl('/auth/discord'));
+    res.redirect(this.selfUrl(req, '/auth/discord'));
   }
 
   @Get('link/github')
@@ -326,7 +326,7 @@ export class AuthController {
   @ApiResponse({ status: 302, description: 'Redirects to GitHub consent screen for account linking' })
   async linkGithub(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
     this.storeLinkState(token, req, 'web');
-    res.redirect(this.webProxyUrl('/auth/github'));
+    res.redirect(this.selfUrl(req, '/auth/github'));
   }
 
   @Get('link/google')
@@ -334,7 +334,7 @@ export class AuthController {
   @ApiResponse({ status: 302, description: 'Redirects to Google consent screen for account linking' })
   async linkGoogle(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
     this.storeLinkState(token, req, 'web');
-    res.redirect(this.webProxyUrl('/auth/google'));
+    res.redirect(this.selfUrl(req, '/auth/google'));
   }
 
   @Get('link/twitter')
@@ -342,7 +342,7 @@ export class AuthController {
   @ApiResponse({ status: 302, description: 'Redirects to X consent screen for account linking' })
   async linkTwitter(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
     this.storeLinkState(token, req, 'web');
-    res.redirect(this.webProxyUrl('/auth/twitter'));
+    res.redirect(this.selfUrl(req, '/auth/twitter'));
   }
 
   // ── Account linking initiation (native) ──
@@ -445,11 +445,6 @@ export class AuthController {
   }
 
   // ── Private helpers ──
-
-  private webProxyUrl(path: string): string {
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-    return `${frontendUrl}/backend${path}`;
-  }
 
   private selfUrl(req: any, path: string): string {
     const protocol = req.protocol;
