@@ -45,7 +45,7 @@ COPY --from=deps /usr/src/app/prisma.config.ts ./
 COPY --from=deps /usr/src/app/tsconfig.json ./
 COPY --from=deps /usr/src/app/package.json ./
 
-CMD ["npx", "prisma", "db", "push", "--skip-generate"]
+CMD ["npx", "prisma", "db", "push"]
 
 # --- build stage -----------------------------------------------------------
 FROM deps AS builder
