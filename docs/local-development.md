@@ -3,10 +3,10 @@
 ## 1. Set up environment variables
 
 ```sh
-cp .secrets.example.env .secrets.env
+cp .example.secrets.env .secrets.env
 ```
 
-Edit `.secrets.env` and replace placeholders. See [.secrets.example.env](../.secrets.example.env) for all variables.
+Edit `.secrets.env` and replace placeholders. See [.example.secrets.env](../.example.secrets.env) for all variables.
 
 **Linux only** — set UID/GID so bind-mounted files are owned by your user:
 

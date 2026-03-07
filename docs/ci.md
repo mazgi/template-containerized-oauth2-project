@@ -18,8 +18,8 @@
 
 | Workflow | Description |
 |----------|-------------|
-| `backend.production-build.yaml` | Builds + pushes backend image to GHCR (+ ECR/ACR/Artifact Registry if configured). Passes `GIT_SHA` build-arg. |
-| `web.production-build.yaml` | Builds + pushes web image to GHCR (+ ECR/ACR/Artifact Registry if configured). Passes `GIT_SHA` build-arg for `NEXT_PUBLIC_GIT_SHA`. |
+| `backend.build.yaml` | Builds + pushes backend image to GHCR (+ ECR/ACR/Artifact Registry if configured). Passes `GIT_SHA` build-arg. |
+| `web.build.yaml` | Builds + pushes web image to GHCR (+ ECR/ACR/Artifact Registry if configured). Passes `GIT_SHA` build-arg for `NEXT_PUBLIC_GIT_SHA`. |
 
 ### IaC (Terraform)
 
@@ -30,7 +30,7 @@
 
 ## Setup
 
-### E2E tests only
+### For E2E tests only
 
 Copy `.example.secrets.env` → `.secrets.env`, fill values, then:
 
@@ -40,7 +40,7 @@ gh secret set --env Staging --env-file .staging.secrets.env
 
 Replace `Staging` with `Production` for the production environment.
 
-### Cloud deployment (E2E + production builds + IaC)
+### For cloud deployment (E2E tests + production builds + IaC)
 
 1. **E2E secrets** — same as above
 2. **OIDC auth** — see [OIDC Setup](oidc-setup.md)

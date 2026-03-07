@@ -6,7 +6,7 @@ See [Cloud Deployment](cloud-deployment.md) for production image builds and arch
 
 - A Google Cloud project with billing enabled
 - `gcloud` CLI installed on the host
-- Docker Desktop running (Terraform runs inside a container)
+- Docker Engine + Docker Compose running (Terraform runs inside a container)
 
 ### Enable required APIs
 
