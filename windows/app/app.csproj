@@ -14,7 +14,21 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Backend API base URL — override with: msbuild /p:ApiBaseUrl=http://host:4000 -->
+  <PropertyGroup>
+    <ApiBaseUrl Condition="'$(ApiBaseUrl)' == ''"></ApiBaseUrl>
+  </PropertyGroup>
+
+  <!-- Generate appsettings.json only when /p:ApiBaseUrl is explicitly passed (e.g. in CI) -->
+  <Target Name="GenerateAppSettings" BeforeTargets="BeforeBuild" Condition="'$(ApiBaseUrl)' != ''">
+    <WriteLinesToFile File="$(MSBuildProjectDirectory)\appsettings.json" Overwrite="true"
+      Lines="{&quot;ApiBaseUrl&quot;: &quot;$(ApiBaseUrl)&quot;}" />
+  </Target>
+
   <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />

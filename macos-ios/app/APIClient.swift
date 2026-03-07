@@ -97,7 +97,7 @@ final class APIClient {
     let baseURL: String
     private let session: URLSession
 
-    init(baseURL: String = "http://localhost:4000") {
+    init(baseURL: String = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String ?? "http://localhost:4000") {
         self.baseURL = baseURL
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30

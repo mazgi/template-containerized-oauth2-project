@@ -20,11 +20,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Backend API base URL (emulator uses 10.0.2.2 to reach host machine)
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000\"")
-        // Twitter OAuth requires localhost for PKCE session cookie domain consistency
-        // (requires `adb reverse tcp:4000 tcp:4000`)
-        buildConfigField("String", "TWITTER_AUTH_BASE_URL", "\"http://localhost:4000\"")
         buildConfigField(
             "String",
             "GIT_SHA",
@@ -36,12 +31,27 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Backend API base URL (emulator uses 10.0.2.2 to reach host machine)
+            // Override with: ./gradlew ... -PAPI_BASE_URL=http://host:4000
+            buildConfigField("String", "API_BASE_URL",
+                "\"${project.findProperty("API_BASE_URL") ?: "http://10.0.2.2:4000"}\"")
+            // Twitter OAuth requires localhost for PKCE session cookie domain consistency
+            // (requires `adb reverse tcp:4000 tcp:4000`)
+            // Override with: ./gradlew ... -PTWITTER_AUTH_BASE_URL=http://host:4000
+            buildConfigField("String", "TWITTER_AUTH_BASE_URL",
+                "\"${project.findProperty("TWITTER_AUTH_BASE_URL") ?: "http://localhost:4000"}\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "API_BASE_URL",
+                "\"${project.findProperty("API_BASE_URL") ?: "http://10.0.2.2:4000"}\"")
+            buildConfigField("String", "TWITTER_AUTH_BASE_URL",
+                "\"${project.findProperty("TWITTER_AUTH_BASE_URL") ?: "http://localhost:4000"}\"")
         }
     }
     compileOptions {
