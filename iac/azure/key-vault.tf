@@ -4,8 +4,15 @@
 
 data "azurerm_client_config" "current" {}
 
+resource "random_string" "kv_suffix" {
+  length  = 6
+  lower   = true
+  upper   = false
+  special = false
+}
+
 resource "azurerm_key_vault" "main" {
-  name                = "${var.app_unique_id}-kv"
+  name                = "kv-${random_string.kv_suffix.result}"
   location            = azurerm_resource_group.persistent.location
   resource_group_name = azurerm_resource_group.persistent.name
   tenant_id           = data.azurerm_client_config.current.tenant_id

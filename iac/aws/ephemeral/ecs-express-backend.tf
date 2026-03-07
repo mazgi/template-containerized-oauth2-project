@@ -26,9 +26,12 @@ resource "aws_ecs_express_gateway_service" "backend" {
     image          = "${local.persistent.ecr_backend_repository_url}:${var.image_tag}"
     container_port = 4000
 
+    # Web callback URLs use the frontend proxy (frontend_url/backend/...)
+    # so the session cookie stays on the same domain throughout the OAuth flow.
+    # Native callback URLs use the backend directly (native apps connect to the backend).
     environment {
       name  = "AUTH_APPLE_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/apple/callback"
+      value = "${local.frontend_url}/backend/auth/apple/callback"
     }
     environment {
       name  = "AUTH_APPLE_CLIENT_ID"
@@ -48,7 +51,7 @@ resource "aws_ecs_express_gateway_service" "backend" {
     }
     environment {
       name  = "AUTH_DISCORD_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/discord/callback"
+      value = "${local.frontend_url}/backend/auth/discord/callback"
     }
     environment {
       name  = "AUTH_DISCORD_CLIENT_ID"
@@ -60,7 +63,7 @@ resource "aws_ecs_express_gateway_service" "backend" {
     }
     environment {
       name  = "AUTH_GITHUB_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/github/callback"
+      value = "${local.frontend_url}/backend/auth/github/callback"
     }
     environment {
       name  = "AUTH_GITHUB_CLIENT_ID"
@@ -72,7 +75,7 @@ resource "aws_ecs_express_gateway_service" "backend" {
     }
     environment {
       name  = "AUTH_GOOGLE_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/google/callback"
+      value = "${local.frontend_url}/backend/auth/google/callback"
     }
     environment {
       name  = "AUTH_GOOGLE_CLIENT_ID"
@@ -92,7 +95,7 @@ resource "aws_ecs_express_gateway_service" "backend" {
     }
     environment {
       name  = "AUTH_TWITTER_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/twitter/callback"
+      value = "${local.frontend_url}/backend/auth/twitter/callback"
     }
     environment {
       name  = "AUTH_TWITTER_CLIENT_ID"

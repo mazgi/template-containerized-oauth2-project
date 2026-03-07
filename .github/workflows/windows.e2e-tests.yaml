@@ -79,6 +79,13 @@ jobs:
           AUTH_DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
           AUTH_DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
           EOF
+          echo "AUTH_APPLE_CLIENT_ID=${{ vars.AUTH_APPLE_CLIENT_ID }}" >> backend/.env
+          echo "AUTH_APPLE_TEAM_ID=${{ vars.AUTH_APPLE_TEAM_ID }}" >> backend/.env
+          echo "AUTH_APPLE_KEY_ID=${{ vars.AUTH_APPLE_KEY_ID }}" >> backend/.env
+          echo "AUTH_GITHUB_CLIENT_ID=${{ vars.AUTH_GITHUB_CLIENT_ID }}" >> backend/.env
+          echo "AUTH_GOOGLE_CLIENT_ID=${{ vars.AUTH_GOOGLE_CLIENT_ID }}" >> backend/.env
+          echo "AUTH_TWITTER_CLIENT_ID=${{ vars.AUTH_TWITTER_CLIENT_ID }}" >> backend/.env
+          echo "AUTH_DISCORD_CLIENT_ID=${{ vars.AUTH_DISCORD_CLIENT_ID }}" >> backend/.env
 
       - name: Create backend .secrets.env
         shell: bash
@@ -88,18 +95,11 @@ jobs:
           EOF
           echo "AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}" >> backend/.secrets.env
           echo "AUTH_JWT_REFRESH_SECRET=${{ secrets.AUTH_JWT_REFRESH_SECRET }}" >> backend/.secrets.env
-          echo "AUTH_APPLE_CLIENT_ID=${{ secrets.AUTH_APPLE_CLIENT_ID }}" >> backend/.secrets.env
-          echo "AUTH_APPLE_TEAM_ID=${{ secrets.AUTH_APPLE_TEAM_ID }}" >> backend/.secrets.env
-          echo "AUTH_APPLE_KEY_ID=${{ secrets.AUTH_APPLE_KEY_ID }}" >> backend/.secrets.env
           echo "AUTH_APPLE_PRIVATE_KEY=${{ secrets.AUTH_APPLE_PRIVATE_KEY }}" >> backend/.secrets.env
-          echo "AUTH_GITHUB_CLIENT_ID=${{ secrets.AUTH_GITHUB_CLIENT_ID }}" >> backend/.secrets.env
           echo "AUTH_GITHUB_CLIENT_SECRET=${{ secrets.AUTH_GITHUB_CLIENT_SECRET }}" >> backend/.secrets.env
-          echo "AUTH_GOOGLE_CLIENT_ID=${{ secrets.AUTH_GOOGLE_CLIENT_ID }}" >> backend/.secrets.env
           echo "AUTH_GOOGLE_CLIENT_SECRET=${{ secrets.AUTH_GOOGLE_CLIENT_SECRET }}" >> backend/.secrets.env
-          echo "AUTH_TWITTER_CLIENT_ID=${{ secrets.AUTH_TWITTER_CLIENT_ID }}" >> backend/.secrets.env
           echo "AUTH_TWITTER_CLIENT_SECRET=${{ secrets.AUTH_TWITTER_CLIENT_SECRET }}" >> backend/.secrets.env
           echo "AUTH_SESSION_SECRET=${{ secrets.AUTH_SESSION_SECRET }}" >> backend/.secrets.env
-          echo "AUTH_DISCORD_CLIENT_ID=${{ secrets.AUTH_DISCORD_CLIENT_ID }}" >> backend/.secrets.env
           echo "AUTH_DISCORD_CLIENT_SECRET=${{ secrets.AUTH_DISCORD_CLIENT_SECRET }}" >> backend/.secrets.env
 
       - name: Install backend dependencies

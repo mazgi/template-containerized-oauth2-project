@@ -6,7 +6,7 @@ See [Cloud Deployment](cloud-deployment.md) for production image builds and arch
 
 - An Azure subscription with appropriate permissions
 - Azure CLI installed on the host
-- Docker Desktop running (Terraform runs inside a container)
+- Docker Engine + Docker Compose running (Terraform runs inside a container)
 
 ### Authenticate with Azure on the host
 

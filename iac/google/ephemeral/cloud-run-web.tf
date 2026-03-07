@@ -1,8 +1,17 @@
+data "google_artifact_registry_docker_image" "web" {
+  location      = local.gcp_region
+  repository_id = var.app_unique_id
+  image_name    = "web:${var.image_tag}"
+  project       = var.gcp_project_id
+}
+
 resource "google_cloud_run_v2_service" "web" {
   name     = "${var.app_unique_id}-web"
   location = local.gcp_region
 
   deletion_protection = false
+
+  scaling {}
 
   template {
     scaling {
@@ -11,7 +20,7 @@ resource "google_cloud_run_v2_service" "web" {
     }
 
     containers {
-      image = "${local.persistent.artifact_registry_repository}/web:${var.image_tag}"
+      image = data.google_artifact_registry_docker_image.web.self_link
 
       ports {
         container_port = 3000
@@ -40,6 +49,19 @@ resource "google_cloud_run_v2_service" "web" {
         period_seconds = 30
       }
     }
+  }
+}
+
+resource "google_cloud_run_domain_mapping" "web" {
+  location = local.gcp_region
+  name     = "web.${var.app_unique_id}-google.${var.base_domain_name}"
+
+  metadata {
+    namespace = var.gcp_project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.web.name
   }
 }
 

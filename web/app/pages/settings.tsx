@@ -20,7 +20,9 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!loading && !user) router.replace('/signin')
+    if (!loading && !user) {
+      router.push(`/signin?callbackUrl=${router.asPath}`)
+    }
   }, [user, loading, router])
 
   // Refresh user on mount (picks up newly linked provider after OAuth redirect)

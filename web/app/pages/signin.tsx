@@ -16,9 +16,11 @@ export default function SignInPage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const callbackUrl = (router.query.callbackUrl as string) || '/dashboard'
+
   useEffect(() => {
-    if (!loading && user) router.replace('/dashboard')
-  }, [user, loading, router])
+    if (!loading && user) router.replace(callbackUrl)
+  }, [user, loading, router, callbackUrl])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -27,7 +29,7 @@ export default function SignInPage() {
     try {
       const res = await signin(email, password)
       login(res)
-      router.push('/dashboard')
+      router.push(callbackUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errorFallback'))
     } finally {

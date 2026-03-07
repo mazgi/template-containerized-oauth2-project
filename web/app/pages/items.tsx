@@ -16,7 +16,9 @@ export default function ItemsPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!loading && !user) router.replace('/signin')
+    if (!loading && !user) {
+      router.push(`/signin?callbackUrl=${router.asPath}`)
+    }
   }, [user, loading, router])
 
   useEffect(() => {

@@ -2,11 +2,20 @@ locals {
   database_url = "postgresql://${var.database_user}:${var.database_password}@${google_sql_database_instance.main.private_ip_address}:5432/${var.database_name}"
 }
 
+data "google_artifact_registry_docker_image" "backend" {
+  location      = local.gcp_region
+  repository_id = var.app_unique_id
+  image_name    = "backend:${var.image_tag}"
+  project       = var.gcp_project_id
+}
+
 resource "google_cloud_run_v2_service" "backend" {
   name     = "${var.app_unique_id}-backend"
   location = local.gcp_region
 
   deletion_protection = false
+
+  scaling {}
 
   template {
     scaling {
@@ -20,7 +29,7 @@ resource "google_cloud_run_v2_service" "backend" {
     }
 
     containers {
-      image = "${local.persistent.artifact_registry_repository}/backend:${var.image_tag}"
+      image = data.google_artifact_registry_docker_image.backend.self_link
 
       ports {
         container_port = 4000
@@ -63,9 +72,12 @@ resource "google_cloud_run_v2_service" "backend" {
         name  = "AUTH_APPLE_KEY_ID"
         value = var.apple_key_id
       }
+      # Web callback URLs use the frontend proxy (frontend_url/backend/...)
+      # so the session cookie stays on the same domain throughout the OAuth flow.
+      # Native callback URLs use the backend directly (native apps connect to the backend).
       env {
         name  = "AUTH_APPLE_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/apple/callback"
+        value = "${local.frontend_url}/backend/auth/apple/callback"
       }
       env {
         name  = "AUTH_APPLE_NATIVE_CALLBACK_URL"
@@ -79,7 +91,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_DISCORD_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/discord/callback"
+        value = "${local.frontend_url}/backend/auth/discord/callback"
       }
       env {
         name  = "AUTH_DISCORD_NATIVE_CALLBACK_URL"
@@ -93,7 +105,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_GITHUB_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/github/callback"
+        value = "${local.frontend_url}/backend/auth/github/callback"
       }
       env {
         name  = "AUTH_GITHUB_NATIVE_CALLBACK_URL"
@@ -107,7 +119,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_GOOGLE_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/google/callback"
+        value = "${local.frontend_url}/backend/auth/google/callback"
       }
       env {
         name  = "AUTH_GOOGLE_NATIVE_CALLBACK_URL"
@@ -121,7 +133,7 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "AUTH_TWITTER_CALLBACK_URL"
-        value = "${local.backend_base_url}/auth/twitter/callback"
+        value = "${local.frontend_url}/backend/auth/twitter/callback"
       }
       env {
         name  = "AUTH_TWITTER_NATIVE_CALLBACK_URL"
@@ -236,6 +248,19 @@ resource "google_cloud_run_v2_service" "backend" {
     google_secret_manager_secret_version.backend_database_url,
     google_secret_manager_secret_iam_member.backend_accessor,
   ]
+}
+
+resource "google_cloud_run_domain_mapping" "backend" {
+  location = local.gcp_region
+  name     = "backend.${var.app_unique_id}-google.${var.base_domain_name}"
+
+  metadata {
+    namespace = var.gcp_project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.backend.name
+  }
 }
 
 resource "google_cloud_run_v2_service_iam_member" "backend_public" {

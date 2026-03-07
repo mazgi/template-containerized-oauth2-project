@@ -12,7 +12,9 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !user) router.replace('/signin')
+    if (!loading && !user) {
+      router.push(`/signin?callbackUrl=${router.asPath}`)
+    }
   }, [user, loading, router])
 
   if (loading || !user) return null

@@ -8,6 +8,7 @@ on:
       - 'iac/azure/*'
       - 'iac/google/*'
       - '.github/workflows/iac.yaml'
+      - '.github/workflows/_reusable-iac.yaml'
   push:
     branches: [main]
     paths:
@@ -15,7 +16,13 @@ on:
       - 'iac/azure/*'
       - 'iac/google/*'
       - '.github/workflows/iac.yaml'
+      - '.github/workflows/_reusable-iac.yaml'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: environment
 
 permissions:
   contents: read
@@ -24,6 +31,7 @@ permissions:
 
 jobs:
   detect-changes:
+    name: Detect changed providers
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -63,125 +71,24 @@ jobs:
             echo "providers=$providers" >> $GITHUB_OUTPUT
           fi
 
-  plan-apply:
+  staging:
+    name: Persistent — Staging
     needs: detect-changes
     if: needs.detect-changes.outputs.providers != '[]'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        provider: ${{ fromJson(needs.detect-changes.outputs.providers) }}
-    steps:
-      - uses: actions/checkout@v4
+    uses: ./.github/workflows/_reusable-iac.yaml
+    with:
+      environment: Staging
+      providers: ${{ needs.detect-changes.outputs.providers }}
+      apply: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    secrets: inherit
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Configure AWS credentials
-        if: matrix.provider == 'aws'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_IAM_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - name: Authenticate to Azure
-        if: matrix.provider == 'azure'
-        uses: azure/login@v2
-        with:
-          client-id: ${{ vars.ARM_CLIENT_ID }}
-          tenant-id: ${{ vars.ARM_TENANT_ID }}
-          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-
-      - name: Set Azure OIDC environment for Terraform
-        if: matrix.provider == 'azure'
-        run: |
-          echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-          echo "ARM_CLIENT_ID=${{ vars.ARM_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=${{ vars.ARM_TENANT_ID }}" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=${{ vars.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-
-      - name: Authenticate to GCP
-        if: matrix.provider == 'google'
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GOOGLE_SERVICE_ACCOUNT }}
-
-      - name: Bootstrap S3 tfstate backend
-        if: matrix.provider == 'aws'
-        uses: ./.github/actions/bootstrap-tfstate-s3
-        with:
-          bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
-          region: ${{ vars.AWS_TF_STATE_REGION }}
-
-      - name: Bootstrap Azure tfstate backend
-        if: matrix.provider == 'azure'
-        uses: ./.github/actions/bootstrap-tfstate-azurerm
-        with:
-          resource-group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
-          storage-account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
-          location: ${{ vars.AZURE_TF_STATE_LOCATION }}
-
-      - name: Bootstrap GCS tfstate backend
-        if: matrix.provider == 'google'
-        uses: ./.github/actions/bootstrap-tfstate-gcs
-        with:
-          bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
-          location: ${{ vars.GOOGLE_TF_STATE_LOCATION }}
-          project-id: ${{ vars.GOOGLE_PROJECT_ID }}
-
-      - name: Terraform Init
-        run: |
-          case "${{ matrix.provider }}" in
-            aws)
-              terraform -chdir=iac/aws init \
-                -backend-config="bucket=${{ vars.AWS_TF_STATE_BUCKET }}" \
-                -backend-config="region=${{ vars.AWS_TF_STATE_REGION }}"
-              ;;
-            azure)
-              terraform -chdir=iac/azure init \
-                -backend-config="resource_group_name=${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}" \
-                -backend-config="storage_account_name=${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}" \
-                -backend-config="container_name=tfstate"
-              ;;
-            google)
-              terraform -chdir=iac/google init \
-                -backend-config="bucket=${{ vars.GOOGLE_TF_STATE_BUCKET }}"
-              ;;
-          esac
-
-      - name: Terraform Validate
-        run: terraform -chdir=iac/${{ matrix.provider }} validate
-
-      - name: Terraform Plan
-        env:
-          TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
-          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
-          TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
-          TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
-          TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
-          TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
-          TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
-        run: |
-          terraform -chdir=iac/${{ matrix.provider }} plan -no-color -input=false 2>&1 | tee plan-output.txt
-          {
-            echo "### Terraform Plan — ${{ matrix.provider }}"
-            echo '```'
-            cat plan-output.txt
-            echo '```'
-          } >> $GITHUB_STEP_SUMMARY
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-        env:
-          TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
-          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
-          TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
-          TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
-          TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
-          TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
-          TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
-        run: terraform -chdir=iac/${{ matrix.provider }} apply -auto-approve -input=false
+  production:
+    name: Persistent — Production
+    needs: [detect-changes, staging]
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'Production'
+    uses: ./.github/workflows/_reusable-iac.yaml
+    with:
+      environment: Production
+      providers: ${{ needs.detect-changes.outputs.providers }}
+      apply: true
+    secrets: inherit

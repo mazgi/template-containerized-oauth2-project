@@ -76,9 +76,16 @@ func main() {
 
 	// static files with SPA fallback
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		path := filepath.Join(staticDir, filepath.Clean(r.URL.Path))
+		clean := filepath.Clean(r.URL.Path)
+		path := filepath.Join(staticDir, clean)
 		if info, err := os.Stat(path); err == nil && !info.IsDir() {
 			http.ServeFile(w, r, path)
+			return
+		}
+		// Try adding .html extension (Next.js static export generates e.g. signup.html)
+		htmlPath := filepath.Join(staticDir, clean+".html")
+		if info, err := os.Stat(htmlPath); err == nil && !info.IsDir() {
+			http.ServeFile(w, r, htmlPath)
 			return
 		}
 		http.ServeFile(w, r, filepath.Join(staticDir, "index.html"))

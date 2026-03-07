@@ -3,6 +3,10 @@ name: IaC Ephemeral
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: environment
       provider:
         description: 'Cloud provider'
         required: true
@@ -25,9 +29,11 @@ permissions:
   id-token: write
 
 jobs:
-  run:
+  ephemeral:
+    name: "Ephemeral — ${{ inputs.environment }} / ${{ inputs.provider }} / ${{ inputs.action }}"
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
@@ -172,6 +178,14 @@ jobs:
           TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
           TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
           TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
+          TF_VAR_apple_client_id: ${{ vars.TF_VAR_apple_client_id }}
+          TF_VAR_apple_team_id: ${{ vars.TF_VAR_apple_team_id }}
+          TF_VAR_apple_key_id: ${{ vars.TF_VAR_apple_key_id }}
+          TF_VAR_discord_client_id: ${{ vars.TF_VAR_discord_client_id }}
+          TF_VAR_gh_client_id: ${{ vars.TF_VAR_gh_client_id }}
+          TF_VAR_google_oauth_client_id: ${{ vars.TF_VAR_google_oauth_client_id }}
+          TF_VAR_twitter_client_id: ${{ vars.TF_VAR_twitter_client_id }}
+          TF_VAR_native_app_url_scheme: ${{ vars.TF_VAR_native_app_url_scheme }}
         run: |
           terraform -chdir=iac/${{ inputs.provider }}/ephemeral plan -no-color -input=false 2>&1 | tee plan-output.txt
           {
@@ -199,6 +213,14 @@ jobs:
           TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
           TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
           TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
+          TF_VAR_apple_client_id: ${{ vars.TF_VAR_apple_client_id }}
+          TF_VAR_apple_team_id: ${{ vars.TF_VAR_apple_team_id }}
+          TF_VAR_apple_key_id: ${{ vars.TF_VAR_apple_key_id }}
+          TF_VAR_discord_client_id: ${{ vars.TF_VAR_discord_client_id }}
+          TF_VAR_gh_client_id: ${{ vars.TF_VAR_gh_client_id }}
+          TF_VAR_google_oauth_client_id: ${{ vars.TF_VAR_google_oauth_client_id }}
+          TF_VAR_twitter_client_id: ${{ vars.TF_VAR_twitter_client_id }}
+          TF_VAR_native_app_url_scheme: ${{ vars.TF_VAR_native_app_url_scheme }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral apply -auto-approve -input=false
 
       - name: Terraform Destroy
@@ -219,4 +241,12 @@ jobs:
           TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
           TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
           TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
+          TF_VAR_apple_client_id: ${{ vars.TF_VAR_apple_client_id }}
+          TF_VAR_apple_team_id: ${{ vars.TF_VAR_apple_team_id }}
+          TF_VAR_apple_key_id: ${{ vars.TF_VAR_apple_key_id }}
+          TF_VAR_discord_client_id: ${{ vars.TF_VAR_discord_client_id }}
+          TF_VAR_gh_client_id: ${{ vars.TF_VAR_gh_client_id }}
+          TF_VAR_google_oauth_client_id: ${{ vars.TF_VAR_google_oauth_client_id }}
+          TF_VAR_twitter_client_id: ${{ vars.TF_VAR_twitter_client_id }}
+          TF_VAR_native_app_url_scheme: ${{ vars.TF_VAR_native_app_url_scheme }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral destroy -auto-approve -input=false

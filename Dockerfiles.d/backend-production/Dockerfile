@@ -1,10 +1,10 @@
 # Production Dockerfile for the NestJS backend
 # suitable for Cloud Run or any container-hosted environment.
 
-# --- build stage -----------------------------------------------------------
-# Use Debian-based Node image for the builder so that Prisma's schema-engine
-# binary works on both amd64 and arm64 (Chainguard Wolfi lacks compatibility).
-FROM node:24-bookworm-slim AS builder
+# --- dependencies stage ----------------------------------------------------
+# Installs all dependencies (including dev) and generates Prisma client.
+# Used as the base for both the runtime builder and the db-push job.
+FROM node:24-bookworm-slim AS deps
 
 # openssl is required by Prisma to detect the correct engine binary
 RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
@@ -28,6 +28,28 @@ COPY . ./
 
 # generate prisma client and compile typescript
 RUN pnpm prisma:generate
+
+# --- db-push stage (Cloud Run Job for schema sync) -------------------------
+# Lightweight image with Prisma CLI to run `prisma db push` against Cloud SQL.
+# Build with: docker build --target db-push ...
+FROM node:24-bookworm-slim AS db-push
+
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=deps /usr/src/app/prisma ./prisma
+COPY --from=deps /usr/src/app/prisma.config.ts ./
+COPY --from=deps /usr/src/app/tsconfig.json ./
+COPY --from=deps /usr/src/app/package.json ./
+
+CMD ["npx", "prisma", "db", "push"]
+
+# --- build stage -----------------------------------------------------------
+FROM deps AS builder
+
 RUN pnpm build
 
 # remove dev dependencies to shrink the image (pnpm prune does this)
@@ -51,4 +73,6 @@ ENV GIT_SHA=$GIT_SHA
 ENV PORT=4000
 EXPOSE 4000
 
-CMD ["dist/main"]
+# nest build outputs to dist/src/ because prisma.config.ts at the project root
+# causes TypeScript to infer rootDir as "." instead of "./src".
+CMD ["dist/src/main"]

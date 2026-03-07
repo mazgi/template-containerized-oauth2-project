@@ -6,7 +6,15 @@ See [Cloud Deployment](cloud-deployment.md) for production image builds and arch
 
 - A Google Cloud project with billing enabled
 - `gcloud` CLI installed on the host
-- Docker Desktop running (Terraform runs inside a container)
+- Docker Engine + Docker Compose running (Terraform runs inside a container)
+
+### Enable required APIs
+
+The IAM Service Account Credentials API must be enabled for Workload Identity Federation (used by CI) to impersonate service accounts:
+
+```sh
+gcloud services enable iamcredentials.googleapis.com --project=YOUR_PROJECT_ID
+```
 
 ### Authenticate with Google Cloud on the host
 
@@ -125,7 +133,21 @@ docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral appl
 
 This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth2 callback URLs with the actual Cloud Run URIs.
 
-## 5. Tear down (after testing)
+## 5. Custom domain mapping
+
+To map a custom domain to Cloud Run services, the IaC service account must be verified as a domain owner in Google Search Console.
+
+1. Open [Google Search Console — Users & Permissions](https://search.google.com/search-console/users) for your domain property (e.g. `sc-domain:example.com`)
+2. Click **Add user**
+3. Enter the IaC service account email (e.g. `github-actions-iac@YOUR_PROJECT.iam.gserviceaccount.com`)
+4. Set permission to **Owner**
+5. Click **Add**
+
+Without this step, `terraform apply` will fail with a domain ownership verification error when creating `google_cloud_run_domain_mapping` resources.
+
+> **Note:** This is a Google Search Console setting, not a GCP IAM role. The service account needs to be registered as a property owner in Search Console, which is separate from any IAM permissions in the GCP project.
+
+## 6. Tear down (after testing)
 
 ```sh
 docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral destroy -var-file=terraform.tfvars

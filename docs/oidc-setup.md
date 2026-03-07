@@ -88,22 +88,6 @@ One-time setup per cloud provider. These create trust relationships between GitH
      "subject": "repo:OWNER/REPO:pull_request",
      "audiences": ["api://AzureADTokenExchange"]
    }'
-
-   # For the "persistent" environment (apply)
-   az ad app federated-credential create --id <APP_ID> --parameters '{
-     "name": "github-env-persistent",
-     "issuer": "https://token.actions.githubusercontent.com",
-     "subject": "repo:OWNER/REPO:environment:persistent",
-     "audiences": ["api://AzureADTokenExchange"]
-   }'
-
-   # For the "ephemeral" environment (apply/destroy)
-   az ad app federated-credential create --id <APP_ID> --parameters '{
-     "name": "github-env-ephemeral",
-     "issuer": "https://token.actions.githubusercontent.com",
-     "subject": "repo:OWNER/REPO:environment:ephemeral",
-     "audiences": ["api://AzureADTokenExchange"]
-   }'
    ```
 
 4. **Assign RBAC roles** to the service principal:
@@ -157,7 +141,7 @@ One-time setup per cloud provider. These create trust relationships between GitH
 
    ```sh
    # Adjust roles based on your needs
-   for role in roles/editor roles/storage.admin; do
+   for role in roles/owner roles/storage.admin; do
      gcloud projects add-iam-policy-binding PROJECT_ID \
        --member="serviceAccount:github-actions-iac@PROJECT_ID.iam.gserviceaccount.com" \
        --role="$role"
