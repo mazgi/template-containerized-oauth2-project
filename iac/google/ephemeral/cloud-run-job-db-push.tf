@@ -4,6 +4,13 @@
 # Triggered by CI after deploying a new backend image.
 # -----------------------------------------------------------------------------
 
+data "google_artifact_registry_docker_image" "backend_db_push" {
+  location      = local.gcp_region
+  repository_id = var.app_unique_id
+  image_name    = "backend-db-push:${var.image_tag}"
+  project       = var.gcp_project_id
+}
+
 resource "google_cloud_run_v2_job" "db_push" {
   name     = "${var.app_unique_id}-db-push"
   location = local.gcp_region
@@ -18,7 +25,7 @@ resource "google_cloud_run_v2_job" "db_push" {
       }
 
       containers {
-        image = "${local.persistent.artifact_registry_repository}/backend-db-push:${var.image_tag}"
+        image = data.google_artifact_registry_docker_image.backend_db_push.self_link
 
         env {
           name = "DATABASE_URL"

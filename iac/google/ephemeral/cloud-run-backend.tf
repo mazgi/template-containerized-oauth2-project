@@ -2,6 +2,13 @@ locals {
   database_url = "postgresql://${var.database_user}:${var.database_password}@${google_sql_database_instance.main.private_ip_address}:5432/${var.database_name}"
 }
 
+data "google_artifact_registry_docker_image" "backend" {
+  location      = local.gcp_region
+  repository_id = var.app_unique_id
+  image_name    = "backend:${var.image_tag}"
+  project       = var.gcp_project_id
+}
+
 resource "google_cloud_run_v2_service" "backend" {
   name     = "${var.app_unique_id}-backend"
   location = local.gcp_region
@@ -22,7 +29,7 @@ resource "google_cloud_run_v2_service" "backend" {
     }
 
     containers {
-      image = "${local.persistent.artifact_registry_repository}/backend:${var.image_tag}"
+      image = data.google_artifact_registry_docker_image.backend.self_link
 
       ports {
         container_port = 4000

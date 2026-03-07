@@ -1,3 +1,10 @@
+data "google_artifact_registry_docker_image" "web" {
+  location      = local.gcp_region
+  repository_id = var.app_unique_id
+  image_name    = "web:${var.image_tag}"
+  project       = var.gcp_project_id
+}
+
 resource "google_cloud_run_v2_service" "web" {
   name     = "${var.app_unique_id}-web"
   location = local.gcp_region
@@ -13,7 +20,7 @@ resource "google_cloud_run_v2_service" "web" {
     }
 
     containers {
-      image = "${local.persistent.artifact_registry_repository}/web:${var.image_tag}"
+      image = data.google_artifact_registry_docker_image.web.self_link
 
       ports {
         container_port = 3000
