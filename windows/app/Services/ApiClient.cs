@@ -22,7 +22,7 @@ public class ApiException : Exception
 
 public sealed class ApiClient
 {
-    public static readonly ApiClient Shared = new();
+    public static readonly ApiClient Shared = new(LoadBaseUrl());
 
     private readonly HttpClient _http;
     public string BaseUrl { get; }
@@ -31,6 +31,20 @@ public sealed class ApiClient
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+
+    private static string LoadBaseUrl()
+    {
+        try
+        {
+            var path = System.IO.Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+            var json = System.IO.File.ReadAllText(path);
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("ApiBaseUrl", out var el))
+                return el.GetString() ?? "http://localhost:4000";
+        }
+        catch { }
+        return "http://localhost:4000";
+    }
 
     public ApiClient(string baseUrl = "http://localhost:4000")
     {
