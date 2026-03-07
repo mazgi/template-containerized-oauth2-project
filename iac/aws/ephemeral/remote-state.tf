@@ -12,6 +12,6 @@ data "terraform_remote_state" "persistent" {
 
 locals {
   persistent       = data.terraform_remote_state.persistent.outputs
-  frontend_url     = "https://web.aws.${var.app_unique_id}.${var.base_domain_name}"
-  backend_base_url = "https://backend.aws.${var.app_unique_id}.${var.base_domain_name}"
+  frontend_url     = "https://web.${var.app_unique_id}-aws.${var.base_domain_name}"
+  backend_base_url = "https://backend.${var.app_unique_id}-aws.${var.base_domain_name}"
 }
