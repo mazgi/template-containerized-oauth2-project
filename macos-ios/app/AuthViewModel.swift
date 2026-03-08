@@ -31,6 +31,7 @@ final class AuthViewModel {
     private(set) var themeMode: ThemeMode = .system
     var isLoading = false
     var errorMessage: String?
+    private(set) var verificationSentEmail: String?
 
     private let api: APIClient
     private let tokensKey = "auth_tokens"
@@ -56,9 +57,19 @@ final class AuthViewModel {
 
     func signUp(email: String, password: String) async {
         await perform {
-            let res = try await self.api.signUp(email: email, password: password)
-            self.store(res)
+            _ = try await self.api.signUp(email: email, password: password)
+            self.verificationSentEmail = email
         }
+    }
+
+    func resendVerification(email: String) async {
+        await perform {
+            _ = try await self.api.resendVerification(email: email)
+        }
+    }
+
+    func clearVerificationSent() {
+        verificationSentEmail = nil
     }
 
     func signInWithTwitter() async {

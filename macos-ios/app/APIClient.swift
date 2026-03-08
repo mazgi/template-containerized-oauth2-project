@@ -47,6 +47,10 @@ struct AuthResponse: Decodable {
     let user: UserProfile
 }
 
+struct MessageResponse: Decodable {
+    let message: String
+}
+
 // MARK: - Error
 
 struct APIError: Error, LocalizedError {
@@ -113,8 +117,16 @@ final class APIClient {
         try await post("/auth/signin", body: SignInRequest(email: email, password: password))
     }
 
-    func signUp(email: String, password: String) async throws -> AuthResponse {
+    func signUp(email: String, password: String) async throws -> MessageResponse {
         try await post("/auth/signup", body: SignUpRequest(email: email, password: password))
+    }
+
+    func verifyEmail(token: String) async throws -> MessageResponse {
+        try await post("/auth/verify-email", body: ["token": token])
+    }
+
+    func resendVerification(email: String) async throws -> MessageResponse {
+        try await post("/auth/resend-verification", body: ["email": email])
     }
 
     func refresh(refreshToken: String) async throws -> AuthResponse {
