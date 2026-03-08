@@ -71,13 +71,16 @@ cp iac/aws/ephemeral/terraform.tfvars.example iac/aws/ephemeral/terraform.tfvars
 Edit `iac/aws/terraform.tfvars`:
 
 - `aws_region` — your AWS region (default: `us-east-1`)
+- `base_domain_name` — your base domain (e.g. `example.com`)
 
 Edit `iac/aws/ephemeral/terraform.tfvars`:
 
-- `aws_region` — your AWS region (default: `us-east-1`)
-- `backend_image` / `web_image` — placeholder values are fine for the first run (ECR is created first)
-- `database_password`, `jwt_secret`, `jwt_refresh_secret`, `session_secret` — generate with `openssl rand -base64 32`
-- `frontend_url` / `backend_base_url` — use placeholder values for the first apply, then update after getting ECS Express URLs
+- `base_domain_name` — must match the persistent layer
+- `database_password` — generate with `openssl rand -base64 32`
+- OAuth2 client IDs (`apple_client_id`, `discord_client_id`, `gh_client_id`, `google_oauth_client_id`, `twitter_client_id`) and Apple config (`apple_team_id`, `apple_key_id`)
+- `native_app_url_scheme` — e.g. `oauth2app`
+
+> **Note:** JWT secrets, session secret, and OAuth2 client secrets are stored directly in Secrets Manager — populate them externally (CLI or AWS Console), not via Terraform. Service URLs are derived from DNS: `https://{web,backend}.{app_unique_id}-aws.{base_domain_name}`.
 
 ## 3. Create persistent infrastructure and push images
 
@@ -87,7 +90,7 @@ docker compose --profile=iac run --rm iac terraform -chdir=aws init \
 docker compose --profile=iac run --rm iac terraform -chdir=aws apply -var-file=terraform.tfvars
 ```
 
-Then build and push the production images:
+Then build and push the production images (the registry URL comes from the persistent layer output):
 
 ```sh
 # Authenticate Docker with ECR
@@ -109,7 +112,7 @@ docker build \
 docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/oauth2-app-web:latest
 ```
 
-Update `backend_image` and `web_image` in `iac/aws/ephemeral/terraform.tfvars` with the full image URIs.
+The ephemeral layer derives the registry URL from the persistent layer's ECR repository outputs. The `image_tag` variable defaults to `latest`.
 
 ## 4. Deploy ephemeral infrastructure
 
@@ -119,16 +122,10 @@ docker compose --profile=iac run --rm iac terraform -chdir=aws/ephemeral init \
 docker compose --profile=iac run --rm iac terraform -chdir=aws/ephemeral apply -var-file=terraform.tfvars
 ```
 
-After the first apply, get the ECS Express service URLs:
+Service URLs are derived from DNS (`https://{web,backend}.{app_unique_id}-aws.{base_domain_name}`), so no second apply is needed. Verify the deployed URLs:
 
 ```sh
 docker compose --profile=iac run --rm iac terraform -chdir=aws/ephemeral output
-```
-
-Copy the `backend_url` and `web_url` values into `iac/aws/ephemeral/terraform.tfvars` as `backend_base_url` and `frontend_url`, then apply again:
-
-```sh
-docker compose --profile=iac run --rm iac terraform -chdir=aws/ephemeral apply -var-file=terraform.tfvars
 ```
 
 ## 5. Tear down (after testing)
@@ -148,9 +145,12 @@ Persistent ECR repositories remain — images are available for the next test cy
 | Persistent | Internet Gateway | Public subnet internet access |
 | Persistent | Security Groups | Backend (4000), Web (3000), RDS (5432) |
 | Persistent | IAM Roles | ECS task execution role + ECS Express infrastructure role |
+| Persistent | Secrets Manager | 9 backend secrets (empty containers) |
+| Persistent | Route 53 Zone | `aws.{app_unique_id}.{base_domain_name}` |
 | Ephemeral | NAT Gateway | Private subnet outbound access (ECR image pull) |
 | Ephemeral | RDS (PostgreSQL 17) | Database instance (`db.t4g.micro`) in private subnet |
 | Ephemeral | ECS Express (backend) | NestJS API on port 4000, auto-scaling 1-2 tasks |
 | Ephemeral | ECS Express (web) | Static site + reverse proxy on port 3000, auto-scaling 1-2 tasks |
+| Ephemeral | DNS records | CNAME records for backend and web services |
 
 > **Note:** RDS has `skip_final_snapshot = true` and NAT Gateway incurs cost even when idle. Adjust for production use.

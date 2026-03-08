@@ -72,13 +72,17 @@ cp iac/google/ephemeral/terraform.tfvars.example iac/google/ephemeral/terraform.
 Edit `iac/google/terraform.tfvars`:
 
 - `gcp_project_id` — your GCP project ID
+- `base_domain_name` — your base domain (e.g. `example.com`)
 
 Edit `iac/google/ephemeral/terraform.tfvars`:
 
 - `gcp_project_id` — your GCP project ID
-- `backend_image` / `web_image` — placeholder values are fine for the first run (Artifact Registry is created in persistent layer)
-- `database_password`, `jwt_secret`, `jwt_refresh_secret`, `session_secret` — generate with `openssl rand -base64 32`
-- `frontend_url` / `backend_base_url` — use placeholder values for the first apply, then update after getting Cloud Run URIs
+- `base_domain_name` — must match the persistent layer
+- `database_password` — generate with `openssl rand -base64 32`
+- OAuth2 client IDs (`apple_client_id`, `discord_client_id`, `gh_client_id`, `google_oauth_client_id`, `twitter_client_id`) and Apple config (`apple_team_id`, `apple_key_id`)
+- `native_app_url_scheme` — e.g. `oauth2app`
+
+> **Note:** JWT secrets, session secret, and OAuth2 client secrets are stored directly in Secret Manager — populate them externally (CLI or GCP Console), not via Terraform. Service URLs are derived from DNS: `https://{web,backend}.{app_unique_id}-google.{base_domain_name}`.
 
 ## 3. Create persistent infrastructure and push images
 
@@ -88,7 +92,7 @@ docker compose --profile=iac run --rm iac terraform -chdir=google init \
 docker compose --profile=iac run --rm iac terraform -chdir=google apply -var-file=terraform.tfvars
 ```
 
-Then build and push the production images:
+Then build and push the production images (the registry URL comes from the persistent layer output):
 
 ```sh
 # Authenticate Docker with Artifact Registry
@@ -109,7 +113,7 @@ docker build \
 docker push us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/web:latest
 ```
 
-Update `backend_image` and `web_image` in `iac/google/ephemeral/terraform.tfvars` with the full image URIs.
+The ephemeral layer derives the registry URL from the persistent layer's Artifact Registry output. The `image_tag` variable defaults to `latest`.
 
 ## 4. Deploy ephemeral infrastructure
 
@@ -119,19 +123,11 @@ docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral init
 docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral apply -var-file=terraform.tfvars
 ```
 
-After the first apply, get the Cloud Run service URLs:
+Service URLs are derived from DNS (`https://{web,backend}.{app_unique_id}-google.{base_domain_name}`), so no second apply is needed. Verify the deployed URLs:
 
 ```sh
 docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral output
 ```
-
-Copy the `backend_url` and `web_url` values into `iac/google/ephemeral/terraform.tfvars` as `backend_base_url` and `frontend_url`, then apply again:
-
-```sh
-docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral apply -var-file=terraform.tfvars
-```
-
-This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth2 callback URLs with the actual Cloud Run URIs.
 
 ## 5. Custom domain mapping
 
@@ -162,10 +158,15 @@ Persistent Artifact Registry and API enablement remain — images are available 
 | Persistent | Project Services | API enablement (Cloud Run, SQL Admin, etc.) |
 | Persistent | Artifact Registry | Docker image repository |
 | Persistent | VPC, Subnets, Peering | Private network for Cloud SQL |
+| Persistent | Secret Manager | 9 backend secrets (empty containers) |
+| Persistent | DNS Zone | `google.{app_unique_id}.{base_domain_name}` |
 | Ephemeral | VPC Connector | Cloud Run → VPC access (~$20/mo) |
 | Ephemeral | Cloud SQL (PostgreSQL 17) | Database instance + database + user |
 | Ephemeral | Cloud Run (backend) | NestJS API on port 4000 |
 | Ephemeral | Cloud Run (web) | Static site + Go reverse proxy on port 3000 |
+| Ephemeral | Cloud Run Job (db-migrate) | Runs `prisma migrate deploy` (triggered by CI) |
+| Ephemeral | Cloud Run Job (db-push) | Runs `prisma db push` (triggered by CI) |
 | Ephemeral | IAM bindings | Public access (`allUsers` → `roles/run.invoker`) |
+| Ephemeral | DNS records | CNAME records for backend and web services |
 
 > **Note:** Cloud SQL has `deletion_protection = false` for template convenience. Enable it for production use.

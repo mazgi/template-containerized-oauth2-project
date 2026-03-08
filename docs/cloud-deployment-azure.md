@@ -63,15 +63,17 @@ Edit `iac/azure/terraform.tfvars`:
 
 - `azure_subscription_id` — your Azure subscription ID
 - `azure_location` — your Azure region (default: `eastus`)
-- `azure_container_registry_name` — a globally unique name (alphanumeric only)
+- `base_domain_name` — your base domain (e.g. `example.com`)
 
 Edit `iac/azure/ephemeral/terraform.tfvars`:
 
 - `azure_subscription_id` — your Azure subscription ID
-- `azure_location` — your Azure region (default: `eastus`)
-- `backend_image` / `web_image` — placeholder values are fine for the first run (ACR is created in persistent layer)
-- `database_password`, `jwt_secret`, `jwt_refresh_secret`, `session_secret` — generate with `openssl rand -base64 32`
-- `frontend_url` / `backend_base_url` — use placeholder values for the first apply, then update after getting Container Apps FQDNs
+- `base_domain_name` — must match the persistent layer
+- `database_password` — generate with `openssl rand -base64 32`
+- OAuth2 client IDs (`apple_client_id`, `discord_client_id`, `gh_client_id`, `google_oauth_client_id`, `twitter_client_id`) and Apple config (`apple_team_id`, `apple_key_id`)
+- `native_app_url_scheme` — e.g. `oauth2app`
+
+> **Note:** JWT secrets, session secret, and OAuth2 client secrets are stored directly in Key Vault — populate them externally (CLI or Azure Portal), not via Terraform. Service URLs are derived from DNS: `https://{web,backend}.{app_unique_id}-azure.{base_domain_name}`.
 
 ## 3. Create persistent infrastructure and push images
 
@@ -82,7 +84,7 @@ docker compose --profile=iac run --rm iac terraform -chdir=azure init \
 docker compose --profile=iac run --rm iac terraform -chdir=azure apply -var-file=terraform.tfvars
 ```
 
-Then build and push the production images:
+Then build and push the production images (the registry URL comes from the persistent layer output):
 
 ```sh
 # Authenticate Docker with ACR
@@ -103,7 +105,7 @@ docker build \
 docker push YOUR_REGISTRY_NAME.azurecr.io/oauth2-app-web:latest
 ```
 
-Update `backend_image` and `web_image` in `iac/azure/ephemeral/terraform.tfvars` with the full image URIs.
+The ephemeral layer derives the registry URL from the persistent layer's ACR login server output. The `image_tag` variable defaults to `latest`.
 
 ## 4. Deploy ephemeral infrastructure
 
@@ -114,19 +116,11 @@ docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral init 
 docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral apply -var-file=terraform.tfvars
 ```
 
-After the first apply, get the Container Apps FQDNs:
+Service URLs are derived from DNS (`https://{web,backend}.{app_unique_id}-azure.{base_domain_name}`), so no second apply is needed. Verify the deployed URLs:
 
 ```sh
 docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral output
 ```
-
-Copy the `backend_url` and `web_url` values into `iac/azure/ephemeral/terraform.tfvars` as `backend_base_url` and `frontend_url`, then apply again:
-
-```sh
-docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral apply -var-file=terraform.tfvars
-```
-
-This second apply updates the backend's `CORS_ORIGIN`, `FRONTEND_URL`, and OAuth2 callback URLs with the actual Container Apps FQDNs.
 
 ## 5. Tear down (after testing)
 
@@ -142,6 +136,8 @@ Persistent ACR remains — images are available for the next test cycle.
 |-------|----------|-------------|
 | Persistent | Resource Group | `oauth2-app-persistent-rg` for registry |
 | Persistent | Container Registry | Docker image repository (Basic SKU) |
+| Persistent | Key Vault | 9 backend secrets (empty containers) |
+| Persistent | DNS Zone | `azure.{app_unique_id}.{base_domain_name}` |
 | Ephemeral | Resource Group | `oauth2-app-rg` containing ephemeral resources |
 | Ephemeral | Log Analytics Workspace | Container Apps logging |
 | Ephemeral | VNet | Custom VNet with Container Apps (/23) + PostgreSQL (/24) subnets |
@@ -150,5 +146,6 @@ Persistent ACR remains — images are available for the next test cycle.
 | Ephemeral | Container Apps Environment | VNet-integrated shared environment |
 | Ephemeral | Container App (backend) | NestJS API on port 4000, scaling 1-2 replicas |
 | Ephemeral | Container App (web) | Static site + reverse proxy on port 3000, scaling 1-2 replicas |
+| Ephemeral | DNS records | CNAME records for backend and web services |
 
 > **Note:** ACR uses admin credentials for simplicity. Switch to managed identity for production use.

@@ -48,6 +48,7 @@ After creating a repository from this template, follow these steps. Only step 1 
 ```
 .
 ├── compose.yaml
+├── compose.staging.yaml   # Staging env file override
 ├── .example.secrets.env
 ├── backend/               # NestJS API
 ├── web/
@@ -66,6 +67,7 @@ After creating a repository from this template, follow these steps. Only step 1 
 │   └── e2e-tests/         # Appium E2E tests
 ├── iac/                   # Terraform IaC (AWS, Azure, GCP)
 ├── Dockerfiles.d/
+├── .github/               # GitHub Actions workflows + custom actions
 └── docs/
 ```
 
