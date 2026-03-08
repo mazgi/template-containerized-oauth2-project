@@ -61,6 +61,8 @@ jobs:
             -backend-config="bucket=${{ vars.AWS_TF_STATE_BUCKET }}" \
             -backend-config="region=${{ vars.AWS_TF_STATE_REGION }}"
           echo "repo=$(terraform -chdir=iac/aws output -raw ecr_backend_repository_url)" >> "$GITHUB_OUTPUT"
+          echo "repo_db_migrate=$(terraform -chdir=iac/aws output -raw ecr_backend_db_migrate_repository_url)" >> "$GITHUB_OUTPUT"
+          echo "repo_db_push=$(terraform -chdir=iac/aws output -raw ecr_backend_db_push_repository_url)" >> "$GITHUB_OUTPUT"
 
       - name: Build ECR tags
         id: ecr-tags
@@ -74,11 +76,23 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Build ECR db-migrate tags
+        id: ecr-db-migrate-tags
+        if: vars.AWS_IAM_ROLE_ARN != ''
+        run: |
+          repo="${{ steps.ecr.outputs.repo_db_migrate }}"
+          {
+            echo "tags<<EOF"
+            echo "${repo}:latest"
+            echo "${repo}:${{ github.sha }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build ECR db-push tags
         id: ecr-db-push-tags
         if: vars.AWS_IAM_ROLE_ARN != '' && inputs.environment != 'Production'
         run: |
-          repo="${{ steps.ecr.outputs.repo }}-db-push"
+          repo="${{ steps.ecr.outputs.repo_db_push }}"
           {
             echo "tags<<EOF"
             echo "${repo}:latest"
@@ -127,6 +141,18 @@ jobs:
         if: vars.ARM_CLIENT_ID != ''
         run: |
           repo="${{ steps.acr.outputs.login_server }}/backend"
+          {
+            echo "tags<<EOF"
+            echo "${repo}:latest"
+            echo "${repo}:${{ github.sha }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build ACR db-migrate tags
+        id: acr-db-migrate-tags
+        if: vars.ARM_CLIENT_ID != ''
+        run: |
+          repo="${{ steps.acr.outputs.login_server }}/backend-db-migrate"
           {
             echo "tags<<EOF"
             echo "${repo}:latest"
@@ -184,6 +210,18 @@ jobs:
         if: vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER != ''
         run: |
           repo="${{ steps.gar.outputs.repo }}/backend"
+          {
+            echo "tags<<EOF"
+            echo "${repo}:latest"
+            echo "${repo}:${{ github.sha }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build Artifact Registry db-migrate tags
+        id: gar-db-migrate-tags
+        if: vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER != ''
+        run: |
+          repo="${{ steps.gar.outputs.repo }}/backend-db-migrate"
           {
             echo "tags<<EOF"
             echo "${repo}:latest"
@@ -256,3 +294,28 @@ jobs:
         if: steps.build-db-push.outcome == 'success'
         run: |
           echo "db-push image pushed with digest: ${{ steps.build-db-push.outputs.digest }}"
+
+      # --- Build and push db-migrate image (Prisma migration job) ---
+      # Unconfigured providers produce empty tag outputs, which
+      # docker/build-push-action silently ignores (same as the backend image above).
+      - name: Build and push db-migrate image
+        if: vars.AWS_IAM_ROLE_ARN != '' || vars.ARM_CLIENT_ID != '' || vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER != ''
+        id: build-db-migrate
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          file: Dockerfiles.d/backend-production/Dockerfile
+          target: db-migrate
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ steps.ecr-db-migrate-tags.outputs.tags }}
+            ${{ steps.acr-db-migrate-tags.outputs.tags }}
+            ${{ steps.gar-db-migrate-tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: db-migrate image digest
+        if: steps.build-db-migrate.outcome == 'success'
+        run: |
+          echo "db-migrate image pushed with digest: ${{ steps.build-db-migrate.outputs.digest }}"

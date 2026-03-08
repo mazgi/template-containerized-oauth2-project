@@ -56,6 +56,16 @@ output "ecr_backend_repository_url" {
   value       = aws_ecr_repository.backend.repository_url
 }
 
+output "ecr_backend_db_migrate_repository_url" {
+  description = "ECR backend-db-migrate repository URL for docker push"
+  value       = aws_ecr_repository.backend_db_migrate.repository_url
+}
+
+output "ecr_backend_db_push_repository_url" {
+  description = "ECR backend-db-push repository URL for docker push"
+  value       = aws_ecr_repository.backend_db_push.repository_url
+}
+
 output "ecr_web_repository_url" {
   description = "ECR web repository URL for docker push"
   value       = aws_ecr_repository.web.repository_url
