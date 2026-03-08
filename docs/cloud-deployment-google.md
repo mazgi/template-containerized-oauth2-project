@@ -96,14 +96,14 @@ gcloud auth configure-docker us-central1-docker.pkg.dev
 
 # Build and push backend
 docker build \
-  -f Dockerfiles.d/backend-production/Dockerfile \
+  -f Dockerfiles.d/backend-build/Dockerfile \
   -t us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/backend:latest \
   backend
 docker push us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/backend:latest
 
 # Build and push web
 docker build \
-  -f Dockerfiles.d/web-production/Dockerfile \
+  -f Dockerfiles.d/web-build/Dockerfile \
   -t us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/web:latest \
   web/app
 docker push us-central1-docker.pkg.dev/YOUR_PROJECT/oauth2-app/web:latest

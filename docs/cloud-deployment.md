@@ -16,13 +16,13 @@ Before deploying, build production Docker images:
 ```sh
 # Build backend image
 docker build \
-  -f Dockerfiles.d/backend-production/Dockerfile \
+  -f Dockerfiles.d/backend-build/Dockerfile \
   -t myregistry/backend:latest \
   backend
 
 # Build web image
 docker build \
-  -f Dockerfiles.d/web-production/Dockerfile \
+  -f Dockerfiles.d/web-build/Dockerfile \
   -t myregistry/web:latest \
   web/app
 ```

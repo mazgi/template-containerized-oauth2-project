@@ -90,14 +90,14 @@ az acr login --name YOUR_REGISTRY_NAME
 
 # Build and push backend
 docker build \
-  -f Dockerfiles.d/backend-production/Dockerfile \
+  -f Dockerfiles.d/backend-build/Dockerfile \
   -t YOUR_REGISTRY_NAME.azurecr.io/oauth2-app-backend:latest \
   backend
 docker push YOUR_REGISTRY_NAME.azurecr.io/oauth2-app-backend:latest
 
 # Build and push web
 docker build \
-  -f Dockerfiles.d/web-production/Dockerfile \
+  -f Dockerfiles.d/web-build/Dockerfile \
   -t YOUR_REGISTRY_NAME.azurecr.io/oauth2-app-web:latest \
   web/app
 docker push YOUR_REGISTRY_NAME.azurecr.io/oauth2-app-web:latest

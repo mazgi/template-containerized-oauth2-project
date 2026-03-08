@@ -45,7 +45,25 @@ COPY --from=deps /usr/src/app/prisma.config.ts ./
 COPY --from=deps /usr/src/app/tsconfig.json ./
 COPY --from=deps /usr/src/app/package.json ./
 
-CMD ["npx", "prisma", "db", "push"]
+CMD ["npx", "prisma", "db", "push", "--accept-data-loss"]
+
+# --- db-migrate stage (Cloud Run Job for production migrations) ------------
+# Runs `prisma migrate deploy` to apply pending migrations.
+# Build with: docker build --target db-migrate ...
+FROM node:24-bookworm-slim AS db-migrate
+
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=deps /usr/src/app/prisma ./prisma
+COPY --from=deps /usr/src/app/prisma.config.ts ./
+COPY --from=deps /usr/src/app/tsconfig.json ./
+COPY --from=deps /usr/src/app/package.json ./
+
+CMD ["npx", "prisma", "migrate", "deploy"]
 
 # --- build stage -----------------------------------------------------------
 FROM deps AS builder
