@@ -32,9 +32,31 @@ public sealed partial class SignUpPage : Page
         UpdateUI();
     }
 
+    private async void ResendButton_Click(object sender, RoutedEventArgs e)
+    {
+        var email = App.Auth.VerificationSentEmail;
+        if (string.IsNullOrEmpty(email)) return;
+
+        ResendButton.IsEnabled = false;
+        ResendButton.Content = "Sending...";
+        await App.Auth.ResendVerificationAsync(email);
+        ResendButton.Content = "Resend verification email";
+        ResendButton.IsEnabled = true;
+    }
+
     private void SignInLink_Click(object sender, RoutedEventArgs e)
     {
         App.Auth.ClearError();
+        if (Frame.CanGoBack)
+            Frame.GoBack();
+        else
+            Frame.Navigate(typeof(SignInPage));
+    }
+
+    private void VerificationSignInLink_Click(object sender, RoutedEventArgs e)
+    {
+        App.Auth.ClearError();
+        App.Auth.ClearVerificationSent();
         if (Frame.CanGoBack)
             Frame.GoBack();
         else
@@ -52,6 +74,16 @@ public sealed partial class SignUpPage : Page
 
     private void UpdateUI()
     {
+        if (App.Auth.VerificationSentEmail is not null)
+        {
+            SignUpFormPanel.Visibility = Visibility.Collapsed;
+            VerificationSentPanel.Visibility = Visibility.Visible;
+            return;
+        }
+
+        SignUpFormPanel.Visibility = Visibility.Visible;
+        VerificationSentPanel.Visibility = Visibility.Collapsed;
+
         if (App.Auth.ErrorMessage is { } msg)
         {
             ErrorText.Text = msg;

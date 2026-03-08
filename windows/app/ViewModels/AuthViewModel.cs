@@ -65,6 +65,9 @@ public partial class AuthViewModel : ObservableObject
     [ObservableProperty]
     private ThemeMode _themeMode = ThemeMode.System;
 
+    [ObservableProperty]
+    private string? _verificationSentEmail;
+
     public event Action? AuthStateChanged;
     public event Action? ThemeChanged;
 
@@ -87,9 +90,22 @@ public partial class AuthViewModel : ObservableObject
     {
         await PerformAsync(async () =>
         {
-            var res = await _api.SignUpAsync(email, password);
-            Store(res);
+            await _api.SignUpAsync(email, password);
+            VerificationSentEmail = email;
         });
+    }
+
+    public async Task ResendVerificationAsync(string email)
+    {
+        await PerformAsync(async () =>
+        {
+            await _api.ResendVerificationAsync(email);
+        });
+    }
+
+    public void ClearVerificationSent()
+    {
+        VerificationSentEmail = null;
     }
 
     public async Task SignInWithAppleAsync()

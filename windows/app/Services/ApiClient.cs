@@ -55,8 +55,14 @@ public sealed class ApiClient
     public Task<AuthResponse> SignInAsync(string email, string password) =>
         PostAsync<AuthResponse>("/auth/signin", new { email, password });
 
-    public Task<AuthResponse> SignUpAsync(string email, string password) =>
-        PostAsync<AuthResponse>("/auth/signup", new { email, password });
+    public Task<MessageResponse> SignUpAsync(string email, string password) =>
+        PostAsync<MessageResponse>("/auth/signup", new { email, password });
+
+    public Task<MessageResponse> VerifyEmailAsync(string token) =>
+        PostAsync<MessageResponse>("/auth/verify-email", new { token });
+
+    public Task<MessageResponse> ResendVerificationAsync(string email) =>
+        PostAsync<MessageResponse>("/auth/resend-verification", new { email });
 
     public Task<AuthResponse> RefreshAsync(string refreshToken) =>
         PostAsync<AuthResponse>("/auth/refresh", new { refreshToken });
