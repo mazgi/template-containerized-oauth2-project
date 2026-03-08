@@ -15,12 +15,15 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.json.JSONObject
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
  * E2E tests for the Items screen (create, list, delete) and bottom navigation.
@@ -34,11 +37,12 @@ import org.junit.runner.RunWith
  *   - multiple items
  *   - bottom navigation tabs (Dashboard / Items)
  *
- * Each test starts with cleared SharedPreferences. The @Before helper signs up
- * a fresh user and navigates to the Dashboard so every test begins authenticated.
+ * Each test starts with cleared SharedPreferences. The @Before helper creates
+ * a verified user via API and signs in via UI so every test begins authenticated.
  *
- * Prerequisites: the backend must be reachable at http://10.0.2.2:4000.
- * Run the stack with `docker compose up` before executing these tests.
+ * Prerequisites: the backend must be reachable at http://10.0.2.2:4000
+ * and Mailpit at http://10.0.2.2:8025.
+ * Run the stack with `docker compose up backend mailpit` before executing these tests.
  */
 @RunWith(AndroidJUnit4::class)
 class ItemsE2ETest {
@@ -59,39 +63,95 @@ class ItemsE2ETest {
 
     companion object {
         private var testCount = 0
+        private const val BACKEND_URL = "http://10.0.2.2:4000"
+        private const val MAILPIT_URL = "http://10.0.2.2:8025"
     }
 
     private fun uniqueEmail() =
         "e2e_items_${System.currentTimeMillis()}_${testCount++}@example.com"
 
     // -------------------------------------------------------------------------
-    // @Before: sign up a fresh user and land on Dashboard
+    // @Before: create a verified user via API and sign in via UI
     // -------------------------------------------------------------------------
 
     @Before
     fun signUpAndReachDashboard() {
+        val email = uniqueEmail()
+        val password = "Password1!"
+
+        // Create verified user via backend API + Mailpit
+        createVerifiedUser(email, password)
+
         // Wait for session restore to finish → Sign In screen
         composeRule.waitUntil(15_000L) {
             composeRule.onAllNodesWithText("Don't have an account? Sign Up")
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Navigate to Sign Up
-        composeRule.onNodeWithText("Don't have an account? Sign Up").performClick()
-        composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithText("Confirm Password").fetchSemanticsNodes().isNotEmpty()
-        }
-
-        // Fill and submit the Sign Up form
-        composeRule.onNodeWithText("Email").performTextInput(uniqueEmail())
-        composeRule.onNodeWithText("Password").performTextInput("Password1!")
-        composeRule.onNodeWithText("Confirm Password").performTextInput("Password1!")
-        composeRule.onAllNodesWithText("Sign Up").filterToOne(hasClickAction()).performClick()
+        // Sign in via UI
+        composeRule.onNodeWithText("Email").performTextInput(email)
+        composeRule.onNodeWithText("Password").performTextInput(password)
+        composeRule.onAllNodesWithText("Sign In").filterToOne(hasClickAction()).performClick()
 
         // Wait for Dashboard
         composeRule.waitUntil(15_000L) {
             composeRule.onAllNodesWithText("Sign Out").fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    private fun createVerifiedUser(email: String, password: String) {
+        postJson("$BACKEND_URL/auth/signup", """{"email":"$email","password":"$password"}""")
+        val token = getVerificationToken(email)
+        postJson("$BACKEND_URL/auth/verify-email", """{"token":"$token"}""")
+    }
+
+    private fun postJson(url: String, body: String): String {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.requestMethod = "POST"
+        conn.setRequestProperty("Content-Type", "application/json")
+        conn.doOutput = true
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 10_000
+        conn.outputStream.bufferedWriter().use { it.write(body) }
+        val responseText = if (conn.responseCode in 200..299) {
+            conn.inputStream.bufferedReader().readText()
+        } else {
+            conn.errorStream?.bufferedReader()?.readText() ?: ""
+        }
+        conn.disconnect()
+        return responseText
+    }
+
+    private fun getVerificationToken(email: String): String {
+        for (i in 0 until 20) {
+            try {
+                val searchUrl = "$MAILPIT_URL/api/v1/search?query=to:$email"
+                val conn = URL(searchUrl).openConnection() as HttpURLConnection
+                conn.connectTimeout = 5_000
+                conn.readTimeout = 5_000
+                if (conn.responseCode == 200) {
+                    val data = JSONObject(conn.inputStream.bufferedReader().readText())
+                    conn.disconnect()
+                    val messages = data.optJSONArray("messages")
+                    if (messages != null && messages.length() > 0) {
+                        val msgId = messages.getJSONObject(0).getString("ID")
+                        val msgConn = URL("$MAILPIT_URL/api/v1/message/$msgId")
+                            .openConnection() as HttpURLConnection
+                        msgConn.connectTimeout = 5_000
+                        msgConn.readTimeout = 5_000
+                        val msg = JSONObject(msgConn.inputStream.bufferedReader().readText())
+                        msgConn.disconnect()
+                        val html = msg.optString("HTML", "") + msg.optString("Text", "")
+                        val match = Regex("[?&]token=([a-f0-9-]+)").find(html)
+                        if (match != null) return match.groupValues[1]
+                    }
+                } else {
+                    conn.disconnect()
+                }
+            } catch (_: Exception) { }
+            Thread.sleep(500)
+        }
+        throw RuntimeException("Verification email not found for $email")
     }
 
     // -------------------------------------------------------------------------
