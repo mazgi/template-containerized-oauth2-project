@@ -42,6 +42,7 @@ struct ContentView: View {
                 }
             }
         }
+        .preferredColorScheme(auth.themeMode.colorScheme)
         .animation(.default, value: auth.isAuthenticated)
         .overlay(alignment: .bottomTrailing) {
             Text(shaLabel)

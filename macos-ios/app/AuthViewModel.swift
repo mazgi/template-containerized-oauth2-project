@@ -1,5 +1,26 @@
 import Foundation
 import Observation
+import SwiftUI
+
+enum ThemeMode: String, CaseIterable {
+    case system, light, dark
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .system: return "System"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+}
 
 @Observable
 @MainActor
@@ -7,6 +28,7 @@ final class AuthViewModel {
     private(set) var user: UserProfile?
     private(set) var isAuthenticated = false
     private(set) var accessToken: String?
+    private(set) var themeMode: ThemeMode = .system
     var isLoading = false
     var errorMessage: String?
 
@@ -219,11 +241,26 @@ final class AuthViewModel {
         }
     }
 
+    func setTheme(_ mode: ThemeMode) async {
+        themeMode = mode
+        guard let token = accessToken else { return }
+        do {
+            let updated = try await api.updatePreferences(
+                accessToken: token,
+                preferences: UserPreferences(theme: mode.rawValue)
+            )
+            user = updated
+        } catch {
+            // Theme already applied locally; ignore network errors
+        }
+    }
+
     func signOut() {
         UserDefaults.standard.removeObject(forKey: tokensKey)
         user = nil
         accessToken = nil
         isAuthenticated = false
+        themeMode = .system
     }
 
     // MARK: - Session restore
@@ -235,6 +272,7 @@ final class AuthViewModel {
             user = profile
             accessToken = tokens.accessToken
             isAuthenticated = true
+            syncTheme(from: profile)
         } catch {
             // Access token expired — try refresh
             do {
@@ -269,6 +307,15 @@ final class AuthViewModel {
         user = res.user
         accessToken = res.accessToken
         isAuthenticated = true
+        syncTheme(from: res.user)
+    }
+
+    private func syncTheme(from profile: UserProfile) {
+        if let raw = profile.preferences?.theme, let mode = ThemeMode(rawValue: raw) {
+            themeMode = mode
+        } else {
+            themeMode = .system
+        }
     }
 
     private func loadTokens() -> StoredTokens? {
