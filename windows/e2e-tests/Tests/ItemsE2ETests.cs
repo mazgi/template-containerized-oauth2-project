@@ -14,11 +14,10 @@ public class ItemsE2ETests : BaseTest
     {
         EnsureOnSignInPage();
 
-        // Sign up a fresh user for each test
+        // Create a verified user via API and sign in via UI
         var email = TestHelpers.UniqueEmail("items");
-        NavigateToSignUp();
-        FillSignUpForm(email);
-        FindByAutomationId("signup_submitButton").Click();
+        TestHelpers.CreateVerifiedUser(email);
+        SignInViaUI(email, TestHelpers.DefaultPassword);
         WaitForElement("dashboard_userEmail", 15);
     }
 
@@ -163,26 +162,17 @@ public class ItemsE2ETests : BaseTest
 
     // --- Helpers ---
 
-    private void NavigateToSignUp()
+    private void SignInViaUI(string email, string password)
     {
-        var link = ScrollToElement("signin_goToSignUpButton", 10);
-        link.Click();
-        WaitForElement("signup_emailTextBox", 5);
-    }
-
-    private void FillSignUpForm(string email)
-    {
-        var emailBox = FindByAutomationId("signup_emailTextBox");
+        var emailBox = FindByAutomationId("signin_emailTextBox");
         emailBox.Clear();
         emailBox.SendKeys(email);
 
-        var pw = FindByAutomationId("signup_passwordBox");
-        pw.Clear();
-        pw.SendKeys(TestHelpers.DefaultPassword);
+        var passwordBox = FindByAutomationId("signin_passwordBox");
+        passwordBox.Clear();
+        passwordBox.SendKeys(password);
 
-        var confirm = FindByAutomationId("signup_confirmPasswordBox");
-        confirm.Clear();
-        confirm.SendKeys(TestHelpers.DefaultPassword);
+        FindByAutomationId("signin_submitButton").Click();
     }
 
     private void NavigateToItemsTab()

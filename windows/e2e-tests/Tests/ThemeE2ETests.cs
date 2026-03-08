@@ -18,9 +18,18 @@ public class ThemeE2ETests : BaseTest
     private void SignUpAndNavigateToSettings()
     {
         var email = TestHelpers.UniqueEmail("theme");
-        NavigateToSignUp();
-        FillSignUpForm(email, TestHelpers.DefaultPassword, TestHelpers.DefaultPassword);
-        FindByAutomationId("signup_submitButton").Click();
+        TestHelpers.CreateVerifiedUser(email);
+
+        // Sign in via UI
+        var emailBox = FindByAutomationId("signin_emailTextBox");
+        emailBox.Clear();
+        emailBox.SendKeys(email);
+
+        var passwordBox = FindByAutomationId("signin_passwordBox");
+        passwordBox.Clear();
+        passwordBox.SendKeys(TestHelpers.DefaultPassword);
+
+        FindByAutomationId("signin_submitButton").Click();
         WaitForElement("dashboard_userEmail", 30);
 
         // Navigate to Settings tab
@@ -118,27 +127,5 @@ public class ThemeE2ETests : BaseTest
         // Fallback: check the element attribute
         var val = element.GetAttribute("Toggle.ToggleState");
         return val == "1";
-    }
-
-    private void NavigateToSignUp()
-    {
-        var link = ScrollToElement("signin_goToSignUpButton", 10);
-        link.Click();
-        WaitForElement("signup_emailTextBox", 5);
-    }
-
-    private void FillSignUpForm(string email, string password, string confirmPassword)
-    {
-        var emailBox = FindByAutomationId("signup_emailTextBox");
-        emailBox.Clear();
-        emailBox.SendKeys(email);
-
-        var passwordBox = FindByAutomationId("signup_passwordBox");
-        passwordBox.Clear();
-        passwordBox.SendKeys(password);
-
-        var confirmBox = FindByAutomationId("signup_confirmPasswordBox");
-        confirmBox.Clear();
-        confirmBox.SendKeys(confirmPassword);
     }
 }

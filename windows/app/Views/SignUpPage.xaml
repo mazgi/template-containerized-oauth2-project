@@ -24,7 +24,8 @@
                 <TextBlock
                     Text="Check your email"
                     Style="{StaticResource TitleTextBlockStyle}"
-                    HorizontalAlignment="Center" />
+                    HorizontalAlignment="Center"
+                    AutomationProperties.AutomationId="signup_verificationSentTitle" />
 
                 <TextBlock
                     Text="We've sent a verification link to your email address. Please check your inbox and click the link to verify your account."

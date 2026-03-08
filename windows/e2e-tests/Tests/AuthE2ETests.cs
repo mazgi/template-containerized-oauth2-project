@@ -21,10 +21,16 @@ public class AuthE2ETests : BaseTest
     public void SignUp_Success()
     {
         var email = TestHelpers.UniqueEmail("signup");
-        SignUpViaUI(email);
+        NavigateToSignUp();
+        FillSignUpForm(email, TestHelpers.DefaultPassword, TestHelpers.DefaultPassword);
+        FindByAutomationId("signup_submitButton").Click();
 
-        var userEmail = WaitForElement("dashboard_userEmail", 15);
-        Assert.That(userEmail.Text, Is.EqualTo(email));
+        // Should show verification-sent screen, not Dashboard
+        var title = WaitForElement("signup_verificationSentTitle", 15);
+        Assert.That(title.Text, Is.EqualTo("Check your email"));
+
+        var resendButton = WaitForElement("signup_resendButton", 5);
+        Assert.That(resendButton.Displayed, Is.True);
     }
 
     [Test]
@@ -44,11 +50,10 @@ public class AuthE2ETests : BaseTest
     {
         var email = TestHelpers.UniqueEmail("dup");
 
-        // First sign-up
-        SignUpViaUI(email);
-        SignOut();
+        // First: create verified user via API
+        TestHelpers.CreateVerifiedUser(email);
 
-        // Second sign-up with same email
+        // Second sign-up with same email via UI
         NavigateToSignUp();
         FillSignUpForm(email, TestHelpers.DefaultPassword, TestHelpers.DefaultPassword);
         FindByAutomationId("signup_submitButton").Click();
@@ -67,10 +72,7 @@ public class AuthE2ETests : BaseTest
     public void SignIn_Success()
     {
         var email = TestHelpers.UniqueEmail("signin");
-        SignUpViaUI(email);
-        SignOut();
-
-        SignInViaUI(email, TestHelpers.DefaultPassword);
+        CreateVerifiedUserAndSignIn(email);
 
         var userEmail = WaitForElement("dashboard_userEmail", 15);
         Assert.That(userEmail.Text, Is.EqualTo(email));
@@ -80,8 +82,7 @@ public class AuthE2ETests : BaseTest
     public void SignIn_WrongPassword_ShowsError()
     {
         var email = TestHelpers.UniqueEmail("wrongpw");
-        SignUpViaUI(email);
-        SignOut();
+        TestHelpers.CreateVerifiedUser(email);
 
         SignInViaUI(email, "WrongPassword!");
 
@@ -106,7 +107,7 @@ public class AuthE2ETests : BaseTest
     [Test]
     public void SignOut_ReturnsToSignIn()
     {
-        SignUpViaUI(TestHelpers.UniqueEmail("signout"));
+        CreateVerifiedUserAndSignIn(TestHelpers.UniqueEmail("signout"));
         SignOut();
 
         var emailField = WaitForElement("signin_emailTextBox", 10);
@@ -156,11 +157,10 @@ public class AuthE2ETests : BaseTest
         confirmBox.SendKeys(confirmPassword);
     }
 
-    private void SignUpViaUI(string email)
+    private void CreateVerifiedUserAndSignIn(string email)
     {
-        NavigateToSignUp();
-        FillSignUpForm(email, TestHelpers.DefaultPassword, TestHelpers.DefaultPassword);
-        FindByAutomationId("signup_submitButton").Click();
+        TestHelpers.CreateVerifiedUser(email);
+        SignInViaUI(email, TestHelpers.DefaultPassword);
         WaitForElement("dashboard_userEmail", 30);
     }
 
