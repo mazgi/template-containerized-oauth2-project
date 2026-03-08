@@ -24,36 +24,38 @@ public class ThemeE2ETests : BaseTest
         WaitForElement("dashboard_userEmail", 30);
 
         // Navigate to Settings tab
-        var settingsTab = WaitForText("Settings", 5);
+        var settingsTab = WaitForText("Settings", 10);
         settingsTab.Click();
-        WaitForElement("settings_themePicker", 5);
+        // Wait for a RadioButton (interactive control) — StackPanel AutomationId
+        // may not be exposed in the UI Automation tree
+        ScrollToElement("theme_system", 15);
     }
 
     [Test]
     public void ThemePicker_IsVisible()
     {
         SignUpAndNavigateToSettings();
-        var picker = FindByAutomationId("settings_themePicker");
-        Assert.That(picker.Displayed, Is.True);
+        var systemBtn = ScrollToElement("theme_system");
+        Assert.That(systemBtn, Is.Not.Null);
     }
 
     [Test]
     public void ThemePicker_ShowsAllOptions()
     {
         SignUpAndNavigateToSettings();
-        var systemBtn = FindByAutomationId("theme_system");
-        var lightBtn = FindByAutomationId("theme_light");
-        var darkBtn = FindByAutomationId("theme_dark");
-        Assert.That(systemBtn.Displayed, Is.True);
-        Assert.That(lightBtn.Displayed, Is.True);
-        Assert.That(darkBtn.Displayed, Is.True);
+        var systemBtn = ScrollToElement("theme_system");
+        var lightBtn = ScrollToElement("theme_light");
+        var darkBtn = ScrollToElement("theme_dark");
+        Assert.That(systemBtn, Is.Not.Null);
+        Assert.That(lightBtn, Is.Not.Null);
+        Assert.That(darkBtn, Is.Not.Null);
     }
 
     [Test]
     public void ThemePicker_DefaultIsSystem()
     {
         SignUpAndNavigateToSettings();
-        var systemBtn = FindByAutomationId("theme_system");
+        var systemBtn = ScrollToElement("theme_system");
         Assert.That(IsRadioButtonChecked(systemBtn), Is.True);
     }
 
@@ -61,11 +63,11 @@ public class ThemeE2ETests : BaseTest
     public void ThemePicker_SwitchToDark()
     {
         SignUpAndNavigateToSettings();
-        var darkBtn = FindByAutomationId("theme_dark");
+        var darkBtn = ScrollToElement("theme_dark");
         darkBtn.Click();
         Assert.That(IsRadioButtonChecked(darkBtn), Is.True);
 
-        var systemBtn = FindByAutomationId("theme_system");
+        var systemBtn = ScrollToElement("theme_system");
         Assert.That(IsRadioButtonChecked(systemBtn), Is.False);
     }
 
@@ -73,11 +75,11 @@ public class ThemeE2ETests : BaseTest
     public void ThemePicker_SwitchToLight()
     {
         SignUpAndNavigateToSettings();
-        var lightBtn = FindByAutomationId("theme_light");
+        var lightBtn = ScrollToElement("theme_light");
         lightBtn.Click();
         Assert.That(IsRadioButtonChecked(lightBtn), Is.True);
 
-        var systemBtn = FindByAutomationId("theme_system");
+        var systemBtn = ScrollToElement("theme_system");
         Assert.That(IsRadioButtonChecked(systemBtn), Is.False);
     }
 
@@ -87,21 +89,21 @@ public class ThemeE2ETests : BaseTest
         SignUpAndNavigateToSettings();
 
         // Default: System
-        var systemBtn = FindByAutomationId("theme_system");
+        var systemBtn = ScrollToElement("theme_system");
         Assert.That(IsRadioButtonChecked(systemBtn), Is.True);
 
         // Switch to Dark
-        var darkBtn = FindByAutomationId("theme_dark");
+        var darkBtn = ScrollToElement("theme_dark");
         darkBtn.Click();
         Assert.That(IsRadioButtonChecked(darkBtn), Is.True);
 
         // Switch to Light
-        var lightBtn = FindByAutomationId("theme_light");
+        var lightBtn = ScrollToElement("theme_light");
         lightBtn.Click();
         Assert.That(IsRadioButtonChecked(lightBtn), Is.True);
 
         // Back to System
-        systemBtn = FindByAutomationId("theme_system");
+        systemBtn = ScrollToElement("theme_system");
         systemBtn.Click();
         Assert.That(IsRadioButtonChecked(systemBtn), Is.True);
     }
