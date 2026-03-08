@@ -36,6 +36,7 @@ data class AuthUiState(
     val isRestoringSession: Boolean = true,
     val errorMessage: String? = null,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val verificationSentEmail: String? = null,
 )
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -67,12 +68,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun signUp(email: String, password: String) {
         viewModelScope.launch {
             perform {
-                val res = api.signUp(email, password)
-                storeTokens(res.accessToken, res.refreshToken)
-                _uiState.value = _uiState.value.copy(user = res.user, accessToken = res.accessToken, isAuthenticated = true)
-                syncTheme(res.user)
+                api.signUp(email, password)
+                _uiState.value = _uiState.value.copy(verificationSentEmail = email)
             }
         }
+    }
+
+    fun resendVerification(email: String) {
+        viewModelScope.launch {
+            perform {
+                api.resendVerification(email)
+            }
+        }
+    }
+
+    fun clearVerificationSent() {
+        _uiState.value = _uiState.value.copy(verificationSentEmail = null)
     }
 
     fun signInWithGithub(context: Context) {

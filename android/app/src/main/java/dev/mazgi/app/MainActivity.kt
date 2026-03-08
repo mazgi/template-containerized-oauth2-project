@@ -193,8 +193,12 @@ class MainActivity : ComponentActivity() {
                                     onSignUp = { email, password ->
                                         authViewModel.signUp(email, password)
                                     },
+                                    onResendVerification = { email ->
+                                        authViewModel.resendVerification(email)
+                                    },
                                     onNavigateToSignIn = {
                                         authViewModel.clearError()
+                                        authViewModel.clearVerificationSent()
                                         navController.popBackStack()
                                     },
                                 )
