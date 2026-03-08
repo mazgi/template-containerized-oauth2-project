@@ -96,14 +96,14 @@ aws ecr get-login-password --region us-east-1 | \
 
 # Build and push backend
 docker build \
-  -f Dockerfiles.d/backend-production/Dockerfile \
+  -f Dockerfiles.d/backend-build/Dockerfile \
   -t ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/oauth2-app-backend:latest \
   backend
 docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/oauth2-app-backend:latest
 
 # Build and push web
 docker build \
-  -f Dockerfiles.d/web-production/Dockerfile \
+  -f Dockerfiles.d/web-build/Dockerfile \
   -t ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/oauth2-app-web:latest \
   web/app
 docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/oauth2-app-web:latest

@@ -17,7 +17,7 @@ Every client displays the current Git short SHA as a small, semi-transparent ove
 For Docker builds where `.git` is excluded from the context, pass SHA as a build arg:
 
 ```sh
-docker build --build-arg GIT_SHA=$(git rev-parse --short HEAD) -f Dockerfiles.d/backend-production/Dockerfile backend/
+docker build --build-arg GIT_SHA=$(git rev-parse --short HEAD) -f Dockerfiles.d/backend-build/Dockerfile backend/
 ```
 
 On CI:
