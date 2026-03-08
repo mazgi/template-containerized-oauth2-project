@@ -48,6 +48,10 @@
     "link": "Link",
     "unlink": "Unlink",
     "errorFallback": "Something went wrong",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
     "deleteAccount": "Delete account",
     "deleteAccountDescription": "Permanently delete your account and all associated data. This action cannot be undone.",
     "deleteAccountConfirm": "Are you sure you want to delete your account? This cannot be undone."

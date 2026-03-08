@@ -48,6 +48,10 @@
     "link": "連携",
     "unlink": "解除",
     "errorFallback": "エラーが発生しました",
+    "theme": "テーマ",
+    "themeSystem": "システム",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
     "deleteAccount": "アカウント削除",
     "deleteAccountDescription": "アカウントと関連するすべてのデータを完全に削除します。この操作は取り消せません。",
     "deleteAccountConfirm": "本当にアカウントを削除しますか？この操作は取り消せません。"
