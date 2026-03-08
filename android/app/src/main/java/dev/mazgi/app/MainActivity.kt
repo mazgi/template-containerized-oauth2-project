@@ -56,8 +56,13 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            AppTheme {
-                val uiState by authViewModel.uiState.collectAsState()
+            val uiState by authViewModel.uiState.collectAsState()
+            val themeOverride: Boolean? = when (uiState.themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> null
+            }
+            AppTheme(themeOverride = themeOverride) {
 
                 Box(modifier = Modifier.fillMaxSize()) {
                 when {
@@ -145,6 +150,9 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onDeleteAccount = {
                                             authViewModel.deleteAccount()
+                                        },
+                                        onSetTheme = { mode ->
+                                            authViewModel.setTheme(mode)
                                         },
                                     )
                                 }
