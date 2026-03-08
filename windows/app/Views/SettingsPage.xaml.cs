@@ -1,6 +1,7 @@
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using app.ViewModels;
 
 namespace app.Views;
 
@@ -24,7 +25,30 @@ public sealed partial class SettingsPage : Page
         GoogleButton.Content = user.GoogleId is not null ? "Unlink" : "Link";
         TwitterButton.Content = user.TwitterId is not null ? "Unlink" : "Link";
 
+        UpdateThemeButtons();
         ErrorText.Visibility = Visibility.Collapsed;
+    }
+
+    private void UpdateThemeButtons()
+    {
+        var mode = App.Auth.ThemeMode;
+        ThemeSystemButton.IsChecked = mode == ThemeMode.System;
+        ThemeLightButton.IsChecked = mode == ThemeMode.Light;
+        ThemeDarkButton.IsChecked = mode == ThemeMode.Dark;
+    }
+
+    private async void ThemeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton rb && rb.Tag is string tag)
+        {
+            var mode = tag switch
+            {
+                "Light" => ThemeMode.Light,
+                "Dark" => ThemeMode.Dark,
+                _ => ThemeMode.System,
+            };
+            await App.Auth.SetThemeAsync(mode);
+        }
     }
 
     private async void AppleButton_Click(object sender, RoutedEventArgs e)

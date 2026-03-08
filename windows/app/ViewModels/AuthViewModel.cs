@@ -8,6 +8,37 @@ using app.Services;
 
 namespace app.ViewModels;
 
+public enum ThemeMode
+{
+    System,
+    Light,
+    Dark,
+}
+
+public static class ThemeModeExtensions
+{
+    public static string ToApiValue(this ThemeMode mode) => mode switch
+    {
+        ThemeMode.Light => "light",
+        ThemeMode.Dark => "dark",
+        _ => "system",
+    };
+
+    public static string ToLabel(this ThemeMode mode) => mode switch
+    {
+        ThemeMode.Light => "Light",
+        ThemeMode.Dark => "Dark",
+        _ => "System",
+    };
+
+    public static ThemeMode FromApiValue(string? value) => value switch
+    {
+        "light" => ThemeMode.Light,
+        "dark" => ThemeMode.Dark,
+        _ => ThemeMode.System,
+    };
+}
+
 public partial class AuthViewModel : ObservableObject
 {
     private const string TokensKey = "auth_tokens";
@@ -31,7 +62,11 @@ public partial class AuthViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    [ObservableProperty]
+    private ThemeMode _themeMode = ThemeMode.System;
+
     public event Action? AuthStateChanged;
+    public event Action? ThemeChanged;
 
     public async Task InitializeAsync()
     {
@@ -156,6 +191,22 @@ public partial class AuthViewModel : ObservableObject
         });
     }
 
+    public async Task SetThemeAsync(ThemeMode mode)
+    {
+        ThemeMode = mode;
+        ThemeChanged?.Invoke();
+        if (AccessToken is null) return;
+        try
+        {
+            var updated = await _api.UpdatePreferencesAsync(AccessToken, new { theme = mode.ToApiValue() });
+            User = updated;
+        }
+        catch
+        {
+            // Theme already applied locally; ignore network errors
+        }
+    }
+
     public async Task HandleOAuthCallbackAsync(Uri uri)
     {
         var query = new UriQueryParser(uri.Query);
@@ -190,6 +241,7 @@ public partial class AuthViewModel : ObservableObject
             User = profile;
             AccessToken = accessToken;
             IsAuthenticated = true;
+            SyncTheme(profile);
             AuthStateChanged?.Invoke();
         }
         catch (ApiException e)
@@ -213,6 +265,8 @@ public partial class AuthViewModel : ObservableObject
         AccessToken = null;
         IsAuthenticated = false;
         ErrorMessage = null;
+        ThemeMode = ThemeMode.System;
+        ThemeChanged?.Invoke();
         AuthStateChanged?.Invoke();
     }
 
@@ -232,6 +286,7 @@ public partial class AuthViewModel : ObservableObject
             User = profile;
             AccessToken = tokens.AccessToken;
             IsAuthenticated = true;
+            SyncTheme(profile);
             AuthStateChanged?.Invoke();
         }
         catch
@@ -276,7 +331,14 @@ public partial class AuthViewModel : ObservableObject
         User = res.User;
         AccessToken = res.AccessToken;
         IsAuthenticated = true;
+        SyncTheme(res.User);
         AuthStateChanged?.Invoke();
+    }
+
+    private void SyncTheme(UserProfile profile)
+    {
+        ThemeMode = ThemeModeExtensions.FromApiValue(profile.Preferences?.Theme);
+        ThemeChanged?.Invoke();
     }
 
     private void StoreTokens(string accessToken, string refreshToken)

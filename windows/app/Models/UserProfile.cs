@@ -2,6 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace app.Models;
 
+public record UserPreferences(
+    [property: JsonPropertyName("theme")] string? Theme = null
+);
+
 public record UserProfile(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("email")] string Email,
@@ -12,6 +16,7 @@ public record UserProfile(
     [property: JsonPropertyName("twitterId")] string? TwitterId,
     [property: JsonPropertyName("discordId")] string? DiscordId,
     [property: JsonPropertyName("hasPassword")] bool? HasPassword,
-    [property: JsonPropertyName("createdAt")] string CreatedAt,
-    [property: JsonPropertyName("updatedAt")] string UpdatedAt
+    [property: JsonPropertyName("preferences")] UserPreferences? Preferences = null,
+    [property: JsonPropertyName("createdAt")] string CreatedAt = "",
+    [property: JsonPropertyName("updatedAt")] string UpdatedAt = ""
 );

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using app.Services;
+using app.ViewModels;
 
 namespace app;
 
@@ -13,6 +14,21 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         GitSHAText.Text = BuildConfig.GitSHA;
         FetchBackendSha();
+        App.Auth.ThemeChanged += ApplyTheme;
+        ApplyTheme();
+    }
+
+    public void ApplyTheme()
+    {
+        if (Content is FrameworkElement root)
+        {
+            root.RequestedTheme = App.Auth.ThemeMode switch
+            {
+                ThemeMode.Light => ElementTheme.Light,
+                ThemeMode.Dark => ElementTheme.Dark,
+                _ => ElementTheme.Default,
+            };
+        }
     }
 
     private async void FetchBackendSha()
