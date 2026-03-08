@@ -45,7 +45,7 @@ COPY --from=deps /usr/src/app/prisma.config.ts ./
 COPY --from=deps /usr/src/app/tsconfig.json ./
 COPY --from=deps /usr/src/app/package.json ./
 
-CMD ["npx", "prisma", "db", "push"]
+CMD ["npx", "prisma", "db", "push", "--accept-data-loss"]
 
 # --- build stage -----------------------------------------------------------
 FROM deps AS builder
