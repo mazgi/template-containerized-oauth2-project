@@ -10,6 +10,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+
+enum class ThemeMode(val label: String) {
+    SYSTEM("System"),
+    LIGHT("Light"),
+    DARK("Dark");
+
+    val apiValue: String get() = name.lowercase()
+
+    companion object {
+        fun fromApi(value: String?): ThemeMode = when (value) {
+            "light" -> LIGHT
+            "dark" -> DARK
+            else -> SYSTEM
+        }
+    }
+}
 
 data class AuthUiState(
     val user: UserProfile? = null,
@@ -18,6 +35,7 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     val isRestoringSession: Boolean = true,
     val errorMessage: String? = null,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -41,6 +59,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val res = api.signIn(email, password)
                 storeTokens(res.accessToken, res.refreshToken)
                 _uiState.value = _uiState.value.copy(user = res.user, accessToken = res.accessToken, isAuthenticated = true)
+                syncTheme(res.user)
             }
         }
     }
@@ -51,6 +70,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val res = api.signUp(email, password)
                 storeTokens(res.accessToken, res.refreshToken)
                 _uiState.value = _uiState.value.copy(user = res.user, accessToken = res.accessToken, isAuthenticated = true)
+                syncTheme(res.user)
             }
         }
     }
@@ -164,6 +184,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     isAuthenticated = true,
                     isLoading = false,
                 )
+                syncTheme(profile)
             } catch (e: APIException) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message, isLoading = false)
             } catch (e: Exception) {
@@ -171,6 +192,20 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     errorMessage = e.message ?: "Unknown error",
                     isLoading = false,
                 )
+            }
+        }
+    }
+
+    fun setTheme(mode: ThemeMode) {
+        _uiState.value = _uiState.value.copy(themeMode = mode)
+        viewModelScope.launch {
+            val token = _uiState.value.accessToken ?: return@launch
+            try {
+                val body = JSONObject().apply { put("theme", mode.apiValue) }
+                val updated = api.updatePreferences(token, body)
+                _uiState.value = _uiState.value.copy(user = updated)
+            } catch (_: Exception) {
+                // Theme already applied locally; ignore network errors
             }
         }
     }
@@ -192,12 +227,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         try {
             val profile = api.me(accessToken)
             _uiState.value = _uiState.value.copy(user = profile, accessToken = accessToken, isAuthenticated = true)
+            syncTheme(profile)
         } catch (e: Exception) {
             // Access token expired — try refresh
             try {
                 val res = api.refresh(refreshToken)
                 storeTokens(res.accessToken, res.refreshToken)
                 _uiState.value = _uiState.value.copy(user = res.user, accessToken = res.accessToken, isAuthenticated = true)
+                syncTheme(res.user)
             } catch (e2: Exception) {
                 signOut()
             }
@@ -224,5 +261,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             .putString("access_token", accessToken)
             .putString("refresh_token", refreshToken)
             .apply()
+    }
+
+    private fun syncTheme(profile: UserProfile) {
+        val mode = ThemeMode.fromApi(profile.preferences?.theme)
+        _uiState.value = _uiState.value.copy(themeMode = mode)
     }
 }

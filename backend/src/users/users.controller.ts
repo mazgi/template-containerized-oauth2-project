@@ -8,13 +8,17 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -30,6 +34,19 @@ export class UsersController {
   @ApiResponse({ status: 201, type: UserEntity })
   create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
     return this.usersService.create(createUserDto);
+  }
+
+  @Patch('me/preferences')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update preferences for the authenticated user' })
+  @ApiResponse({ status: 200, description: 'Returns updated user' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  updatePreferences(
+    @Request() req: { user: { userId: string } },
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.usersService.updatePreferences(req.user.userId, body);
   }
 
   @Get()

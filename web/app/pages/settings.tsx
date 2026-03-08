@@ -2,8 +2,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme, Theme } from '../contexts/ThemeContext'
 import { AppHeader } from '../components/AppHeader'
 import { unlinkProvider, deleteAccount } from '../lib/api'
+
+const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
+  { value: 'system', labelKey: 'themeSystem' },
+  { value: 'light', labelKey: 'themeLight' },
+  { value: 'dark', labelKey: 'themeDark' },
+]
 
 const PROVIDERS = [
   { key: 'apple', label: 'Apple' },
@@ -16,6 +23,7 @@ const PROVIDERS = [
 export default function SettingsPage() {
   const t = useTranslations('Settings')
   const { user, accessToken, loading, refreshUser, logout } = useAuth()
+  const { theme, changeTheme } = useTheme()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
@@ -96,6 +104,21 @@ export default function SettingsPage() {
                   </a>
                 )}
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="user-card" style={{ marginTop: '1.5rem' }}>
+          <h3 className="settings-section-title">{t('theme')}</h3>
+          <div className="theme-selector">
+            {THEME_OPTIONS.map(({ value, labelKey }) => (
+              <button
+                key={value}
+                className={`theme-btn${theme === value ? ' theme-btn-active' : ''}`}
+                onClick={() => changeTheme(value)}
+              >
+                {t(labelKey)}
+              </button>
             ))}
           </div>
         </div>

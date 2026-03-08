@@ -73,6 +73,9 @@ public sealed class ApiClient
     public Task<UserProfile> UnlinkProviderAsync(string accessToken, string provider) =>
         DeleteWithResponseAsync<UserProfile>($"/auth/link/{provider}", accessToken);
 
+    public Task<UserProfile> UpdatePreferencesAsync(string accessToken, object preferences) =>
+        PatchAsync<UserProfile>("/users/me/preferences", preferences, accessToken);
+
     public async Task DeleteAccountAsync(string accessToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Delete, BaseUrl + "/auth/account");
@@ -108,6 +111,24 @@ public sealed class ApiClient
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         }
+        var response = await _http.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var msg = await ParseErrorAsync(response);
+            throw new ApiException((int)response.StatusCode, msg);
+        }
+        var text = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<T>(text, JsonOptions)!;
+    }
+
+    private async Task<T> PatchAsync<T>(string path, object body, string accessToken)
+    {
+        var json = JsonSerializer.Serialize(body, JsonOptions);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, BaseUrl + path)
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json"),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         var response = await _http.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {

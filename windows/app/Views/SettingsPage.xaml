@@ -96,6 +96,40 @@
                     AutomationProperties.AutomationId="settings_twitterButton" />
             </Grid>
 
+            <!-- Theme -->
+            <TextBlock
+                Text="Theme"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Margin="0,24,0,0" />
+
+            <StackPanel
+                x:Name="ThemePicker"
+                Orientation="Horizontal"
+                Spacing="8"
+                AutomationProperties.AutomationId="settings_themePicker">
+                <RadioButton
+                    x:Name="ThemeSystemButton"
+                    Content="System"
+                    GroupName="Theme"
+                    Click="ThemeButton_Click"
+                    Tag="System"
+                    AutomationProperties.AutomationId="theme_system" />
+                <RadioButton
+                    x:Name="ThemeLightButton"
+                    Content="Light"
+                    GroupName="Theme"
+                    Click="ThemeButton_Click"
+                    Tag="Light"
+                    AutomationProperties.AutomationId="theme_light" />
+                <RadioButton
+                    x:Name="ThemeDarkButton"
+                    Content="Dark"
+                    GroupName="Theme"
+                    Click="ThemeButton_Click"
+                    Tag="Dark"
+                    AutomationProperties.AutomationId="theme_dark" />
+            </StackPanel>
+
             <!-- Delete Account -->
             <TextBlock
                 Text="Delete Account"

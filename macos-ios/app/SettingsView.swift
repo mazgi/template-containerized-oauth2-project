@@ -36,6 +36,19 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Theme") {
+                Picker("Theme", selection: Binding(
+                    get: { auth.themeMode },
+                    set: { newMode in Task { await auth.setTheme(newMode) } }
+                )) {
+                    ForEach(ThemeMode.allCases, id: \.self) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("settings_themePicker")
+            }
+
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Permanently delete your account and all associated data. This action cannot be undone.")

@@ -9,6 +9,10 @@ import java.net.URL
 
 // MARK: - Response models
 
+data class UserPreferences(
+    val theme: String? = null,
+)
+
 data class UserProfile(
     val id: String,
     val email: String,
@@ -19,6 +23,7 @@ data class UserProfile(
     val twitterId: String?,
     val discordId: String?,
     val hasPassword: Boolean?,
+    val preferences: UserPreferences?,
     val createdAt: String,
     val updatedAt: String,
 )
@@ -94,6 +99,10 @@ class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
         parseUserProfile(JSONObject(deleteWithResponse("/auth/link/$provider", accessToken)))
     }
 
+    suspend fun updatePreferences(accessToken: String, preferences: JSONObject): UserProfile = withContext(Dispatchers.IO) {
+        parseUserProfile(JSONObject(patch("/users/me/preferences", preferences, accessToken)))
+    }
+
     suspend fun deleteAccount(accessToken: String) = withContext(Dispatchers.IO) {
         delete("/auth/account", accessToken)
     }
@@ -110,6 +119,15 @@ class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
 
     private fun post(path: String, body: JSONObject, token: String): String {
         val conn = openConnection(path, "POST")
+        conn.setRequestProperty("Content-Type", "application/json")
+        conn.setRequestProperty("Authorization", "Bearer $token")
+        conn.doOutput = true
+        conn.outputStream.bufferedWriter().use { it.write(body.toString()) }
+        return readResponseText(conn)
+    }
+
+    private fun patch(path: String, body: JSONObject, token: String): String {
+        val conn = openConnection(path, "PATCH")
         conn.setRequestProperty("Content-Type", "application/json")
         conn.setRequestProperty("Authorization", "Bearer $token")
         conn.doOutput = true
@@ -175,6 +193,9 @@ class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
         twitterId = json.optString("twitterId").takeIf { it.isNotEmpty() && it != "null" },
         discordId = json.optString("discordId").takeIf { it.isNotEmpty() && it != "null" },
         hasPassword = if (json.has("hasPassword")) json.getBoolean("hasPassword") else null,
+        preferences = json.optJSONObject("preferences")?.let { p ->
+            UserPreferences(theme = p.optString("theme").takeIf { it.isNotEmpty() && it != "null" })
+        },
         createdAt = json.getString("createdAt"),
         updatedAt = json.getString("updatedAt"),
     )

@@ -3,6 +3,7 @@ import type { AppProps } from 'next/app'
 import { useState, useEffect } from 'react'
 import { NextIntlClientProvider } from 'next-intl'
 import { AuthProvider } from '../contexts/AuthContext'
+import { ThemeProvider } from '../contexts/ThemeContext'
 import { LocaleContext, Locale } from '../contexts/LocaleContext'
 import en from '../messages/en.json'
 import ja from '../messages/ja.json'
@@ -53,8 +54,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     <NextIntlClientProvider locale={locale} messages={messages[locale]}>
       <LocaleContext.Provider value={{ locale, changeLocale }}>
         <AuthProvider>
-          <Component {...pageProps} />
-          <GitShaOverlay />
+          <ThemeProvider>
+            <Component {...pageProps} />
+            <GitShaOverlay />
+          </ThemeProvider>
         </AuthProvider>
       </LocaleContext.Provider>
     </NextIntlClientProvider>

@@ -22,6 +22,10 @@ struct CreateItemRequest: Encodable {
 
 // MARK: - Response models
 
+struct UserPreferences: Codable {
+    var theme: String?
+}
+
 struct UserProfile: Decodable, Identifiable {
     let id: String
     let email: String
@@ -32,6 +36,7 @@ struct UserProfile: Decodable, Identifiable {
     let twitterId: String?
     let discordId: String?
     let hasPassword: Bool?
+    let preferences: UserPreferences?
     let createdAt: String
     let updatedAt: String
 }
@@ -136,6 +141,10 @@ final class APIClient {
         try await deleteWithResponse("/auth/link/\(provider)", token: accessToken)
     }
 
+    func updatePreferences(accessToken: String, preferences: UserPreferences) async throws -> UserProfile {
+        try await patch("/users/me/preferences", body: preferences, token: accessToken)
+    }
+
     func deleteAccount(accessToken: String) async throws {
         try await delete("/auth/account", token: accessToken)
     }
@@ -155,6 +164,16 @@ final class APIClient {
         guard let url = URL(string: baseURL + path) else { throw URLError(.badURL) }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONEncoder().encode(body)
+        return try await perform(request)
+    }
+
+    private func patch<Req: Encodable, Res: Decodable>(_ path: String, body: Req, token: String) async throws -> Res {
+        guard let url = URL(string: baseURL + path) else { throw URLError(.badURL) }
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.httpBody = try JSONEncoder().encode(body)

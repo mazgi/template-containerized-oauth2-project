@@ -3,6 +3,10 @@
 // browsers on the host (localhost:3000) and Playwright inside Docker (web:3000).
 const API_BASE = '/backend'
 
+export interface UserPreferences {
+  theme?: 'light' | 'dark' | 'system'
+}
+
 export interface User {
   id: string
   email: string
@@ -12,6 +16,7 @@ export interface User {
   twitterId?: string | null
   discordId?: string | null
   hasPassword?: boolean
+  preferences?: UserPreferences | null
   createdAt: string
   updatedAt: string
 }
@@ -88,6 +93,14 @@ export async function deleteAccount(accessToken: string): Promise<void> {
     const body = await res.json().catch(() => ({}))
     throw new Error((body as { message?: string }).message ?? res.statusText)
   }
+}
+
+export function updatePreferences(accessToken: string, preferences: UserPreferences): Promise<User> {
+  return request('/users/me/preferences', {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(preferences),
+  })
 }
 
 export function getItems(accessToken: string): Promise<Item[]> {
