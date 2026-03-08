@@ -36,23 +36,20 @@ describe('Auth (e2e)', () => {
   // ── POST /auth/signup ──
 
   describe('POST /auth/signup', () => {
-    it('should register a new user and return tokens + user', async () => {
+    it('should register a new user and return verification message', async () => {
       const email = uniqueEmail('signup');
       const res = await request(app.getHttpServer())
         .post('/auth/signup')
         .send({ email, password: 'password123', name: 'Test User' })
         .expect(201);
 
-      expect(res.body).toHaveProperty('accessToken');
-      expect(res.body).toHaveProperty('refreshToken');
-      expect(res.body.user).toHaveProperty('id');
-      expect(res.body.user.email).toBe(email);
-      expect(res.body.user.name).toBe('Test User');
-      expect(res.body.user).not.toHaveProperty('passwordHash');
-      expect(res.body.user.appleId).toBeNull();
-      expect(res.body.user.githubId).toBeNull();
-      expect(res.body.user.googleId).toBeNull();
-      expect(res.body.user.twitterId).toBeNull();
+      expect(res.body.message).toBe('Verification email sent');
+
+      // User should exist with emailVerified = false
+      const user = await prisma.user.findUnique({ where: { email } });
+      expect(user).not.toBeNull();
+      expect(user!.emailVerified).toBe(false);
+      expect(user!.emailVerificationToken).not.toBeNull();
     });
 
     it('should return 409 for duplicate email', async () => {
@@ -89,6 +86,89 @@ describe('Auth (e2e)', () => {
     });
   });
 
+  // ── POST /auth/verify-email ──
+
+  describe('POST /auth/verify-email', () => {
+    it('should verify email with a valid token', async () => {
+      const email = uniqueEmail('verify');
+      await request(app.getHttpServer())
+        .post('/auth/signup')
+        .send({ email, password: 'password123' })
+        .expect(201);
+
+      const user = await prisma.user.findUnique({ where: { email } });
+      const token = user!.emailVerificationToken!;
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/verify-email')
+        .send({ token })
+        .expect(200);
+
+      expect(res.body.message).toBe('Email verified successfully');
+
+      // User should now be verified
+      const updated = await prisma.user.findUnique({ where: { email } });
+      expect(updated!.emailVerified).toBe(true);
+      expect(updated!.emailVerificationToken).toBeNull();
+    });
+
+    it('should return 400 for an invalid token', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/verify-email')
+        .send({ token: 'invalid-token' })
+        .expect(400);
+    });
+
+    it('should return 400 for an expired token', async () => {
+      const email = uniqueEmail('expired');
+      await request(app.getHttpServer())
+        .post('/auth/signup')
+        .send({ email, password: 'password123' })
+        .expect(201);
+
+      // Manually expire the token
+      await prisma.user.update({
+        where: { email },
+        data: { emailVerificationExpires: new Date(Date.now() - 1000) },
+      });
+
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      await request(app.getHttpServer())
+        .post('/auth/verify-email')
+        .send({ token: user!.emailVerificationToken })
+        .expect(400);
+    });
+  });
+
+  // ── POST /auth/resend-verification ──
+
+  describe('POST /auth/resend-verification', () => {
+    it('should return success for an unverified user', async () => {
+      const email = uniqueEmail('resend');
+      await request(app.getHttpServer())
+        .post('/auth/signup')
+        .send({ email, password: 'password123' })
+        .expect(201);
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/resend-verification')
+        .send({ email })
+        .expect(200);
+
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('should return success even for non-existent email (prevents enumeration)', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/resend-verification')
+        .send({ email: 'nonexistent@test.example' })
+        .expect(200);
+
+      expect(res.body.message).toBeDefined();
+    });
+  });
+
   // ── POST /auth/signin ──
 
   describe('POST /auth/signin', () => {
@@ -110,6 +190,21 @@ describe('Auth (e2e)', () => {
       expect(res.body).toHaveProperty('refreshToken');
       expect(res.body.user.email).toBe(testEmail);
       expect(res.body.user).not.toHaveProperty('passwordHash');
+    });
+
+    it('should return 401 for unverified email', async () => {
+      const email = uniqueEmail('unverified');
+      await request(app.getHttpServer())
+        .post('/auth/signup')
+        .send({ email, password: testPassword })
+        .expect(201);
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/signin')
+        .send({ email, password: testPassword })
+        .expect(401);
+
+      expect(res.body.message).toContain('Email not verified');
     });
 
     it('should return 401 for wrong password', async () => {
@@ -182,7 +277,10 @@ describe('Auth (e2e)', () => {
       expect(res.body.email).toBe(email);
       expect(res.body.name).toBe('Me User');
       expect(res.body.hasPassword).toBe(true);
+      expect(res.body.emailVerified).toBe(true);
       expect(res.body).not.toHaveProperty('passwordHash');
+      expect(res.body).not.toHaveProperty('emailVerificationToken');
+      expect(res.body).not.toHaveProperty('emailVerificationExpires');
       expect(res.body.appleId).toBeNull();
       expect(res.body.githubId).toBeNull();
       expect(res.body.googleId).toBeNull();

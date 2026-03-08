@@ -1,11 +1,14 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
 import { AppleProfile } from './strategies/apple.strategy';
@@ -19,6 +22,7 @@ type UserRecord = {
   email: string;
   name: string | null;
   passwordHash: string | null;
+  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -46,6 +50,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async signUp(dto: SignUpDto) {
@@ -57,11 +62,74 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const user = await this.prisma.user.create({
-      data: { email: dto.email, name: dto.name, passwordHash },
+    const token = randomUUID();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        name: dto.name,
+        passwordHash,
+        emailVerified: false,
+        emailVerificationToken: token,
+        emailVerificationExpires: expires,
+      },
     });
 
-    return this.buildTokenResponse(user);
+    await this.mailService.sendVerificationEmail(dto.email, token);
+
+    return { message: 'Verification email sent' };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { emailVerificationToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+      throw new BadRequestException('Verification token has expired');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+      },
+    });
+
+    return { message: 'Email verified successfully' };
+  }
+
+  async resendVerification(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user || user.emailVerified) {
+      // Return success even if user not found to prevent email enumeration
+      return { message: 'If the email is registered and unverified, a verification email has been sent' };
+    }
+
+    const token = randomUUID();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationToken: token,
+        emailVerificationExpires: expires,
+      },
+    });
+
+    await this.mailService.sendVerificationEmail(email, token);
+
+    return { message: 'If the email is registered and unverified, a verification email has been sent' };
   }
 
   async signIn(dto: SignInDto) {
@@ -75,6 +143,10 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.emailVerified) {
+      throw new UnauthorizedException('Email not verified');
     }
 
     return this.buildTokenResponse(user);
@@ -130,6 +202,7 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
+        emailVerified: true,
         socialApple: { create: { providerId: profile.appleId } },
       },
     });
@@ -166,6 +239,7 @@ export class AuthService {
         email: profile.email,
         name: profile.name,
         passwordHash: null,
+        emailVerified: true,
         socialGoogle: { create: { providerId: profile.googleId } },
       },
     });
@@ -203,6 +277,7 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
+        emailVerified: true,
         socialTwitter: { create: { providerId: profile.twitterId } },
       },
     });
@@ -240,6 +315,7 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
+        emailVerified: true,
         socialDiscord: { create: { providerId: profile.discordId } },
       },
     });
@@ -277,6 +353,7 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
+        emailVerified: true,
         socialGithub: { create: { providerId: profile.githubId } },
       },
     });
@@ -320,7 +397,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    const { passwordHash, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
+    const { passwordHash, emailVerificationToken, emailVerificationExpires, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
     return {
       ...result,
       ...this.socialToFlat(user),
@@ -489,7 +566,7 @@ export class AuthService {
       include: SOCIAL_INCLUDES,
     });
 
-    const { passwordHash: _pw, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...userWithoutPassword } = userWithSocial!;
+    const { passwordHash: _pw, emailVerificationToken: _evt, emailVerificationExpires: _eve, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...userWithoutPassword } = userWithSocial!;
 
     return {
       accessToken,

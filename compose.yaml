@@ -22,6 +22,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     env_file:
       - .secrets.env
       - .env
@@ -74,6 +76,12 @@ services:
       - ~/.azure:/root/.azure:ro
       - ~/.config/gcloud:/root/.config/gcloud:ro
     working_dir: /work/iac
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
   web:
     build:
@@ -141,6 +149,8 @@ services:
         condition: service_healthy
     environment:
       BASE_URL: http://web:3000
+      BACKEND_URL: http://backend:4000
+      MAILPIT_API_URL: http://mailpit:8025
       CI: ${CI:-}
       # Point the pnpm store to the bind-mounted volume so it persists across
       # container rebuilds and is shared between backend and web containers.

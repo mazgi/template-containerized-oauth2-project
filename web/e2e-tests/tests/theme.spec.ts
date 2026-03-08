@@ -7,14 +7,42 @@ function uniqueEmail(prefix = 'user') {
 }
 
 const DEFAULT_PASSWORD = 'password123'
+const MAILPIT_API_URL = process.env.MAILPIT_API_URL ?? 'http://mailpit:8025'
+const BACKEND_URL = process.env.BACKEND_URL ?? 'http://backend:4000'
 
-async function signUp(page: import('@playwright/test').Page, email: string) {
-  await page.goto('/signup')
-  await page.locator('#email').fill(email)
-  await page.locator('#password').fill(DEFAULT_PASSWORD)
-  await page.locator('#confirm').fill(DEFAULT_PASSWORD)
-  await page.locator('button[type="submit"]').click()
-  await expect(page).toHaveURL(/\/dashboard/)
+async function getVerificationToken(email: string): Promise<string> {
+  let token: string | undefined
+  for (let i = 0; i < 10; i++) {
+    const res = await fetch(`${MAILPIT_API_URL}/api/v1/search?query=to:${email}`)
+    const data = await res.json()
+    if (data.messages && data.messages.length > 0) {
+      const msgId = data.messages[0].ID
+      const msgRes = await fetch(`${MAILPIT_API_URL}/api/v1/message/${msgId}`)
+      const msg = await msgRes.json()
+      const match = (msg.HTML || msg.Text || '').match(/[?&]token=([a-f0-9-]+)/)
+      if (match) {
+        token = match[1]
+        break
+      }
+    }
+    await new Promise((r) => setTimeout(r, 500))
+  }
+  if (!token) throw new Error(`Verification email not found for ${email}`)
+  return token
+}
+
+async function createVerifiedUser(email: string, password = DEFAULT_PASSWORD) {
+  await fetch(`${BACKEND_URL}/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  const token = await getVerificationToken(email)
+  await fetch(`${BACKEND_URL}/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -23,10 +51,8 @@ async function signUp(page: import('@playwright/test').Page, email: string) {
 test.describe('Theme settings', () => {
   const sharedEmail = uniqueEmail('theme')
 
-  test.beforeAll(async ({ browser }) => {
-    const page = await browser.newPage()
-    await signUp(page, sharedEmail)
-    await page.close()
+  test.beforeAll(async () => {
+    await createVerifiedUser(sharedEmail)
   })
 
   test.beforeEach(async ({ page }) => {
