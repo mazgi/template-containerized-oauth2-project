@@ -203,14 +203,21 @@ jobs:
       # --- Appium Setup ---
       # WinAppDriver is preinstalled on windows-2025 runners.
       # appium-windows-driver discovers it automatically from the default path.
+      # Pin Appium 3 + windows-driver 5 (driver v5 requires Appium 3).
+      # Use --source=npm to bypass the Appium driver registry and install
+      # the exact version directly from npm.
       - name: Install Appium and Windows driver
         run: |
-          npm install -g appium
-          appium driver install --source=npm appium-windows-driver
+          npm install -g appium@3
+          appium driver install --source=npm appium-windows-driver@5
 
       - name: Start Appium server
         shell: bash
         run: |
+          # appium-windows-driver resolves 'appium/driver' at runtime.
+          # Since Appium is installed globally and the driver lives in ~/.appium,
+          # Node.js cannot find it without NODE_PATH pointing to global node_modules.
+          export NODE_PATH="$(npm root -g)"
           nohup appium server --log "$RUNNER_TEMP/appium.log" 2>&1 &
           for i in $(seq 1 30); do
             curl -sf http://127.0.0.1:4723/status > /dev/null && echo "Appium server is ready." && break
