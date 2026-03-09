@@ -10,30 +10,57 @@ import SwiftUI
 struct ContentView: View {
     @Environment(AuthViewModel.self) private var auth
     @State private var shaLabel = BuildConfig.gitSHA
+    @State private var selectedTab = 0
+
+    private var isUITesting: Bool {
+        CommandLine.arguments.contains("--uitesting")
+    }
 
     var body: some View {
         Group {
             if auth.isAuthenticated {
-                TabView {
-                    NavigationStack {
-                        DashboardView()
-                    }
-                    .tabItem {
-                        Label("Dashboard", systemImage: "person.circle")
+                VStack(spacing: 0) {
+                    if isUITesting {
+                        // Test-only segmented picker for XCUITest tab navigation.
+                        // iOS 26 Liquid Glass tab bar doesn't respond to
+                        // XCUITest synthesized taps, so this picker provides
+                        // a reliable programmatic alternative.
+                        Picker("Tab", selection: $selectedTab) {
+                            Text("Dashboard").tag(0)
+                            Text("Items").tag(1)
+                            Text("Settings").tag(2)
+                        }
+                        .pickerStyle(.segmented)
+                        .accessibilityIdentifier("test_tabPicker")
+                        .padding(.horizontal, 16)
+                        .frame(height: 28)
+                        .opacity(0.15)
                     }
 
-                    NavigationStack {
-                        ItemsView()
-                    }
-                    .tabItem {
-                        Label("Items", systemImage: "list.bullet")
-                    }
+                    TabView(selection: $selectedTab) {
+                        NavigationStack {
+                            DashboardView()
+                        }
+                        .tabItem {
+                            Label("Dashboard", systemImage: "person.circle")
+                        }
+                        .tag(0)
 
-                    NavigationStack {
-                        SettingsView()
-                    }
-                    .tabItem {
-                        Label("Settings", systemImage: "gear")
+                        NavigationStack {
+                            ItemsView()
+                        }
+                        .tabItem {
+                            Label("Items", systemImage: "list.bullet")
+                        }
+                        .tag(1)
+
+                        NavigationStack {
+                            SettingsView()
+                        }
+                        .tabItem {
+                            Label("Settings", systemImage: "gear")
+                        }
+                        .tag(2)
                     }
                 }
             } else {

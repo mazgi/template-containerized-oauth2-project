@@ -22,6 +22,7 @@ final class AppThemeUITests: XCTestCase {
         app = XCUIApplication()
         app.launchArguments = ["--uitesting"]
         app.launch()
+        TestHelpers.dismissSystemAlerts()
     }
 
     override func tearDownWithError() throws {
@@ -30,28 +31,45 @@ final class AppThemeUITests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func signUp(email: String) {
-        let goToSignUpButton = app.buttons["signin_goToSignUpButton"]
-        XCTAssertTrue(goToSignUpButton.waitForExistence(timeout: 5))
-        goToSignUpButton.tap()
+    /// Create a verified user via API + Mailpit, then sign in via UI.
+    private func createVerifiedUserAndSignIn(email: String) {
+        TestHelpers.createVerifiedUser(email: email, password: defaultPassword)
 
-        let emailField = app.textFields["signup_emailTextField"]
+        let emailField = app.textFields["signin_emailTextField"]
         XCTAssertTrue(emailField.waitForExistence(timeout: 5))
         emailField.tap()
         emailField.typeText(email)
 
-        app.secureTextFields["signup_passwordTextField"].tap()
-        app.secureTextFields["signup_passwordTextField"].typeText(defaultPassword)
+        app.secureTextFields["signin_passwordTextField"].tap()
+        app.secureTextFields["signin_passwordTextField"].typeText(defaultPassword)
 
-        app.secureTextFields["signup_passwordConfirmTextField"].tap()
-        app.secureTextFields["signup_passwordConfirmTextField"].typeText(defaultPassword)
-
-        app.buttons["signup_submitButton"].tap()
+        app.buttons["signin_submitButton"].tap()
+        TestHelpers.dismissSystemAlerts(app: app)
         XCTAssertTrue(app.staticTexts["dashboard_userEmail"].waitForExistence(timeout: 10))
+        // Dismiss "Save Password?" dialog that may appear after dashboard loads
+        TestHelpers.dismissSystemAlerts(app: app)
+    }
+
+    private func tapTab(_ label: String) {
+        // Dismiss any lingering system dialogs before tab navigation
+        TestHelpers.dismissSystemAlerts(app: app)
+
+        // iOS 26 Liquid Glass TabView doesn't respond to XCUITest taps.
+        // Use the test segmented picker bound to selectedTab.
+        let indices = ["Dashboard": 0, "Items": 1, "Settings": 2]
+        guard let index = indices[label] else {
+            XCTFail("Unknown tab: \(label)")
+            return
+        }
+        let picker = app.segmentedControls.firstMatch
+        XCTAssertTrue(picker.waitForExistence(timeout: 5), "Test tab picker not found")
+        let segment = picker.buttons.element(boundBy: index)
+        XCTAssertTrue(segment.waitForExistence(timeout: 2), "Segment \(index) not found")
+        segment.tap()
     }
 
     private func navigateToSettings() {
-        app.tabBars.buttons["Settings"].tap()
+        tapTab("Settings")
         let themePicker = app.descendants(matching: .any)
             .matching(identifier: "settings_themePicker")
             .firstMatch
@@ -61,7 +79,7 @@ final class AppThemeUITests: XCTestCase {
     // MARK: - Theme Picker Visibility
 
     func testThemePickerIsVisible() throws {
-        signUp(email: Self.uniqueEmail("visible"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("visible"))
         navigateToSettings()
 
         let themePicker = app.descendants(matching: .any)
@@ -71,7 +89,7 @@ final class AppThemeUITests: XCTestCase {
     }
 
     func testThemePickerHasThreeSegments() throws {
-        signUp(email: Self.uniqueEmail("segments"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("segments"))
         navigateToSettings()
 
         XCTAssertTrue(app.buttons["System"].waitForExistence(timeout: 5))
@@ -82,7 +100,7 @@ final class AppThemeUITests: XCTestCase {
     // MARK: - Theme Switching
 
     func testSwitchToDarkTheme() throws {
-        signUp(email: Self.uniqueEmail("dark"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("dark"))
         navigateToSettings()
 
         let darkButton = app.buttons["Dark"]
@@ -93,7 +111,7 @@ final class AppThemeUITests: XCTestCase {
     }
 
     func testSwitchToLightTheme() throws {
-        signUp(email: Self.uniqueEmail("light"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("light"))
         navigateToSettings()
 
         let lightButton = app.buttons["Light"]
@@ -104,7 +122,7 @@ final class AppThemeUITests: XCTestCase {
     }
 
     func testSwitchBackToSystem() throws {
-        signUp(email: Self.uniqueEmail("system"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("system"))
         navigateToSettings()
 
         // Switch to dark first
@@ -120,7 +138,7 @@ final class AppThemeUITests: XCTestCase {
     }
 
     func testSwitchBetweenAllThemes() throws {
-        signUp(email: Self.uniqueEmail("all"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("all"))
         navigateToSettings()
 
         let systemButton = app.buttons["System"]

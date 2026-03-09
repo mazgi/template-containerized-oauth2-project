@@ -22,6 +22,7 @@ final class AppAuthUITests: XCTestCase {
         app = XCUIApplication()
         app.launchArguments = ["--uitesting"]
         app.launch()
+        TestHelpers.dismissSystemAlerts()
     }
 
     override func tearDownWithError() throws {
@@ -55,11 +56,14 @@ final class AppAuthUITests: XCTestCase {
         app.buttons["signup_submitButton"].tap()
     }
 
-    private func signUp(email: String) {
-        openSignUp()
-        fillSignUpForm(email: email, password: defaultPassword, confirm: defaultPassword)
-        submitSignUp()
+    /// Create a verified user via API + Mailpit, then sign in via UI.
+    private func createVerifiedUserAndSignIn(email: String) {
+        TestHelpers.createVerifiedUser(email: email, password: defaultPassword)
+        signIn(email: email, password: defaultPassword)
+        // Dismiss "Save Password?" dialog if it appears after sign-in
+        TestHelpers.dismissSystemAlerts(app: app)
         XCTAssertTrue(app.staticTexts["dashboard_userEmail"].waitForExistence(timeout: 10))
+        TestHelpers.dismissSystemAlerts(app: app)
     }
 
     private func signIn(email: String, password: String) {
@@ -86,10 +90,19 @@ final class AppAuthUITests: XCTestCase {
 
     func testSignUpSuccess() throws {
         let email = Self.uniqueEmail("signup")
-        signUp(email: email)
+        openSignUp()
+        fillSignUpForm(email: email, password: defaultPassword, confirm: defaultPassword)
+        submitSignUp()
 
-        let label = app.staticTexts["dashboard_userEmail"]
-        XCTAssertEqual(label.label, email)
+        // After signup, the app shows "Check your email" instead of navigating to dashboard
+        let checkEmailText = app.staticTexts["Check your email"]
+        XCTAssertTrue(checkEmailText.waitForExistence(timeout: 10))
+
+        // Verify the resend button is visible
+        XCTAssertTrue(app.buttons["signup_resendButton"].waitForExistence(timeout: 5))
+
+        // Verify the "Sign In" navigation button is visible
+        XCTAssertTrue(app.buttons["signup_goToSignInButton"].waitForExistence(timeout: 5))
     }
 
     func testSignUpPasswordMismatch() throws {
@@ -107,9 +120,11 @@ final class AppAuthUITests: XCTestCase {
 
     func testSignUpDuplicateEmail() throws {
         let email = Self.uniqueEmail("dup")
-        signUp(email: email)
-        signOut()
 
+        // Create verified user via API
+        TestHelpers.createVerifiedUser(email: email, password: defaultPassword)
+
+        // Try to sign up with the same email via UI
         openSignUp()
         fillSignUpForm(email: email, password: defaultPassword, confirm: defaultPassword)
         submitSignUp()
@@ -122,10 +137,7 @@ final class AppAuthUITests: XCTestCase {
 
     func testSignInSuccess() throws {
         let email = Self.uniqueEmail("signin")
-        signUp(email: email)
-        signOut()
-
-        signIn(email: email, password: defaultPassword)
+        createVerifiedUserAndSignIn(email: email)
 
         let label = app.staticTexts["dashboard_userEmail"]
         XCTAssertTrue(label.waitForExistence(timeout: 10))
@@ -134,8 +146,7 @@ final class AppAuthUITests: XCTestCase {
 
     func testSignInWrongPassword() throws {
         let email = Self.uniqueEmail("wrongpw")
-        signUp(email: email)
-        signOut()
+        TestHelpers.createVerifiedUser(email: email, password: defaultPassword)
 
         signIn(email: email, password: "wrong_password")
 
@@ -157,7 +168,7 @@ final class AppAuthUITests: XCTestCase {
 
     func testSignOut() throws {
         let email = Self.uniqueEmail("signout")
-        signUp(email: email)
+        createVerifiedUserAndSignIn(email: email)
         signOut()
 
         XCTAssertTrue(app.textFields["signin_emailTextField"].exists)

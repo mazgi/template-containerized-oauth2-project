@@ -22,6 +22,7 @@ final class AppItemsUITests: XCTestCase {
         app = XCUIApplication()
         app.launchArguments = ["--uitesting"]
         app.launch()
+        TestHelpers.dismissSystemAlerts()
     }
 
     override func tearDownWithError() throws {
@@ -30,33 +31,50 @@ final class AppItemsUITests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func signUp(email: String) {
-        let goToSignUpButton = app.buttons["signin_goToSignUpButton"]
-        XCTAssertTrue(goToSignUpButton.waitForExistence(timeout: 5))
-        goToSignUpButton.tap()
+    /// Create a verified user via API + Mailpit, then sign in via UI.
+    private func createVerifiedUserAndSignIn(email: String) {
+        TestHelpers.createVerifiedUser(email: email, password: defaultPassword)
 
-        let emailField = app.textFields["signup_emailTextField"]
+        let emailField = app.textFields["signin_emailTextField"]
         XCTAssertTrue(emailField.waitForExistence(timeout: 5))
         emailField.tap()
         emailField.typeText(email)
 
-        app.secureTextFields["signup_passwordTextField"].tap()
-        app.secureTextFields["signup_passwordTextField"].typeText(defaultPassword)
+        app.secureTextFields["signin_passwordTextField"].tap()
+        app.secureTextFields["signin_passwordTextField"].typeText(defaultPassword)
 
-        app.secureTextFields["signup_passwordConfirmTextField"].tap()
-        app.secureTextFields["signup_passwordConfirmTextField"].typeText(defaultPassword)
-
-        app.buttons["signup_submitButton"].tap()
+        app.buttons["signin_submitButton"].tap()
+        TestHelpers.dismissSystemAlerts(app: app)
         XCTAssertTrue(app.staticTexts["dashboard_userEmail"].waitForExistence(timeout: 10))
+        // Dismiss "Save Password?" dialog that may appear after dashboard loads
+        TestHelpers.dismissSystemAlerts(app: app)
+    }
+
+    private func tapTab(_ label: String) {
+        // Dismiss any lingering system dialogs before tab navigation
+        TestHelpers.dismissSystemAlerts(app: app)
+
+        // iOS 26 Liquid Glass TabView doesn't respond to XCUITest taps.
+        // Use the test segmented picker bound to selectedTab.
+        let indices = ["Dashboard": 0, "Items": 1, "Settings": 2]
+        guard let index = indices[label] else {
+            XCTFail("Unknown tab: \(label)")
+            return
+        }
+        let picker = app.segmentedControls.firstMatch
+        XCTAssertTrue(picker.waitForExistence(timeout: 5), "Test tab picker not found")
+        let segment = picker.buttons.element(boundBy: index)
+        XCTAssertTrue(segment.waitForExistence(timeout: 2), "Segment \(index) not found")
+        segment.tap()
     }
 
     private func navigateToItems() {
-        app.tabBars.buttons["Items"].tap()
+        tapTab("Items")
         XCTAssertTrue(app.textFields["items_nameTextField"].waitForExistence(timeout: 5))
     }
 
     private func navigateToDashboard() {
-        app.tabBars.buttons["Dashboard"].tap()
+        tapTab("Dashboard")
         XCTAssertTrue(app.staticTexts["dashboard_userEmail"].waitForExistence(timeout: 5))
     }
 
@@ -72,7 +90,7 @@ final class AppItemsUITests: XCTestCase {
     // MARK: - Empty State
 
     func testShowsEmptyStateWhenNoItems() throws {
-        signUp(email: Self.uniqueEmail("empty"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("empty"))
         navigateToItems()
 
         XCTAssertTrue(app.staticTexts["items_emptyState"].waitForExistence(timeout: 5))
@@ -81,7 +99,7 @@ final class AppItemsUITests: XCTestCase {
     // MARK: - Create
 
     func testCreateItemAppearsInList() throws {
-        signUp(email: Self.uniqueEmail("create"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("create"))
         navigateToItems()
 
         let itemName = "Test item \(Int(Date().timeIntervalSince1970))"
@@ -91,7 +109,7 @@ final class AppItemsUITests: XCTestCase {
     }
 
     func testInputClearedAfterCreation() throws {
-        signUp(email: Self.uniqueEmail("cleared"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("cleared"))
         navigateToItems()
 
         let textField = app.textFields["items_nameTextField"]
@@ -106,7 +124,7 @@ final class AppItemsUITests: XCTestCase {
     }
 
     func testAddButtonDisabledWhenInputEmpty() throws {
-        signUp(email: Self.uniqueEmail("disabled"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("disabled"))
         navigateToItems()
 
         // Disabled SwiftUI buttons may not appear under app.buttons in the accessibility tree.
@@ -130,7 +148,7 @@ final class AppItemsUITests: XCTestCase {
     // MARK: - Delete
 
     func testDeleteItemDisappearsFromList() throws {
-        signUp(email: Self.uniqueEmail("delete"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("delete"))
         navigateToItems()
 
         let itemName = "Delete me \(Int(Date().timeIntervalSince1970))"
@@ -142,7 +160,7 @@ final class AppItemsUITests: XCTestCase {
     }
 
     func testShowsEmptyStateAfterAllItemsDeleted() throws {
-        signUp(email: Self.uniqueEmail("afterdelete"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("afterdelete"))
         navigateToItems()
 
         let itemName = "Only item \(Int(Date().timeIntervalSince1970))"
@@ -154,7 +172,7 @@ final class AppItemsUITests: XCTestCase {
     }
 
     func testCreateMultipleItems() throws {
-        signUp(email: Self.uniqueEmail("multi"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("multi"))
         navigateToItems()
 
         let ts = Int(Date().timeIntervalSince1970)
@@ -172,14 +190,14 @@ final class AppItemsUITests: XCTestCase {
     // MARK: - Tab Navigation
 
     func testTabNavigationToItems() throws {
-        signUp(email: Self.uniqueEmail("navitems"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("navitems"))
         navigateToItems()
 
         XCTAssertTrue(app.textFields["items_nameTextField"].exists)
     }
 
     func testTabNavigationBackToDashboard() throws {
-        signUp(email: Self.uniqueEmail("navdash"))
+        createVerifiedUserAndSignIn(email: Self.uniqueEmail("navdash"))
         navigateToItems()
         navigateToDashboard()
 
