@@ -2,13 +2,13 @@ import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
-import { signup } from '../lib/api'
+import { signup, resendVerification } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
 export default function SignUpPage() {
   const t = useTranslations('SignUp')
-  const { user, loading, login } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   const [email, setEmail] = useState('')
@@ -16,6 +16,8 @@ export default function SignUpPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
+  const [resending, setResending] = useState(false)
 
   useEffect(() => {
     if (!loading && user) router.replace('/dashboard')
@@ -32,9 +34,8 @@ export default function SignUpPage() {
 
     setSubmitting(true)
     try {
-      const res = await signup(email, password)
-      login(res)
-      router.push('/dashboard')
+      await signup(email, password)
+      setVerificationSent(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errorFallback'))
     } finally {
@@ -42,7 +43,41 @@ export default function SignUpPage() {
     }
   }
 
+  async function handleResend() {
+    setResending(true)
+    try {
+      await resendVerification(email)
+    } catch {
+      // Ignore errors — the API always returns success to prevent enumeration
+    } finally {
+      setResending(false)
+    }
+  }
+
   if (loading) return null
+
+  if (verificationSent) {
+    return (
+      <div className="page-center">
+        <div className="card">
+          <h1 className="card-title">{t('verificationSentTitle')}</h1>
+          <p>{t('verificationSentMessage')}</p>
+          <button
+            className="btn-primary"
+            onClick={handleResend}
+            disabled={resending}
+            style={{ marginTop: '1rem' }}
+          >
+            {resending ? t('resending') : t('resendVerification')}
+          </button>
+          <p className="form-footer">
+            <Link href="/signin">{t('signInLink')}</Link>
+          </p>
+          <LanguageSwitcher />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="page-center">

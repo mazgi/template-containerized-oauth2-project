@@ -133,6 +133,19 @@ public abstract class BaseTest
         }
         catch (NoSuchElementException) { }
 
+        // If on verification-sent screen, navigate back to sign-in
+        try
+        {
+            var verificationSignIn = Driver.FindElement(MobileBy.AccessibilityId("signup_verificationGoToSignInButton"));
+            if (verificationSignIn.Displayed)
+            {
+                verificationSignIn.Click();
+                WaitForElement("signin_emailTextBox");
+                return;
+            }
+        }
+        catch (NoSuchElementException) { }
+
         // If on sign-up page, navigate back to sign-in
         try
         {

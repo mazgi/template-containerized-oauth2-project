@@ -9,68 +9,110 @@
     Background="Transparent">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Width="360"
-            Padding="24"
-            Spacing="16">
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <FontIcon Glyph="&#xE77B;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
+            <!-- Verification Sent Panel -->
+            <StackPanel
+                x:Name="VerificationSentPanel"
+                Width="360"
+                Padding="24"
+                Spacing="16"
+                Visibility="Collapsed">
 
-            <TextBlock
-                Text="Sign Up"
-                Style="{StaticResource TitleTextBlockStyle}"
-                HorizontalAlignment="Center" />
+                <FontIcon Glyph="&#xE715;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
 
-            <TextBlock
-                x:Name="ErrorText"
-                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                TextWrapping="Wrap"
-                HorizontalAlignment="Center"
-                Visibility="Collapsed"
-                AutomationProperties.AutomationId="signup_errorText" />
+                <TextBlock
+                    Text="Check your email"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    HorizontalAlignment="Center"
+                    AutomationProperties.AutomationId="signup_verificationSentTitle" />
 
-            <TextBox
-                x:Name="EmailBox"
-                Header="Email"
-                PlaceholderText="email@example.com"
-                InputScope="EmailSmtpAddress"
-                AutomationProperties.AutomationId="signup_emailTextBox" />
+                <TextBlock
+                    Text="We've sent a verification link to your email address. Please check your inbox and click the link to verify your account."
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    TextAlignment="Center" />
 
-            <PasswordBox
-                x:Name="PasswordBox"
-                Header="Password"
-                PlaceholderText="Password (min 8 characters)"
-                AutomationProperties.AutomationId="signup_passwordBox" />
+                <Button
+                    x:Name="ResendButton"
+                    Content="Resend verification email"
+                    HorizontalAlignment="Stretch"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="ResendButton_Click"
+                    AutomationProperties.AutomationId="signup_resendButton" />
 
-            <PasswordBox
-                x:Name="ConfirmPasswordBox"
-                Header="Confirm Password"
-                PlaceholderText="Confirm Password"
-                AutomationProperties.AutomationId="signup_confirmPasswordBox" />
+                <HyperlinkButton
+                    Content="Sign In"
+                    HorizontalAlignment="Center"
+                    Click="VerificationSignInLink_Click"
+                    AutomationProperties.AutomationId="signup_verificationGoToSignInButton" />
 
-            <TextBlock
-                x:Name="MismatchText"
-                Text="Passwords do not match"
-                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                Visibility="Collapsed"
-                AutomationProperties.AutomationId="signup_mismatchText" />
-
-            <Button
-                x:Name="SignUpButton"
-                Content="Sign Up"
-                HorizontalAlignment="Stretch"
-                Style="{StaticResource AccentButtonStyle}"
-                Click="SignUpButton_Click"
-                AutomationProperties.AutomationId="signup_submitButton" />
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,8,0,32">
-                <TextBlock Text="Already have an account?" VerticalAlignment="Center" />
-                <HyperlinkButton Content="Sign In" Click="SignInLink_Click"
-                                AutomationProperties.AutomationId="signup_goToSignInButton" />
             </StackPanel>
 
-        </StackPanel>
+            <!-- Sign Up Form Panel -->
+            <StackPanel
+                x:Name="SignUpFormPanel"
+                Width="360"
+                Padding="24"
+                Spacing="16">
+
+                <FontIcon Glyph="&#xE77B;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
+
+                <TextBlock
+                    Text="Sign Up"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    HorizontalAlignment="Center" />
+
+                <TextBlock
+                    x:Name="ErrorText"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    Visibility="Collapsed"
+                    AutomationProperties.AutomationId="signup_errorText" />
+
+                <TextBox
+                    x:Name="EmailBox"
+                    Header="Email"
+                    PlaceholderText="email@example.com"
+                    InputScope="EmailSmtpAddress"
+                    AutomationProperties.AutomationId="signup_emailTextBox" />
+
+                <PasswordBox
+                    x:Name="PasswordBox"
+                    Header="Password"
+                    PlaceholderText="Password (min 8 characters)"
+                    AutomationProperties.AutomationId="signup_passwordBox" />
+
+                <PasswordBox
+                    x:Name="ConfirmPasswordBox"
+                    Header="Confirm Password"
+                    PlaceholderText="Confirm Password"
+                    AutomationProperties.AutomationId="signup_confirmPasswordBox" />
+
+                <TextBlock
+                    x:Name="MismatchText"
+                    Text="Passwords do not match"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    Visibility="Collapsed"
+                    AutomationProperties.AutomationId="signup_mismatchText" />
+
+                <Button
+                    x:Name="SignUpButton"
+                    Content="Sign Up"
+                    HorizontalAlignment="Stretch"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="SignUpButton_Click"
+                    AutomationProperties.AutomationId="signup_submitButton" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,8,0,32">
+                    <TextBlock Text="Already have an account?" VerticalAlignment="Center" />
+                    <HyperlinkButton Content="Sign In" Click="SignInLink_Click"
+                                    AutomationProperties.AutomationId="signup_goToSignInButton" />
+                </StackPanel>
+
+            </StackPanel>
+
+        </Grid>
     </ScrollViewer>
 </Page>

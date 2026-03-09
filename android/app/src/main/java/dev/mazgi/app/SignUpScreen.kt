@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 fun SignUpScreen(
     uiState: AuthUiState,
     onSignUp: (email: String, password: String) -> Unit,
+    onResendVerification: (email: String) -> Unit,
     onNavigateToSignIn: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
@@ -44,76 +45,111 @@ fun SignUpScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = "Sign Up",
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            isError = passwordMismatch,
-            supportingText = if (passwordMismatch) {
-                { Text("Passwords do not match") }
-            } else null,
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-
-        uiState.errorMessage?.let { error ->
+        if (uiState.verificationSentEmail != null) {
             Text(
-                text = error,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
+                text = "Check your email",
+                style = MaterialTheme.typography.headlineMedium,
             )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = { onSignUp(email, password) },
-            enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank() && !passwordMismatch,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            } else {
-                Text("Sign Up")
+            Text(
+                text = "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { onResendVerification(uiState.verificationSentEmail) },
+                enabled = !uiState.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                } else {
+                    Text("Resend verification email")
+                }
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = onNavigateToSignIn) {
-            Text("Already have an account? Sign In")
+            TextButton(onClick = onNavigateToSignIn) {
+                Text("Sign In")
+            }
+        } else {
+            Text(
+                text = "Sign Up",
+                style = MaterialTheme.typography.headlineMedium,
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirm Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = passwordMismatch,
+                supportingText = if (passwordMismatch) {
+                    { Text("Passwords do not match") }
+                } else null,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            uiState.errorMessage?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            Button(
+                onClick = { onSignUp(email, password) },
+                enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank() && !passwordMismatch,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                } else {
+                    Text("Sign Up")
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(onClick = onNavigateToSignIn) {
+                Text("Already have an account? Sign In")
+            }
         }
     }
 }

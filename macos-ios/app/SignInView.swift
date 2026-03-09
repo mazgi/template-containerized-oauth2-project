@@ -42,6 +42,7 @@ struct SignInView: View {
                     .accessibilityIdentifier("signin_emailTextField")
 
                 SecureField("Password", text: $password)
+                    .textContentType(.oneTimeCode)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("signin_passwordTextField")
             }

@@ -13,17 +13,20 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.json.JSONObject
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
  * E2E tests for authentication flows.
  *
  * Mirrors web/e2e-tests/tests/auth.spec.ts scenarios:
- *   - sign-up (success, password mismatch, duplicate email)
+ *   - sign-up (success → verification sent screen, password mismatch, duplicate email)
  *   - sign-in (success, wrong password, non-existent email)
  *   - navigation between Sign In / Sign Up screens
  *   - sign-out
@@ -32,8 +35,9 @@ import org.junit.runner.RunWith
  * shows the Sign In screen. The Activity is launched fresh for every test by
  * RuleChain: clearPrefsRule (outer) → composeRule (inner).
  *
- * Prerequisites: the backend must be reachable at http://10.0.2.2:4000.
- * Run the stack with `docker compose up` before executing these tests.
+ * Prerequisites: the backend must be reachable at http://10.0.2.2:4000
+ * and Mailpit at http://10.0.2.2:8025.
+ * Run the stack with `docker compose up backend mailpit` before executing these tests.
  */
 @RunWith(AndroidJUnit4::class)
 class AuthE2ETest {
@@ -55,6 +59,8 @@ class AuthE2ETest {
 
     companion object {
         private var testCount = 0
+        private const val BACKEND_URL = "http://10.0.2.2:4000"
+        private const val MAILPIT_URL = "http://10.0.2.2:8025"
     }
 
     private fun uniqueEmail() =
@@ -88,16 +94,37 @@ class AuthE2ETest {
         }
     }
 
+    /** Wait until the verification-sent screen is shown. */
+    private fun waitForVerificationSent() {
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Check your email")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
     /**
-     * Complete the Sign Up flow via the UI and land on Dashboard.
-     * Navigates from the Sign In screen → Sign Up → fills the form → submits → waits.
+     * Create a verified user via the backend API + Mailpit.
+     * Calls signup, retrieves the verification token from Mailpit, and verifies.
      */
-    private fun signUpViaUi(email: String, password: String = "Password1!") {
-        navigateToSignUp()
+    private fun createVerifiedUser(email: String, password: String = "Password1!") {
+        // 1. Sign up via API
+        postJson("$BACKEND_URL/auth/signup", """{"email":"$email","password":"$password"}""")
+
+        // 2. Get verification token from Mailpit
+        val token = getVerificationToken(email)
+
+        // 3. Verify email via API
+        postJson("$BACKEND_URL/auth/verify-email", """{"token":"$token"}""")
+    }
+
+    /**
+     * Create a verified user via API and sign in via UI to reach Dashboard.
+     */
+    private fun signUpAndSignIn(email: String, password: String = "Password1!") {
+        createVerifiedUser(email, password)
         composeRule.onNodeWithText("Email").performTextInput(email)
         composeRule.onNodeWithText("Password").performTextInput(password)
-        composeRule.onNodeWithText("Confirm Password").performTextInput(password)
-        composeRule.onAllNodesWithText("Sign Up").filterToOne(hasClickAction()).performClick()
+        composeRule.onAllNodesWithText("Sign In").filterToOne(hasClickAction()).performClick()
         waitForDashboard()
     }
 
@@ -124,6 +151,57 @@ class AuthE2ETest {
         }
     }
 
+    /** POST JSON to the given URL and return the response body. */
+    private fun postJson(url: String, body: String): String {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.requestMethod = "POST"
+        conn.setRequestProperty("Content-Type", "application/json")
+        conn.doOutput = true
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 10_000
+        conn.outputStream.bufferedWriter().use { it.write(body) }
+        val responseText = if (conn.responseCode in 200..299) {
+            conn.inputStream.bufferedReader().readText()
+        } else {
+            conn.errorStream?.bufferedReader()?.readText() ?: ""
+        }
+        conn.disconnect()
+        return responseText
+    }
+
+    /** Poll Mailpit for the verification token sent to [email]. */
+    private fun getVerificationToken(email: String): String {
+        for (i in 0 until 20) {
+            try {
+                val searchUrl = "$MAILPIT_URL/api/v1/search?query=to:$email"
+                val conn = URL(searchUrl).openConnection() as HttpURLConnection
+                conn.connectTimeout = 5_000
+                conn.readTimeout = 5_000
+                if (conn.responseCode == 200) {
+                    val data = JSONObject(conn.inputStream.bufferedReader().readText())
+                    conn.disconnect()
+                    val messages = data.optJSONArray("messages")
+                    if (messages != null && messages.length() > 0) {
+                        val msgId = messages.getJSONObject(0).getString("ID")
+                        val msgConn = URL("$MAILPIT_URL/api/v1/message/$msgId")
+                            .openConnection() as HttpURLConnection
+                        msgConn.connectTimeout = 5_000
+                        msgConn.readTimeout = 5_000
+                        val msg = JSONObject(msgConn.inputStream.bufferedReader().readText())
+                        msgConn.disconnect()
+                        val html = msg.optString("HTML", "") + msg.optString("Text", "")
+                        val match = Regex("[?&]token=([a-f0-9-]+)").find(html)
+                        if (match != null) return match.groupValues[1]
+                    }
+                } else {
+                    conn.disconnect()
+                }
+            } catch (_: Exception) { }
+            Thread.sleep(500)
+        }
+        throw RuntimeException("Verification email not found for $email")
+    }
+
     // -------------------------------------------------------------------------
     // Sign Up tests
     // -------------------------------------------------------------------------
@@ -139,10 +217,10 @@ class AuthE2ETest {
         composeRule.onNodeWithText("Confirm Password").performTextInput("Password1!")
         composeRule.onAllNodesWithText("Sign Up").filterToOne(hasClickAction()).performClick()
 
-        waitForDashboard()
-        // Dashboard is shown: Sign Out button and the registered email are visible
-        composeRule.onNodeWithText("Sign Out").assertIsDisplayed()
-        composeRule.onNodeWithText(email).assertIsDisplayed()
+        // Should show verification-sent screen, not Dashboard
+        waitForVerificationSent()
+        composeRule.onNodeWithText("Check your email").assertIsDisplayed()
+        composeRule.onNodeWithText("Resend verification email").assertIsDisplayed()
     }
 
     @Test
@@ -167,11 +245,10 @@ class AuthE2ETest {
         waitForSignInScreen()
         val email = uniqueEmail()
 
-        // First sign-up succeeds
-        signUpViaUi(email)
-        signOut()
+        // First sign-up: create verified user via API
+        createVerifiedUser(email)
 
-        // Second sign-up with the same email
+        // Second sign-up with the same email via UI
         navigateToSignUp()
         composeRule.onNodeWithText("Email").performTextInput(email)
         composeRule.onNodeWithText("Password").performTextInput("Password1!")
@@ -195,15 +272,9 @@ class AuthE2ETest {
         val email = uniqueEmail()
         val password = "Password1!"
 
-        signUpViaUi(email, password)
-        signOut()
+        // Create verified user via API, then sign in via UI
+        signUpAndSignIn(email, password)
 
-        // Sign in with correct credentials
-        composeRule.onNodeWithText("Email").performTextInput(email)
-        composeRule.onNodeWithText("Password").performTextInput(password)
-        composeRule.onAllNodesWithText("Sign In").filterToOne(hasClickAction()).performClick()
-
-        waitForDashboard()
         // Dashboard is shown: Sign Out button and the signed-in email are visible
         composeRule.onNodeWithText("Sign Out").assertIsDisplayed()
         composeRule.onNodeWithText(email).assertIsDisplayed()
@@ -214,8 +285,7 @@ class AuthE2ETest {
         waitForSignInScreen()
         val email = uniqueEmail()
 
-        signUpViaUi(email)
-        signOut()
+        createVerifiedUser(email)
 
         // Sign in with wrong password
         composeRule.onNodeWithText("Email").performTextInput(email)
@@ -280,7 +350,7 @@ class AuthE2ETest {
     @Test
     fun signOut_returnsToSignInScreen() {
         waitForSignInScreen()
-        signUpViaUi(uniqueEmail())
+        signUpAndSignIn(uniqueEmail())
 
         composeRule.onNodeWithText("Sign Out").performClick()
         waitForSignInScreen()

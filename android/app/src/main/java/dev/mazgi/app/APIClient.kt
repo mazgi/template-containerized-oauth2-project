@@ -34,6 +34,10 @@ data class AuthResponse(
     val user: UserProfile,
 )
 
+data class MessageResponse(
+    val message: String,
+)
+
 data class ItemResponse(
     val id: String,
     val name: String,
@@ -62,12 +66,29 @@ class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
         parseAuthResponse(JSONObject(post("/auth/signin", body)))
     }
 
-    suspend fun signUp(email: String, password: String): AuthResponse = withContext(Dispatchers.IO) {
+    suspend fun signUp(email: String, password: String): MessageResponse = withContext(Dispatchers.IO) {
         val body = JSONObject().apply {
             put("email", email)
             put("password", password)
         }
-        parseAuthResponse(JSONObject(post("/auth/signup", body)))
+        val json = JSONObject(post("/auth/signup", body))
+        MessageResponse(message = json.getString("message"))
+    }
+
+    suspend fun verifyEmail(token: String): MessageResponse = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply {
+            put("token", token)
+        }
+        val json = JSONObject(post("/auth/verify-email", body))
+        MessageResponse(message = json.getString("message"))
+    }
+
+    suspend fun resendVerification(email: String): MessageResponse = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply {
+            put("email", email)
+        }
+        val json = JSONObject(post("/auth/resend-verification", body))
+        MessageResponse(message = json.getString("message"))
     }
 
     suspend fun refresh(refreshToken: String): AuthResponse = withContext(Dispatchers.IO) {

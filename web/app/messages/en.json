@@ -25,7 +25,20 @@
     "submitting": "Creating account…",
     "hasAccount": "Already have an account?",
     "signInLink": "Sign in",
-    "errorFallback": "Sign up failed"
+    "errorFallback": "Sign up failed",
+    "verificationSentTitle": "Check your email",
+    "verificationSentMessage": "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.",
+    "resendVerification": "Resend verification email",
+    "resending": "Sending…"
+  },
+  "VerifyEmail": {
+    "title": "Email Verification",
+    "verifying": "Verifying your email…",
+    "successMessage": "Your email has been verified successfully. You can now sign in.",
+    "invalidToken": "Invalid verification link.",
+    "errorFallback": "Verification failed",
+    "signInLink": "Sign in",
+    "signUpLink": "Sign up"
   },
   "Dashboard": {
     "title": "Dashboard",

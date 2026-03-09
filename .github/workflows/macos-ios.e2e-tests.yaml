@@ -80,6 +80,8 @@ jobs:
           AUTH_TWITTER_NATIVE_CALLBACK_URL=http://localhost:4000/auth/twitter/native/callback
           AUTH_DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
           AUTH_DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
           EOF
           echo "AUTH_APPLE_CLIENT_ID=${{ vars.AUTH_APPLE_CLIENT_ID }}" >> backend/.env
           echo "AUTH_APPLE_TEAM_ID=${{ vars.AUTH_APPLE_TEAM_ID }}" >> backend/.env
@@ -104,6 +106,16 @@ jobs:
           echo "AUTH_TWITTER_CLIENT_SECRET=${{ secrets.AUTH_TWITTER_CLIENT_SECRET }}" >> backend/.secrets.env
           echo "AUTH_SESSION_SECRET=${{ secrets.AUTH_SESSION_SECRET }}" >> backend/.secrets.env
           echo "AUTH_DISCORD_CLIENT_SECRET=${{ secrets.AUTH_DISCORD_CLIENT_SECRET }}" >> backend/.secrets.env
+
+      - name: Install and start Mailpit
+        # Mailpit is needed for email verification in E2E tests.
+        # The backend sends verification emails via SMTP to Mailpit (port 1025),
+        # and the test helpers retrieve tokens via the Mailpit API (port 8025).
+        run: |
+          brew install mailpit
+          mailpit &
+          for i in $(seq 1 15); do curl -sf http://localhost:8025/api/v1/messages > /dev/null && break; sleep 1; done
+          echo "Mailpit is ready."
 
       - name: Install backend dependencies
         working-directory: backend

@@ -25,7 +25,20 @@
     "submitting": "作成中…",
     "hasAccount": "すでにアカウントをお持ちの方は",
     "signInLink": "サインイン",
-    "errorFallback": "アカウント作成に失敗しました"
+    "errorFallback": "アカウント作成に失敗しました",
+    "verificationSentTitle": "メールをご確認ください",
+    "verificationSentMessage": "認証リンクをメールアドレスに送信しました。受信トレイを確認し、リンクをクリックしてアカウントを認証してください。",
+    "resendVerification": "認証メールを再送信",
+    "resending": "送信中…"
+  },
+  "VerifyEmail": {
+    "title": "メール認証",
+    "verifying": "メールアドレスを認証中…",
+    "successMessage": "メールアドレスが正常に認証されました。サインインできます。",
+    "invalidToken": "無効な認証リンクです。",
+    "errorFallback": "認証に失敗しました",
+    "signInLink": "サインイン",
+    "signUpLink": "新規登録"
   },
   "Dashboard": {
     "title": "ダッシュボード",

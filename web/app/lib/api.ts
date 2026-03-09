@@ -10,6 +10,7 @@ export interface UserPreferences {
 export interface User {
   id: string
   email: string
+  emailVerified: boolean
   appleId?: string | null
   githubId?: string | null
   googleId?: string | null
@@ -19,6 +20,10 @@ export interface User {
   preferences?: UserPreferences | null
   createdAt: string
   updatedAt: string
+}
+
+export interface MessageResponse {
+  message: string
 }
 
 export interface AuthResponse {
@@ -47,10 +52,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
-export function signup(email: string, password: string): Promise<AuthResponse> {
+export function signup(email: string, password: string): Promise<MessageResponse> {
   return request('/auth/signup', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
+  })
+}
+
+export function verifyEmail(token: string): Promise<MessageResponse> {
+  return request('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+}
+
+export function resendVerification(email: string): Promise<MessageResponse> {
+  return request('/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   })
 }
 

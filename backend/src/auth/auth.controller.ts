@@ -26,6 +26,7 @@ import { AppleTokenDto } from './dto/apple-token.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { SignInDto } from './dto/signin.dto';
 import { SignUpDto } from './dto/signup.dto';
+import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AppleProfile } from './strategies/apple.strategy';
 import { DiscordProfile } from './strategies/discord.strategy';
@@ -46,10 +47,27 @@ export class AuthController {
 
   @Post('signup')
   @ApiOperation({ summary: 'Register a new user with email and password' })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 201, description: 'Verification email sent' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
   async signUp(@Body() dto: SignUpDto) {
     return this.authService.signUp(dto);
+  }
+
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Verify email address using a verification token' })
+  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired verification token' })
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Post('resend-verification')
+  @ApiOperation({ summary: 'Resend verification email' })
+  @ApiResponse({ status: 200, description: 'Verification email sent if applicable' })
+  @HttpCode(HttpStatus.OK)
+  async resendVerification(@Body() dto: ResendVerificationDto) {
+    return this.authService.resendVerification(dto.email);
   }
 
   @Post('signin')
