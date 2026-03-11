@@ -146,3 +146,9 @@ variable "base_domain_name" {
   description = "Base domain name for DNS records (must match persistent layer)"
   type        = string
 }
+
+variable "dns_record_types" {
+  description = "DNS record types to create for Cloud Run services (CNAME for subdomains, A and AAAA for apex domains)"
+  type        = set(string)
+  default     = ["CNAME"]
+}

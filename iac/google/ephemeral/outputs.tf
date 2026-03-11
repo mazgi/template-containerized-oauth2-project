@@ -29,10 +29,10 @@ output "database_private_ip" {
 
 output "backend_fqdn" {
   description = "Backend DNS FQDN"
-  value       = trimsuffix(google_dns_record_set.backend.name, ".")
+  value       = trimsuffix(values(google_dns_record_set.backend)[0].name, ".")
 }
 
 output "web_fqdn" {
   description = "Web DNS FQDN"
-  value       = trimsuffix(google_dns_record_set.web.name, ".")
+  value       = trimsuffix(values(google_dns_record_set.web)[0].name, ".")
 }
