@@ -21,11 +21,14 @@ on:
 
 jobs:
   e2e-tests:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
+    env:
+      # See https://github.com/maxim-lobanov/setup-xcode/pull/98
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -33,7 +36,7 @@ jobs:
           xcode-version: latest-stable
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -154,7 +157,7 @@ jobs:
         run: xcrun simctl list devices available | grep -i iphone
 
       - name: Cache Xcode derived data
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/Library/Developer/Xcode/DerivedData
           key: xcode-deriveddata-${{ hashFiles('macos-ios/**/*.swift', 'macos-ios/**/*.xcodeproj/**') }}
@@ -189,7 +192,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-e2e-test-results
           path: /tmp/ios-e2e-results.xcresult
