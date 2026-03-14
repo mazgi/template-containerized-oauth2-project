@@ -28,10 +28,9 @@ export class AppleNativeStrategy extends PassportStrategy(AppleStrategyBase, 'ap
     _accessToken: string,
     _refreshToken: string,
     idToken: any,
-    profile: any,
     done: Function,
   ) {
-    const sub: string = idToken?.sub ?? profile?.id ?? '';
+    const sub: string = idToken?.sub ?? '';
 
     let firstName: string | undefined;
     let lastName: string | undefined;

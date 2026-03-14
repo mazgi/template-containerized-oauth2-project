@@ -33,11 +33,10 @@ export class AppleStrategy extends PassportStrategy(AppleStrategyBase, 'apple') 
     _accessToken: string,
     _refreshToken: string,
     idToken: any,
-    profile: any,
     done: Function,
   ) {
     // idToken is the decoded JWT payload with sub, email, email_verified
-    const sub: string = idToken?.sub ?? profile?.id ?? '';
+    const sub: string = idToken?.sub ?? '';
 
     // Apple only sends name on the first authorization via req.body.user
     let firstName: string | undefined;
