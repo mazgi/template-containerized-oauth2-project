@@ -1,22 +1,22 @@
-name: E2E Tests for macOS and iOS
+name: E2E Tests for Apple platforms
 
 on:
   push:
     branches: [main]
     paths:
-      - 'macos-ios/**'
+      - 'apple/**'
       - 'backend/**'
       - 'compose.yaml'
       - 'Dockerfiles.d/backend/**'
-      - '.github/workflows/macos-ios.e2e-tests.yaml'
+      - '.github/workflows/apple.e2e-tests.yaml'
   pull_request:
     branches: [main]
     paths:
-      - 'macos-ios/**'
+      - 'apple/**'
       - 'backend/**'
       - 'compose.yaml'
       - 'Dockerfiles.d/backend/**'
-      - '.github/workflows/macos-ios.e2e-tests.yaml'
+      - '.github/workflows/apple.e2e-tests.yaml'
   workflow_dispatch:
 
 jobs:
@@ -160,7 +160,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: xcode-deriveddata-${{ hashFiles('macos-ios/**/*.swift', 'macos-ios/**/*.xcodeproj/**') }}
+          key: xcode-deriveddata-${{ hashFiles('apple/**/*.swift', 'apple/**/*.xcodeproj/**') }}
           restore-keys: |
             xcode-deriveddata-
 
@@ -170,7 +170,7 @@ jobs:
         # Pre-generate it so the build always finds it.
         run: |
           SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          printf '// Auto-generated — do not edit manually\nenum BuildConfig {\n    static let gitSHA = "%s"\n}\n' "$SHA" > macos-ios/app/BuildConfig.generated.swift
+          printf '// Auto-generated — do not edit manually\nenum BuildConfig {\n    static let gitSHA = "%s"\n}\n' "$SHA" > apple/app/BuildConfig.generated.swift
 
       - name: Run iOS E2E tests
         # Use the same simulator as local development (CLAUDE.md: iPhone 17).
@@ -183,7 +183,7 @@ jobs:
         # Sequential execution eliminates this contention.
         run: |
           xcodebuild test \
-            -project macos-ios/app.xcodeproj \
+            -project apple/app.xcodeproj \
             -scheme app \
             -destination 'platform=iOS Simulator,name=iPhone 17' \
             -only-testing:appUITests \

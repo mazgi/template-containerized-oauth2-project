@@ -9,7 +9,7 @@ A multi-platform OAuth2 template project with a NestJS backend, a Next.js web cl
 | backend | NestJS 11 + PostgreSQL 17 | 4000 |
 | web | Next.js 16 | 3000 |
 | android | Kotlin + Jetpack Compose | — |
-| macos-ios | SwiftUI | — |
+| apple | SwiftUI | — |
 | windows | WinUI 3 (C# / Windows App SDK 1.8) | — |
 
 ## Prerequisites
@@ -58,7 +58,7 @@ After creating a repository from this template, follow these steps. Only step 1 
 │   └── app/src/
 │       ├── main/          # App source
 │       └── androidTest/   # Espresso E2E tests
-├── macos-ios/             # SwiftUI
+├── apple/                 # SwiftUI (iOS, macOS, watchOS, etc.)
 │   ├── app/               # App source
 │   └── appUITests/        # XCUITest E2E tests
 ├── windows/               # WinUI 3 (C# / Windows App SDK)

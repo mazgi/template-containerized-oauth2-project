@@ -88,7 +88,7 @@ Connects to `http://10.0.2.2:4000` (emulator loopback). No `adb reverse` needed 
 ```sh
 docker compose up backend
 xcodebuild test \
-  -project macos-ios/app.xcodeproj \
+  -project apple/app.xcodeproj \
   -scheme app \
   -destination 'platform=iOS Simulator,name=iPhone 17' \
   -only-testing:appUITests
