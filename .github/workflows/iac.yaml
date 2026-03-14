@@ -22,6 +22,7 @@ on:
       environment:
         description: 'Deployment environment'
         required: true
+        default: Staging
         type: environment
 
 permissions:
