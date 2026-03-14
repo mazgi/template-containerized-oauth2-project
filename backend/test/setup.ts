@@ -18,26 +18,14 @@ process.env.AUTH_APPLE_CLIENT_ID = process.env.AUTH_APPLE_CLIENT_ID ?? 'test-app
 process.env.AUTH_APPLE_TEAM_ID = process.env.AUTH_APPLE_TEAM_ID ?? 'test-apple-team-id';
 process.env.AUTH_APPLE_KEY_ID = process.env.AUTH_APPLE_KEY_ID ?? 'test-apple-key-id';
 process.env.AUTH_APPLE_PRIVATE_KEY = process.env.AUTH_APPLE_PRIVATE_KEY ?? 'test-apple-private-key';
-process.env.AUTH_APPLE_CALLBACK_URL =
-  process.env.AUTH_APPLE_CALLBACK_URL ?? 'http://localhost:4000/auth/apple/callback';
-process.env.AUTH_APPLE_NATIVE_CALLBACK_URL =
-  process.env.AUTH_APPLE_NATIVE_CALLBACK_URL ?? 'http://localhost:4000/auth/apple/native/callback';
+process.env.AUTH_CALLBACK_BASE_URL =
+  process.env.AUTH_CALLBACK_BASE_URL ?? 'http://localhost:4000';
+process.env.AUTH_NATIVE_CALLBACK_BASE_URL =
+  process.env.AUTH_NATIVE_CALLBACK_BASE_URL ?? 'http://localhost:4000';
 process.env.AUTH_GOOGLE_CLIENT_ID = process.env.AUTH_GOOGLE_CLIENT_ID ?? 'test-google-client-id';
 process.env.AUTH_GOOGLE_CLIENT_SECRET = process.env.AUTH_GOOGLE_CLIENT_SECRET ?? 'test-google-client-secret';
-process.env.AUTH_GOOGLE_CALLBACK_URL =
-  process.env.AUTH_GOOGLE_CALLBACK_URL ?? 'http://localhost:4000/auth/google/callback';
-process.env.AUTH_GOOGLE_NATIVE_CALLBACK_URL =
-  process.env.AUTH_GOOGLE_NATIVE_CALLBACK_URL ?? 'http://localhost:4000/auth/google/native/callback';
 process.env.AUTH_GITHUB_CLIENT_ID = process.env.AUTH_GITHUB_CLIENT_ID ?? 'test-github-client-id';
 process.env.AUTH_GITHUB_CLIENT_SECRET = process.env.AUTH_GITHUB_CLIENT_SECRET ?? 'test-github-client-secret';
-process.env.AUTH_GITHUB_CALLBACK_URL =
-  process.env.AUTH_GITHUB_CALLBACK_URL ?? 'http://localhost:4000/auth/github/callback';
-process.env.AUTH_GITHUB_NATIVE_CALLBACK_URL =
-  process.env.AUTH_GITHUB_NATIVE_CALLBACK_URL ?? 'http://localhost:4000/auth/github/native/callback';
 process.env.AUTH_TWITTER_CLIENT_ID = process.env.AUTH_TWITTER_CLIENT_ID ?? 'test-twitter-client-id';
 process.env.AUTH_TWITTER_CLIENT_SECRET =
   process.env.AUTH_TWITTER_CLIENT_SECRET ?? 'test-twitter-client-secret';
-process.env.AUTH_TWITTER_CALLBACK_URL =
-  process.env.AUTH_TWITTER_CALLBACK_URL ?? 'http://localhost:4000/auth/twitter/callback';
-process.env.AUTH_TWITTER_NATIVE_CALLBACK_URL =
-  process.env.AUTH_TWITTER_NATIVE_CALLBACK_URL ?? 'http://localhost:4000/auth/twitter/native/callback';

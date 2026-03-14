@@ -9,9 +9,7 @@ export class TwitterNativeStrategy extends PassportStrategy(Strategy, 'twitter-n
     super({
       clientID: process.env.AUTH_TWITTER_CLIENT_ID ?? '',
       clientSecret: process.env.AUTH_TWITTER_CLIENT_SECRET ?? '',
-      callbackURL:
-        process.env.AUTH_TWITTER_NATIVE_CALLBACK_URL ??
-        'http://localhost:4000/auth/twitter/native/callback',
+      callbackURL: `${process.env.AUTH_NATIVE_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/twitter/native/callback`,
       clientType: 'confidential',
       scope: ['tweet.read', 'users.read', 'offline.access'],
     });

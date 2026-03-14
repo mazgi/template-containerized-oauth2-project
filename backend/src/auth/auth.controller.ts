@@ -332,8 +332,7 @@ export class AuthController {
     // on the session, we embed link info directly in the OAuth state parameter
     // which Apple round-trips back in the POST body.
     const state = this.buildAppleLinkState(token, 'web');
-    const callbackUrl =
-      process.env.AUTH_APPLE_CALLBACK_URL ?? 'http://localhost:4000/auth/apple/callback';
+    const callbackUrl = `${process.env.AUTH_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/apple/callback`;
     res.redirect(this.buildAppleAuthUrl(state, callbackUrl));
   }
 
@@ -376,8 +375,7 @@ export class AuthController {
   @ApiResponse({ status: 302, description: 'Redirects to Apple consent screen for account linking' })
   async linkAppleNative(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
     const state = this.buildAppleLinkState(token, 'native');
-    const callbackUrl =
-      process.env.AUTH_APPLE_NATIVE_CALLBACK_URL ?? 'http://localhost:4000/auth/apple/native/callback';
+    const callbackUrl = `${process.env.AUTH_NATIVE_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/apple/native/callback`;
     res.redirect(this.buildAppleAuthUrl(state, callbackUrl));
   }
 

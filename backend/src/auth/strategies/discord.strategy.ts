@@ -14,9 +14,7 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
     super({
       clientID: process.env.AUTH_DISCORD_CLIENT_ID ?? '',
       clientSecret: process.env.AUTH_DISCORD_CLIENT_SECRET ?? '',
-      callbackURL:
-        process.env.AUTH_DISCORD_CALLBACK_URL ??
-        'http://localhost:4000/auth/discord/callback',
+      callbackURL: `${process.env.AUTH_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/discord/callback`,
       scope: ['identify', 'email'],
     });
   }

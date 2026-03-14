@@ -26,12 +26,16 @@ resource "aws_ecs_express_gateway_service" "backend" {
     image          = "${local.persistent.ecr_backend_repository_url}:${var.image_tag}"
     container_port = 4000
 
-    # Web callback URLs use the frontend proxy (frontend_url/backend/...)
+    # Web callback base URL uses the frontend proxy (frontend_url/backend)
     # so the session cookie stays on the same domain throughout the OAuth flow.
-    # Native callback URLs use the backend directly (native apps connect to the backend).
+    # Native callback base URL uses the backend directly (native apps connect to the backend).
     environment {
-      name  = "AUTH_APPLE_CALLBACK_URL"
-      value = "${local.frontend_url}/backend/auth/apple/callback"
+      name  = "AUTH_CALLBACK_BASE_URL"
+      value = "${local.frontend_url}/backend"
+    }
+    environment {
+      name  = "AUTH_NATIVE_CALLBACK_BASE_URL"
+      value = local.backend_base_url
     }
     environment {
       name  = "AUTH_APPLE_CLIENT_ID"
@@ -42,48 +46,20 @@ resource "aws_ecs_express_gateway_service" "backend" {
       value = var.apple_key_id
     }
     environment {
-      name  = "AUTH_APPLE_NATIVE_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/apple/native/callback"
-    }
-    environment {
       name  = "AUTH_APPLE_TEAM_ID"
       value = var.apple_team_id
-    }
-    environment {
-      name  = "AUTH_DISCORD_CALLBACK_URL"
-      value = "${local.frontend_url}/backend/auth/discord/callback"
     }
     environment {
       name  = "AUTH_DISCORD_CLIENT_ID"
       value = var.discord_client_id
     }
     environment {
-      name  = "AUTH_DISCORD_NATIVE_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/discord/native/callback"
-    }
-    environment {
-      name  = "AUTH_GITHUB_CALLBACK_URL"
-      value = "${local.frontend_url}/backend/auth/github/callback"
-    }
-    environment {
       name  = "AUTH_GITHUB_CLIENT_ID"
       value = var.gh_client_id
     }
     environment {
-      name  = "AUTH_GITHUB_NATIVE_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/github/native/callback"
-    }
-    environment {
-      name  = "AUTH_GOOGLE_CALLBACK_URL"
-      value = "${local.frontend_url}/backend/auth/google/callback"
-    }
-    environment {
       name  = "AUTH_GOOGLE_CLIENT_ID"
       value = var.google_oauth_client_id
-    }
-    environment {
-      name  = "AUTH_GOOGLE_NATIVE_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/google/native/callback"
     }
     environment {
       name  = "AUTH_JWT_ACCESS_EXPIRATION"
@@ -94,16 +70,8 @@ resource "aws_ecs_express_gateway_service" "backend" {
       value = var.jwt_refresh_expiration
     }
     environment {
-      name  = "AUTH_TWITTER_CALLBACK_URL"
-      value = "${local.frontend_url}/backend/auth/twitter/callback"
-    }
-    environment {
       name  = "AUTH_TWITTER_CLIENT_ID"
       value = var.twitter_client_id
-    }
-    environment {
-      name  = "AUTH_TWITTER_NATIVE_CALLBACK_URL"
-      value = "${local.backend_base_url}/auth/twitter/native/callback"
     }
     environment {
       name  = "CORS_ORIGIN"

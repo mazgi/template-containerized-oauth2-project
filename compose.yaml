@@ -68,6 +68,26 @@ services:
     env_file:
       - .secrets.env
       - .env
+    environment:
+      TF_VAR_aws_region: ${AWS_REGION}
+      TF_VAR_aws_tf_state_bucket: ${AWS_TF_STATE_BUCKET}
+      TF_VAR_aws_tf_state_region: ${AWS_TF_STATE_REGION}
+      TF_VAR_azure_location: ${AZURE_LOCATION}
+      TF_VAR_azure_subscription_id: ${ARM_SUBSCRIPTION_ID}
+      TF_VAR_azure_tf_state_resource_group: ${AZURE_TF_STATE_RESOURCE_GROUP}
+      TF_VAR_azure_tf_state_storage_account: ${AZURE_TF_STATE_STORAGE_ACCOUNT}
+      TF_VAR_gcp_project_id: ${GOOGLE_PROJECT_ID}
+      TF_VAR_gcp_region: ${GOOGLE_REGION}
+      TF_VAR_gcp_zone: ${GOOGLE_ZONE}
+      TF_VAR_google_tf_state_bucket: ${GOOGLE_TF_STATE_BUCKET}
+      TF_VAR_apple_client_id: ${AUTH_APPLE_CLIENT_ID}
+      TF_VAR_apple_team_id: ${AUTH_APPLE_TEAM_ID}
+      TF_VAR_apple_key_id: ${AUTH_APPLE_KEY_ID}
+      TF_VAR_discord_client_id: ${AUTH_DISCORD_CLIENT_ID}
+      TF_VAR_gh_client_id: ${AUTH_GITHUB_CLIENT_ID}
+      TF_VAR_google_oauth_client_id: ${AUTH_GOOGLE_CLIENT_ID}
+      TF_VAR_twitter_client_id: ${AUTH_TWITTER_CLIENT_ID}
+      TF_VAR_native_app_url_scheme: ${NATIVE_APP_URL_SCHEME}
     profiles:
       - iac
     volumes:

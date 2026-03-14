@@ -14,9 +14,7 @@ export class TwitterStrategy extends PassportStrategy(Strategy, 'twitter') {
     super({
       clientID: process.env.AUTH_TWITTER_CLIENT_ID ?? '',
       clientSecret: process.env.AUTH_TWITTER_CLIENT_SECRET ?? '',
-      callbackURL:
-        process.env.AUTH_TWITTER_CALLBACK_URL ??
-        'http://localhost:4000/auth/twitter/callback',
+      callbackURL: `${process.env.AUTH_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/twitter/callback`,
       clientType: 'confidential',
       scope: ['tweet.read', 'users.read', 'offline.access'],
     });

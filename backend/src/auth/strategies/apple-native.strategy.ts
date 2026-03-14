@@ -21,9 +21,7 @@ export class AppleNativeStrategy extends PassportStrategy(
         /\\n/g,
         '\n',
       ),
-      callbackURL:
-        process.env.AUTH_APPLE_NATIVE_CALLBACK_URL ??
-        'http://localhost:4000/auth/apple/native/callback',
+      callbackURL: `${process.env.AUTH_NATIVE_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/apple/native/callback`,
       passReqToCallback: true,
       scope: ['name', 'email'],
     });

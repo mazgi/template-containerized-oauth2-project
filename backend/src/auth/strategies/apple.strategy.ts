@@ -26,9 +26,7 @@ export class AppleStrategy extends PassportStrategy(
         /\\n/g,
         '\n',
       ),
-      callbackURL:
-        process.env.AUTH_APPLE_CALLBACK_URL ??
-        'http://localhost:4000/auth/apple/callback',
+      callbackURL: `${process.env.AUTH_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/apple/callback`,
       passReqToCallback: true,
       scope: ['name', 'email'],
     });

@@ -34,16 +34,8 @@ jobs:
           AUTH_JWT_REFRESH_EXPIRATION=7d
           FRONTEND_URL=http://localhost:3000
           NATIVE_APP_URL_SCHEME=oauth2app
-          AUTH_APPLE_CALLBACK_URL=http://localhost:4000/auth/apple/callback
-          AUTH_APPLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/apple/native/callback
-          AUTH_GITHUB_CALLBACK_URL=http://localhost:4000/auth/github/callback
-          AUTH_GITHUB_NATIVE_CALLBACK_URL=http://localhost:4000/auth/github/native/callback
-          AUTH_GOOGLE_CALLBACK_URL=http://localhost:4000/auth/google/callback
-          AUTH_GOOGLE_NATIVE_CALLBACK_URL=http://localhost:4000/auth/google/native/callback
-          AUTH_TWITTER_CALLBACK_URL=http://localhost:4000/auth/twitter/callback
-          AUTH_TWITTER_NATIVE_CALLBACK_URL=http://localhost:4000/auth/twitter/native/callback
-          AUTH_DISCORD_CALLBACK_URL=http://localhost:4000/auth/discord/callback
-          AUTH_DISCORD_NATIVE_CALLBACK_URL=http://localhost:4000/auth/discord/native/callback
+          AUTH_CALLBACK_BASE_URL=http://localhost:4000
+          AUTH_NATIVE_CALLBACK_BASE_URL=http://localhost:4000
           EOF
           # Match the container user to the runner so bind-mounted files are writable.
           # Docker Compose auto-reads .env for build-arg interpolation (${UID:-1000}, ${GID:-1000}).

@@ -9,9 +9,7 @@ export class DiscordNativeStrategy extends PassportStrategy(Strategy, 'discord-n
     super({
       clientID: process.env.AUTH_DISCORD_CLIENT_ID ?? '',
       clientSecret: process.env.AUTH_DISCORD_CLIENT_SECRET ?? '',
-      callbackURL:
-        process.env.AUTH_DISCORD_NATIVE_CALLBACK_URL ??
-        'http://localhost:4000/auth/discord/native/callback',
+      callbackURL: `${process.env.AUTH_NATIVE_CALLBACK_BASE_URL ?? 'http://localhost:4000'}/auth/discord/native/callback`,
       scope: ['identify', 'email'],
     });
   }
