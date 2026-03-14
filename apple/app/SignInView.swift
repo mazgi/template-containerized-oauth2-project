@@ -71,6 +71,19 @@ struct SignInView: View {
             }
 
             Button {
+                Task { await auth.signInWithApple() }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "apple.logo")
+                    Text("Sign in with Apple")
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 20)
+            }
+            .buttonStyle(.bordered)
+            .disabled(auth.isLoading)
+
+            Button {
                 Task { await auth.signInWithDiscord() }
             } label: {
                 HStack(spacing: 8) {

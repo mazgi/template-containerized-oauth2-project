@@ -162,6 +162,36 @@ final class AuthViewModel {
         }
     }
 
+    func signInWithApple() async {
+        guard let url = URL(string: "\(api.baseURL)/auth/apple/native") else { return }
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            let webAuth = WebAuthSession()
+            guard let callbackURL = try await webAuth.authenticate(
+                url: url,
+                callbackURLScheme: "oauth2app"
+            ) else {
+                return // User cancelled
+            }
+            let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
+            let items = components?.queryItems ?? []
+            guard
+                let accessToken = items.first(where: { $0.name == "accessToken" })?.value,
+                let refreshToken = items.first(where: { $0.name == "refreshToken" })?.value
+            else {
+                throw APIError(statusCode: 0, message: "Invalid OAuth callback URL")
+            }
+            let profile = try await api.me(accessToken: accessToken)
+            store(AuthResponse(accessToken: accessToken, refreshToken: refreshToken, user: profile))
+        } catch let e as APIError {
+            errorMessage = e.message
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func signInWithDiscord() async {
         guard let url = URL(string: "\(api.baseURL)/auth/discord/native") else { return }
         isLoading = true
