@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const AppleStrategyBase = require('passport-apple');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const jwt = require('jsonwebtoken');
 
 export type AppleProfile = {
   appleId: string;
@@ -10,7 +12,11 @@ export type AppleProfile = {
 };
 
 @Injectable()
-export class AppleStrategy extends PassportStrategy(AppleStrategyBase, 'apple') {
+export class AppleStrategy extends PassportStrategy(
+  AppleStrategyBase,
+  'apple',
+  true,
+) {
   constructor() {
     super({
       clientID: process.env.AUTH_APPLE_CLIENT_ID ?? '',
@@ -32,10 +38,12 @@ export class AppleStrategy extends PassportStrategy(AppleStrategyBase, 'apple') 
     req: any,
     _accessToken: string,
     _refreshToken: string,
-    idToken: any,
-    done: Function,
-  ) {
-    // idToken is the decoded JWT payload with sub, email, email_verified
+    idTokenRaw: string,
+    _profile: any,
+  ): Promise<AppleProfile> {
+    // passport-apple passes the raw id_token JWT as params;
+    // decode it to extract sub, email, etc.
+    const idToken = jwt.decode(idTokenRaw) as Record<string, any> | null;
     const sub: string = idToken?.sub ?? '';
 
     // Apple only sends name on the first authorization via req.body.user
@@ -56,12 +64,10 @@ export class AppleStrategy extends PassportStrategy(AppleStrategyBase, 'apple') 
 
     const name = [firstName, lastName].filter(Boolean).join(' ').trim() || null;
 
-    const result: AppleProfile = {
+    return {
       appleId: sub,
       email: idToken?.email ?? null,
       name,
     };
-
-    done(null, result);
   }
 }

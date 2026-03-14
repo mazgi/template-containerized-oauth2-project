@@ -2,10 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const AppleStrategyBase = require('passport-apple');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const jwt = require('jsonwebtoken');
 import { AppleProfile } from './apple.strategy';
 
 @Injectable()
-export class AppleNativeStrategy extends PassportStrategy(AppleStrategyBase, 'apple-native') {
+export class AppleNativeStrategy extends PassportStrategy(
+  AppleStrategyBase,
+  'apple-native',
+  true,
+) {
   constructor() {
     super({
       clientID: process.env.AUTH_APPLE_CLIENT_ID ?? '',
@@ -27,9 +33,10 @@ export class AppleNativeStrategy extends PassportStrategy(AppleStrategyBase, 'ap
     req: any,
     _accessToken: string,
     _refreshToken: string,
-    idToken: any,
-    done: Function,
-  ) {
+    idTokenRaw: string,
+    _profile: any,
+  ): Promise<AppleProfile> {
+    const idToken = jwt.decode(idTokenRaw) as Record<string, any> | null;
     const sub: string = idToken?.sub ?? '';
 
     let firstName: string | undefined;
@@ -49,12 +56,10 @@ export class AppleNativeStrategy extends PassportStrategy(AppleStrategyBase, 'ap
 
     const name = [firstName, lastName].filter(Boolean).join(' ').trim() || null;
 
-    const result: AppleProfile = {
+    return {
       appleId: sub,
       email: idToken?.email ?? null,
       name,
     };
-
-    done(null, result);
   }
 }
