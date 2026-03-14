@@ -705,6 +705,5 @@ button {
   font-size: 0.625rem;
   color: var(--color-text-muted);
   opacity: 0.5;
-  pointer-events: none;
   z-index: 9999;
 }
