@@ -327,8 +327,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Start Apple account linking flow (web)' })
   @ApiResponse({ status: 302, description: 'Redirects to Apple consent screen for account linking' })
   async linkApple(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
-    this.storeLinkState(token, req, 'web');
-    res.redirect(this.webProxyUrl('/auth/apple'));
+    // Apple uses response_mode=form_post (cross-site POST), so the session
+    // cookie (SameSite=Lax) is not sent on the callback.  Instead of relying
+    // on the session, we embed link info directly in the OAuth state parameter
+    // which Apple round-trips back in the POST body.
+    const state = this.buildAppleLinkState(token, 'web');
+    const callbackUrl =
+      process.env.AUTH_APPLE_CALLBACK_URL ?? 'http://localhost:4000/auth/apple/callback';
+    res.redirect(this.buildAppleAuthUrl(state, callbackUrl));
   }
 
   @Get('link/discord')
@@ -369,8 +375,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Start Apple account linking flow (native)' })
   @ApiResponse({ status: 302, description: 'Redirects to Apple consent screen for account linking' })
   async linkAppleNative(@Query('token') token: string, @Request() req: any, @Res() res: Response) {
-    this.storeLinkState(token, req, 'native');
-    res.redirect(this.selfUrl(req, '/auth/apple/native'));
+    const state = this.buildAppleLinkState(token, 'native');
+    const callbackUrl =
+      process.env.AUTH_APPLE_NATIVE_CALLBACK_URL ?? 'http://localhost:4000/auth/apple/native/callback';
+    res.redirect(this.buildAppleAuthUrl(state, callbackUrl));
   }
 
   @Get('link/discord/native')
@@ -489,20 +497,69 @@ export class AuthController {
     req.session.linkPlatform = platform;
   }
 
+  /**
+   * Build a signed state JWT carrying link info for Apple's form_post flow.
+   * The state parameter is round-tripped through Apple, so it survives even
+   * when the session cookie (SameSite=Lax) is not sent on Apple's cross-site POST.
+   */
+  private buildAppleLinkState(token: string, platform: 'web' | 'native'): string {
+    if (!token) throw new UnauthorizedException('Missing token');
+    let payload: { sub: string };
+    try {
+      payload = this.jwtService.verify(token, {
+        secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
+    return this.jwtService.sign(
+      { sub: payload.sub, platform, purpose: 'apple-link' },
+      { secret: process.env.AUTH_JWT_SECRET ?? 'change-me', expiresIn: '5m' },
+    );
+  }
+
+  private buildAppleAuthUrl(state: string, callbackUrl: string): string {
+    const url = new URL('https://appleid.apple.com/auth/authorize');
+    url.searchParams.set('client_id', process.env.AUTH_APPLE_CLIENT_ID ?? '');
+    url.searchParams.set('redirect_uri', callbackUrl);
+    url.searchParams.set('response_type', 'code');
+    url.searchParams.set('scope', 'name email');
+    url.searchParams.set('response_mode', 'form_post');
+    url.searchParams.set('state', state);
+    return url.toString();
+  }
+
   private async handleOAuthCallback(
     provider: OAuthProvider,
     profile: OAuthProfile,
-    req: { session?: any },
+    req: { session?: any; body?: any },
     res: Response,
     platform: 'web' | 'native',
   ) {
-    const linkUserId = req.session?.linkUserId;
-    const linkPlatform = req.session?.linkPlatform;
+    let linkUserId = req.session?.linkUserId;
+    let linkPlatform = req.session?.linkPlatform;
 
     // Clear link state from session
     if (req.session) {
       delete req.session.linkUserId;
       delete req.session.linkPlatform;
+    }
+
+    // Fall back to the OAuth state parameter (needed for Apple's cross-site
+    // form_post where the session cookie with SameSite=Lax is not sent).
+    // The link info was embedded in the state by buildAppleLinkState().
+    if (!linkUserId && req.body?.state) {
+      try {
+        const payload = this.jwtService.verify(req.body.state, {
+          secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
+        });
+        if (payload.purpose === 'apple-link') {
+          linkUserId = payload.sub;
+          linkPlatform = payload.platform;
+        }
+      } catch {
+        // not a link-state JWT or expired – ignore
+      }
     }
 
     if (linkUserId) {

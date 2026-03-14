@@ -169,6 +169,9 @@ class MainActivity : ComponentActivity() {
                                     onSignIn = { email, password ->
                                         authViewModel.signIn(email, password)
                                     },
+                                    onSignInWithApple = {
+                                        authViewModel.signInWithApple(this@MainActivity)
+                                    },
                                     onSignInWithDiscord = {
                                         authViewModel.signInWithDiscord(this@MainActivity)
                                     },

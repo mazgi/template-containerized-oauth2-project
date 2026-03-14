@@ -86,6 +86,15 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = _uiState.value.copy(verificationSentEmail = null)
     }
 
+    fun signInWithApple(context: Context) {
+        val uri = Uri.parse("${api.baseUrl}/auth/apple/native")
+        try {
+            CustomTabsIntent.Builder().build().launchUrl(context, uri)
+        } catch (e: Exception) {
+            _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Failed to open browser")
+        }
+    }
+
     fun signInWithGithub(context: Context) {
         val uri = Uri.parse("${api.baseUrl}/auth/github/native")
         try {
