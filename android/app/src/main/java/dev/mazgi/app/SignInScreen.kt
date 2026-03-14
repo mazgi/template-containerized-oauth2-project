@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 fun SignInScreen(
     uiState: AuthUiState,
     onSignIn: (email: String, password: String) -> Unit,
+    onSignInWithApple: () -> Unit,
     onSignInWithDiscord: () -> Unit,
     onSignInWithGithub: () -> Unit,
     onSignInWithGoogle: () -> Unit,
@@ -113,6 +114,16 @@ fun SignInScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             HorizontalDivider(modifier = Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedButton(
+            onClick = onSignInWithApple,
+            enabled = !uiState.isLoading,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Sign in with Apple")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
