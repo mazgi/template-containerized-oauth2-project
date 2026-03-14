@@ -12,7 +12,7 @@ node_modules/
 .pnpm-store/
 
 # Generated build info
-macos-ios/app/BuildConfig.generated.swift
+apple/app/BuildConfig.generated.swift
 
 # VSCode
 .vscode/

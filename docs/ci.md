@@ -9,7 +9,7 @@
 | `backend.e2e-tests.yaml` | `ubuntu-latest` | Backend image + NestJS E2E tests via Docker Compose |
 | `web.e2e-tests.yaml` | `ubuntu-latest` | Full stack + Playwright E2E tests |
 | `android.e2e-tests.yaml` | `ubuntu-latest` | Backend + API-35 emulator (KVM + AVD cache) + Espresso |
-| `macos-ios.e2e-tests.yaml` | `macos-15` | PostgreSQL + backend natively + XCUITest on iPhone 17 sim |
+| `apple.e2e-tests.yaml` | `macos-15` | PostgreSQL + backend natively + XCUITest on iPhone 17 sim |
 | `windows.e2e-tests.yaml` | `windows-2025` | PostgreSQL + backend natively + Appium E2E |
 
 > **UID/GID in CI:** E2E workflows append `UID=$(id -u)` and `GID=$(id -g)` to `.env` before `docker compose build` so container user matches the runner (avoids `EACCES` errors).
