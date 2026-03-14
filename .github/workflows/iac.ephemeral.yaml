@@ -116,14 +116,14 @@ jobs:
 
       - name: Verify persistent layer has no drift
         env:
-          TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
-          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_app_unique_id: ${{ vars.APP_UNIQUE_ID }}
+          TF_VAR_aws_region: ${{ vars.AWS_REGION }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
-          TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
+          TF_VAR_azure_location: ${{ vars.AZURE_LOCATION }}
+          TF_VAR_base_domain_name: ${{ vars.BASE_DOMAIN_NAME }}
         run: |
           set +e
           terraform -chdir=iac/${{ inputs.provider }} plan -no-color -detailed-exitcode -input=false
@@ -164,29 +164,29 @@ jobs:
       - name: Terraform Plan
         if: inputs.action == 'plan' || inputs.action == 'apply'
         env:
-          TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
-          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_app_unique_id: ${{ vars.APP_UNIQUE_ID }}
+          TF_VAR_aws_region: ${{ vars.AWS_REGION }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
-          TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
+          TF_VAR_azure_location: ${{ vars.AZURE_LOCATION }}
+          TF_VAR_base_domain_name: ${{ vars.BASE_DOMAIN_NAME }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_database_password }}
-          TF_VAR_image_tag: ${{ vars.TF_VAR_image_tag || 'latest' }}
+          TF_VAR_image_tag: ${{ vars.IMAGE_TAG || 'latest' }}
           TF_VAR_aws_tf_state_bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
           TF_VAR_aws_tf_state_region: ${{ vars.AWS_TF_STATE_REGION }}
           TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
           TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
           TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
-          TF_VAR_apple_client_id: ${{ vars.TF_VAR_apple_client_id }}
-          TF_VAR_apple_team_id: ${{ vars.TF_VAR_apple_team_id }}
-          TF_VAR_apple_key_id: ${{ vars.TF_VAR_apple_key_id }}
-          TF_VAR_discord_client_id: ${{ vars.TF_VAR_discord_client_id }}
-          TF_VAR_gh_client_id: ${{ vars.TF_VAR_gh_client_id }}
-          TF_VAR_google_oauth_client_id: ${{ vars.TF_VAR_google_oauth_client_id }}
-          TF_VAR_twitter_client_id: ${{ vars.TF_VAR_twitter_client_id }}
-          TF_VAR_native_app_url_scheme: ${{ vars.TF_VAR_native_app_url_scheme }}
+          TF_VAR_apple_client_id: ${{ vars.AUTH_APPLE_CLIENT_ID }}
+          TF_VAR_apple_team_id: ${{ vars.AUTH_APPLE_TEAM_ID }}
+          TF_VAR_apple_key_id: ${{ vars.AUTH_APPLE_KEY_ID }}
+          TF_VAR_discord_client_id: ${{ vars.AUTH_DISCORD_CLIENT_ID }}
+          TF_VAR_gh_client_id: ${{ vars.AUTH_GITHUB_CLIENT_ID }}
+          TF_VAR_google_oauth_client_id: ${{ vars.AUTH_GOOGLE_CLIENT_ID }}
+          TF_VAR_twitter_client_id: ${{ vars.AUTH_TWITTER_CLIENT_ID }}
+          TF_VAR_native_app_url_scheme: ${{ vars.NATIVE_APP_URL_SCHEME }}
         run: |
           terraform -chdir=iac/${{ inputs.provider }}/ephemeral plan -no-color -input=false 2>&1 | tee plan-output.txt
           {
@@ -199,55 +199,55 @@ jobs:
       - name: Terraform Apply
         if: inputs.action == 'apply'
         env:
-          TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
-          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_app_unique_id: ${{ vars.APP_UNIQUE_ID }}
+          TF_VAR_aws_region: ${{ vars.AWS_REGION }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
-          TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
+          TF_VAR_azure_location: ${{ vars.AZURE_LOCATION }}
+          TF_VAR_base_domain_name: ${{ vars.BASE_DOMAIN_NAME }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_database_password }}
-          TF_VAR_image_tag: ${{ vars.TF_VAR_image_tag || 'latest' }}
+          TF_VAR_image_tag: ${{ vars.IMAGE_TAG || 'latest' }}
           TF_VAR_aws_tf_state_bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
           TF_VAR_aws_tf_state_region: ${{ vars.AWS_TF_STATE_REGION }}
           TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
           TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
           TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
-          TF_VAR_apple_client_id: ${{ vars.TF_VAR_apple_client_id }}
-          TF_VAR_apple_team_id: ${{ vars.TF_VAR_apple_team_id }}
-          TF_VAR_apple_key_id: ${{ vars.TF_VAR_apple_key_id }}
-          TF_VAR_discord_client_id: ${{ vars.TF_VAR_discord_client_id }}
-          TF_VAR_gh_client_id: ${{ vars.TF_VAR_gh_client_id }}
-          TF_VAR_google_oauth_client_id: ${{ vars.TF_VAR_google_oauth_client_id }}
-          TF_VAR_twitter_client_id: ${{ vars.TF_VAR_twitter_client_id }}
-          TF_VAR_native_app_url_scheme: ${{ vars.TF_VAR_native_app_url_scheme }}
+          TF_VAR_apple_client_id: ${{ vars.AUTH_APPLE_CLIENT_ID }}
+          TF_VAR_apple_team_id: ${{ vars.AUTH_APPLE_TEAM_ID }}
+          TF_VAR_apple_key_id: ${{ vars.AUTH_APPLE_KEY_ID }}
+          TF_VAR_discord_client_id: ${{ vars.AUTH_DISCORD_CLIENT_ID }}
+          TF_VAR_gh_client_id: ${{ vars.AUTH_GITHUB_CLIENT_ID }}
+          TF_VAR_google_oauth_client_id: ${{ vars.AUTH_GOOGLE_CLIENT_ID }}
+          TF_VAR_twitter_client_id: ${{ vars.AUTH_TWITTER_CLIENT_ID }}
+          TF_VAR_native_app_url_scheme: ${{ vars.NATIVE_APP_URL_SCHEME }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral apply -auto-approve -input=false
 
       - name: Terraform Destroy
         if: inputs.action == 'destroy'
         env:
-          TF_VAR_app_unique_id: ${{ vars.TF_VAR_app_unique_id }}
-          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_app_unique_id: ${{ vars.APP_UNIQUE_ID }}
+          TF_VAR_aws_region: ${{ vars.AWS_REGION }}
           TF_VAR_gcp_project_id: ${{ vars.GOOGLE_PROJECT_ID }}
           TF_VAR_gcp_region: ${{ vars.GOOGLE_REGION }}
           TF_VAR_gcp_zone: ${{ vars.GOOGLE_ZONE }}
           TF_VAR_azure_subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          TF_VAR_azure_location: ${{ vars.TF_VAR_azure_location }}
-          TF_VAR_base_domain_name: ${{ vars.TF_VAR_base_domain_name }}
+          TF_VAR_azure_location: ${{ vars.AZURE_LOCATION }}
+          TF_VAR_base_domain_name: ${{ vars.BASE_DOMAIN_NAME }}
           TF_VAR_database_password: ${{ secrets.TF_VAR_database_password }}
-          TF_VAR_image_tag: ${{ vars.TF_VAR_image_tag || 'latest' }}
+          TF_VAR_image_tag: ${{ vars.IMAGE_TAG || 'latest' }}
           TF_VAR_aws_tf_state_bucket: ${{ vars.AWS_TF_STATE_BUCKET }}
           TF_VAR_aws_tf_state_region: ${{ vars.AWS_TF_STATE_REGION }}
           TF_VAR_azure_tf_state_resource_group: ${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}
           TF_VAR_azure_tf_state_storage_account: ${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}
           TF_VAR_google_tf_state_bucket: ${{ vars.GOOGLE_TF_STATE_BUCKET }}
-          TF_VAR_apple_client_id: ${{ vars.TF_VAR_apple_client_id }}
-          TF_VAR_apple_team_id: ${{ vars.TF_VAR_apple_team_id }}
-          TF_VAR_apple_key_id: ${{ vars.TF_VAR_apple_key_id }}
-          TF_VAR_discord_client_id: ${{ vars.TF_VAR_discord_client_id }}
-          TF_VAR_gh_client_id: ${{ vars.TF_VAR_gh_client_id }}
-          TF_VAR_google_oauth_client_id: ${{ vars.TF_VAR_google_oauth_client_id }}
-          TF_VAR_twitter_client_id: ${{ vars.TF_VAR_twitter_client_id }}
-          TF_VAR_native_app_url_scheme: ${{ vars.TF_VAR_native_app_url_scheme }}
+          TF_VAR_apple_client_id: ${{ vars.AUTH_APPLE_CLIENT_ID }}
+          TF_VAR_apple_team_id: ${{ vars.AUTH_APPLE_TEAM_ID }}
+          TF_VAR_apple_key_id: ${{ vars.AUTH_APPLE_KEY_ID }}
+          TF_VAR_discord_client_id: ${{ vars.AUTH_DISCORD_CLIENT_ID }}
+          TF_VAR_gh_client_id: ${{ vars.AUTH_GITHUB_CLIENT_ID }}
+          TF_VAR_google_oauth_client_id: ${{ vars.AUTH_GOOGLE_CLIENT_ID }}
+          TF_VAR_twitter_client_id: ${{ vars.AUTH_TWITTER_CLIENT_ID }}
+          TF_VAR_native_app_url_scheme: ${{ vars.NATIVE_APP_URL_SCHEME }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral destroy -auto-approve -input=false

@@ -69,6 +69,7 @@ services:
       - .secrets.env
       - .env
     environment:
+      TF_VAR_app_unique_id: ${APP_UNIQUE_ID}
       TF_VAR_aws_region: ${AWS_REGION}
       TF_VAR_aws_tf_state_bucket: ${AWS_TF_STATE_BUCKET}
       TF_VAR_aws_tf_state_region: ${AWS_TF_STATE_REGION}
@@ -87,6 +88,8 @@ services:
       TF_VAR_gh_client_id: ${AUTH_GITHUB_CLIENT_ID}
       TF_VAR_google_oauth_client_id: ${AUTH_GOOGLE_CLIENT_ID}
       TF_VAR_twitter_client_id: ${AUTH_TWITTER_CLIENT_ID}
+      TF_VAR_base_domain_name: ${BASE_DOMAIN_NAME}
+      TF_VAR_image_tag: ${IMAGE_TAG:-latest}
       TF_VAR_native_app_url_scheme: ${NATIVE_APP_URL_SCHEME}
     profiles:
       - iac
