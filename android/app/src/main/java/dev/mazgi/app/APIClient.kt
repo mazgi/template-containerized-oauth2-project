@@ -16,6 +16,7 @@ data class UserPreferences(
 data class UserProfile(
     val id: String,
     val email: String,
+    val emailVerified: Boolean,
     val name: String?,
     val appleId: String?,
     val githubId: String?,
@@ -23,6 +24,7 @@ data class UserProfile(
     val twitterId: String?,
     val discordId: String?,
     val hasPassword: Boolean?,
+    val socialEmails: List<String>,
     val preferences: UserPreferences?,
     val createdAt: String,
     val updatedAt: String,
@@ -124,6 +126,11 @@ class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
         parseUserProfile(JSONObject(patch("/users/me/preferences", preferences, accessToken)))
     }
 
+    suspend fun updateEmail(accessToken: String, email: String): UserProfile = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply { put("email", email) }
+        parseUserProfile(JSONObject(patch("/auth/email", body, accessToken)))
+    }
+
     suspend fun deleteAccount(accessToken: String) = withContext(Dispatchers.IO) {
         delete("/auth/account", accessToken)
     }
@@ -204,22 +211,32 @@ class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
         return responseText
     }
 
-    private fun parseUserProfile(json: JSONObject) = UserProfile(
-        id = json.getString("id"),
-        email = json.getString("email"),
-        name = json.optString("name").takeIf { it.isNotEmpty() },
-        appleId = json.optString("appleId").takeIf { it.isNotEmpty() && it != "null" },
-        githubId = json.optString("githubId").takeIf { it.isNotEmpty() && it != "null" },
-        googleId = json.optString("googleId").takeIf { it.isNotEmpty() && it != "null" },
-        twitterId = json.optString("twitterId").takeIf { it.isNotEmpty() && it != "null" },
-        discordId = json.optString("discordId").takeIf { it.isNotEmpty() && it != "null" },
-        hasPassword = if (json.has("hasPassword")) json.getBoolean("hasPassword") else null,
-        preferences = json.optJSONObject("preferences")?.let { p ->
-            UserPreferences(theme = p.optString("theme").takeIf { it.isNotEmpty() && it != "null" })
-        },
-        createdAt = json.getString("createdAt"),
-        updatedAt = json.getString("updatedAt"),
-    )
+    private fun parseUserProfile(json: JSONObject): UserProfile {
+        val socialEmailsArray = json.optJSONArray("socialEmails")
+        val socialEmails = if (socialEmailsArray != null) {
+            (0 until socialEmailsArray.length()).map { socialEmailsArray.getString(it) }
+        } else {
+            emptyList()
+        }
+        return UserProfile(
+            id = json.getString("id"),
+            email = json.getString("email"),
+            emailVerified = json.optBoolean("emailVerified", false),
+            name = json.optString("name").takeIf { it.isNotEmpty() },
+            appleId = json.optString("appleId").takeIf { it.isNotEmpty() && it != "null" },
+            githubId = json.optString("githubId").takeIf { it.isNotEmpty() && it != "null" },
+            googleId = json.optString("googleId").takeIf { it.isNotEmpty() && it != "null" },
+            twitterId = json.optString("twitterId").takeIf { it.isNotEmpty() && it != "null" },
+            discordId = json.optString("discordId").takeIf { it.isNotEmpty() && it != "null" },
+            hasPassword = if (json.has("hasPassword")) json.getBoolean("hasPassword") else null,
+            socialEmails = socialEmails,
+            preferences = json.optJSONObject("preferences")?.let { p ->
+                UserPreferences(theme = p.optString("theme").takeIf { it.isNotEmpty() && it != "null" })
+            },
+            createdAt = json.getString("createdAt"),
+            updatedAt = json.getString("updatedAt"),
+        )
+    }
 
     private fun parseAuthResponse(json: JSONObject) = AuthResponse(
         accessToken = json.getString("accessToken"),
