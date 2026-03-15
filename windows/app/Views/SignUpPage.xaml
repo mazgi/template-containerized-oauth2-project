@@ -82,20 +82,8 @@
                     x:Name="PasswordBox"
                     Header="Password"
                     PlaceholderText="Password (min 8 characters)"
+                    PasswordRevealMode="Peek"
                     AutomationProperties.AutomationId="signup_passwordBox" />
-
-                <PasswordBox
-                    x:Name="ConfirmPasswordBox"
-                    Header="Confirm Password"
-                    PlaceholderText="Confirm Password"
-                    AutomationProperties.AutomationId="signup_confirmPasswordBox" />
-
-                <TextBlock
-                    x:Name="MismatchText"
-                    Text="Passwords do not match"
-                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                    Visibility="Collapsed"
-                    AutomationProperties.AutomationId="signup_mismatchText" />
 
                 <Button
                     x:Name="SignUpButton"

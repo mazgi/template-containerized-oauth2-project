@@ -15,16 +15,8 @@ public sealed partial class SignUpPage : Page
     {
         var email = EmailBox.Text.Trim();
         var password = PasswordBox.Password;
-        var confirm = ConfirmPasswordBox.Password;
 
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password)) return;
-
-        if (password != confirm)
-        {
-            MismatchText.Visibility = Visibility.Visible;
-            return;
-        }
-        MismatchText.Visibility = Visibility.Collapsed;
 
         SetLoading(true);
         await App.Auth.SignUpAsync(email, password);
@@ -68,7 +60,6 @@ public sealed partial class SignUpPage : Page
         SignUpButton.IsEnabled = !loading;
         EmailBox.IsEnabled = !loading;
         PasswordBox.IsEnabled = !loading;
-        ConfirmPasswordBox.IsEnabled = !loading;
         SignUpButton.Content = loading ? "Signing up..." : "Sign Up";
     }
 

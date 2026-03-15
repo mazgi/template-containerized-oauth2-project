@@ -13,14 +13,16 @@
     "discordButton": "Sign in with Discord",
     "noAccount": "Don't have an account?",
     "signUpLink": "Sign up",
-    "errorFallback": "Sign in failed"
+    "errorFallback": "Sign in failed",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "SignUp": {
     "title": "Create account",
     "email": "Email",
     "password": "Password",
-    "confirmPassword": "Confirm password",
-    "passwordMismatch": "Passwords do not match",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "submit": "Create account",
     "submitting": "Creating account…",
     "hasAccount": "Already have an account?",

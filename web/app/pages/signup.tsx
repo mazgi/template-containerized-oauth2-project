@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { signup, resendVerification } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { PasswordInput } from '../components/PasswordInput'
 
 export default function SignUpPage() {
   const t = useTranslations('SignUp')
@@ -13,7 +14,6 @@ export default function SignUpPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [verificationSent, setVerificationSent] = useState(false)
@@ -26,11 +26,6 @@ export default function SignUpPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
-
-    if (password !== confirm) {
-      setError(t('passwordMismatch'))
-      return
-    }
 
     setSubmitting(true)
     try {
@@ -99,31 +94,17 @@ export default function SignUpPage() {
             />
           </div>
 
-          <div className="form-field">
-            <label htmlFor="password">{t('password')}</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="confirm">{t('confirmPassword')}</label>
-            <input
-              id="confirm"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            label={t('password')}
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={password}
+            onChange={setPassword}
+            showLabel={t('showPassword')}
+            hideLabel={t('hidePassword')}
+          />
 
           <button type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? t('submitting') : t('submit')}

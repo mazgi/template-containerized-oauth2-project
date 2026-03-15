@@ -6,17 +6,12 @@ struct SignUpView: View {
 
     @State private var email = ""
     @State private var password = ""
-    @State private var passwordConfirm = ""
-
-    private var passwordMismatch: Bool {
-        !passwordConfirm.isEmpty && password != passwordConfirm
-    }
+    @State private var passwordVisible = false
 
     private var canSubmit: Bool {
         !auth.isLoading
             && !email.isEmpty
             && password.count >= 8
-            && !passwordMismatch
     }
 
     var body: some View {
@@ -95,25 +90,27 @@ struct SignUpView: View {
                         .textFieldStyle(.roundedBorder)
                         .accessibilityIdentifier("signup_emailTextField")
 
-                    SecureField("Password (min 8 characters)", text: $password)
-                        // .oneTimeCode disables iOS Password AutoFill. Without this, iOS detects
-                        // two adjacent SecureFields as a "create password" pattern and auto-fills
-                        // both with a generated password, breaking XCUITest typeText() input.
-                        .textContentType(.oneTimeCode)
+                    HStack {
+                        Group {
+                            if passwordVisible {
+                                TextField("Password (min 8 characters)", text: $password)
+                                    .textContentType(.oneTimeCode)
+                            } else {
+                                SecureField("Password (min 8 characters)", text: $password)
+                                    .textContentType(.oneTimeCode)
+                            }
+                        }
                         .textFieldStyle(.roundedBorder)
                         .accessibilityIdentifier("signup_passwordTextField")
 
-                    SecureField("Confirm Password", text: $passwordConfirm)
-                        .textContentType(.oneTimeCode) // same reason as above
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityIdentifier("signup_passwordConfirmTextField")
-
-                    if passwordMismatch {
-                        Text("Passwords do not match")
-                            .foregroundStyle(.red)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityIdentifier("signup_passwordMismatchError")
+                        Button {
+                            passwordVisible.toggle()
+                        } label: {
+                            Image(systemName: passwordVisible ? "eye.slash" : "eye")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(passwordVisible ? "Hide password" : "Show password")
                     }
                 }
 

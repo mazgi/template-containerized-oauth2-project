@@ -46,7 +46,6 @@ async function signUpAndVerify(page: Page, email: string, password = DEFAULT_PAS
   await page.goto('/signup')
   await page.locator('#email').fill(email)
   await page.locator('#password').fill(password)
-  await page.locator('#confirm').fill(password)
   await page.locator('button[type="submit"]').click()
 
   // Should show verification sent message
@@ -99,22 +98,10 @@ test.describe('Sign up', () => {
     await page.goto('/signup')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(DEFAULT_PASSWORD)
-    await page.locator('#confirm').fill(DEFAULT_PASSWORD)
     await page.locator('button[type="submit"]').click()
 
     await expect(page.getByText('Check your email')).toBeVisible()
     await expect(page.getByText('verification link')).toBeVisible()
-  })
-
-  test('shows error when passwords do not match', async ({ page }) => {
-    await page.goto('/signup')
-    await page.locator('#email').fill(uniqueEmail('mismatch'))
-    await page.locator('#password').fill(DEFAULT_PASSWORD)
-    await page.locator('#confirm').fill('different_password')
-    await page.locator('button[type="submit"]').click()
-
-    await expect(page.locator('.error-msg')).toContainText('Passwords do not match')
-    await expect(page).toHaveURL(/\/signup/)
   })
 
   test('shows error for duplicate email', async ({ page }) => {
@@ -131,7 +118,6 @@ test.describe('Sign up', () => {
     await page.goto('/signup')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(DEFAULT_PASSWORD)
-    await page.locator('#confirm').fill(DEFAULT_PASSWORD)
     await page.locator('button[type="submit"]').click()
 
     await expect(page.locator('.error-msg')).toBeVisible()

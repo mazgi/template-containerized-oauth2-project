@@ -3,7 +3,6 @@ package dev.mazgi.app
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -82,8 +81,8 @@ class AuthE2ETest {
     private fun navigateToSignUp() {
         composeRule.onNodeWithText("Don't have an account? Sign Up").performClick()
         composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithText("Confirm Password")
-                .fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Sign Up")
+                .fetchSemanticsNodes().size >= 2 // heading + button
         }
     }
 
@@ -214,30 +213,12 @@ class AuthE2ETest {
         navigateToSignUp()
         composeRule.onNodeWithText("Email").performTextInput(email)
         composeRule.onNodeWithText("Password").performTextInput("Password1!")
-        composeRule.onNodeWithText("Confirm Password").performTextInput("Password1!")
         composeRule.onAllNodesWithText("Sign Up").filterToOne(hasClickAction()).performClick()
 
         // Should show verification-sent screen, not Dashboard
         waitForVerificationSent()
         composeRule.onNodeWithText("Check your email").assertIsDisplayed()
         composeRule.onNodeWithText("Resend verification email").assertIsDisplayed()
-    }
-
-    @Test
-    fun signUp_passwordMismatch_showsError_andDisablesButton() {
-        waitForSignInScreen()
-        navigateToSignUp()
-
-        composeRule.onNodeWithText("Email").performTextInput(uniqueEmail())
-        composeRule.onNodeWithText("Password").performTextInput("Password1!")
-        composeRule.onNodeWithText("Confirm Password").performTextInput("Different1!")
-
-        // Inline error message from SignUpScreen
-        composeRule.onNodeWithText("Passwords do not match").assertIsDisplayed()
-        // Sign Up button must be disabled (client-side guard, no API call)
-        composeRule.onAllNodesWithText("Sign Up")
-            .filterToOne(hasClickAction())
-            .assertIsNotEnabled()
     }
 
     @Test
@@ -252,14 +233,13 @@ class AuthE2ETest {
         navigateToSignUp()
         composeRule.onNodeWithText("Email").performTextInput(email)
         composeRule.onNodeWithText("Password").performTextInput("Password1!")
-        composeRule.onNodeWithText("Confirm Password").performTextInput("Password1!")
         composeRule.onAllNodesWithText("Sign Up").filterToOne(hasClickAction()).performClick()
 
         // Wait for the API call to complete (button becomes enabled on error)
         waitForButtonEnabled("Sign Up")
 
         // Must still be on Sign Up screen — not navigated to Dashboard
-        composeRule.onNodeWithText("Confirm Password").assertIsDisplayed()
+        composeRule.onNodeWithText("Already have an account? Sign In").assertIsDisplayed()
     }
 
     // -------------------------------------------------------------------------
@@ -322,13 +302,8 @@ class AuthE2ETest {
     @Test
     fun navigateToSignUp_fromSignIn() {
         waitForSignInScreen()
-        composeRule.onNodeWithText("Don't have an account? Sign Up").performClick()
+        navigateToSignUp()
 
-        composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithText("Confirm Password").fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeRule.onNodeWithText("Confirm Password").assertIsDisplayed()
         composeRule.onNodeWithText("Already have an account? Sign In").assertIsDisplayed()
     }
 

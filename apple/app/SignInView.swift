@@ -5,6 +5,7 @@ struct SignInView: View {
 
     @State private var email = ""
     @State private var password = ""
+    @State private var passwordVisible = false
     @State private var showSignUp = false
 
     var body: some View {
@@ -41,10 +42,28 @@ struct SignInView: View {
                     .textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("signin_emailTextField")
 
-                SecureField("Password", text: $password)
-                    .textContentType(.oneTimeCode)
+                HStack {
+                    Group {
+                        if passwordVisible {
+                            TextField("Password", text: $password)
+                                .textContentType(.oneTimeCode)
+                        } else {
+                            SecureField("Password", text: $password)
+                                .textContentType(.oneTimeCode)
+                        }
+                    }
                     .textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("signin_passwordTextField")
+
+                    Button {
+                        passwordVisible.toggle()
+                    } label: {
+                        Image(systemName: passwordVisible ? "eye.slash" : "eye")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(passwordVisible ? "Hide password" : "Show password")
+                }
             }
 
             Button {
