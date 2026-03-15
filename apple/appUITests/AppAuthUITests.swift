@@ -37,7 +37,7 @@ final class AppAuthUITests: XCTestCase {
         button.tap()
     }
 
-    private func fillSignUpForm(email: String, password: String, confirm: String) {
+    private func fillSignUpForm(email: String, password: String) {
         let emailField = app.textFields["signup_emailTextField"]
         XCTAssertTrue(emailField.waitForExistence(timeout: 5))
         emailField.tap()
@@ -46,10 +46,6 @@ final class AppAuthUITests: XCTestCase {
         let passwordField = app.secureTextFields["signup_passwordTextField"]
         passwordField.tap()
         passwordField.typeText(password)
-
-        let confirmField = app.secureTextFields["signup_passwordConfirmTextField"]
-        confirmField.tap()
-        confirmField.typeText(confirm)
     }
 
     private func submitSignUp() {
@@ -91,7 +87,7 @@ final class AppAuthUITests: XCTestCase {
     func testSignUpSuccess() throws {
         let email = Self.uniqueEmail("signup")
         openSignUp()
-        fillSignUpForm(email: email, password: defaultPassword, confirm: defaultPassword)
+        fillSignUpForm(email: email, password: defaultPassword)
         submitSignUp()
 
         // After signup, the app shows "Check your email" instead of navigating to dashboard
@@ -105,19 +101,6 @@ final class AppAuthUITests: XCTestCase {
         XCTAssertTrue(app.buttons["signup_goToSignInButton"].waitForExistence(timeout: 5))
     }
 
-    func testSignUpPasswordMismatch() throws {
-        openSignUp()
-        fillSignUpForm(
-            email: Self.uniqueEmail("mismatch"),
-            password: defaultPassword,
-            confirm: "different_password"
-        )
-
-        let mismatchError = app.staticTexts["signup_passwordMismatchError"]
-        XCTAssertTrue(mismatchError.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["signup_submitButton"].isEnabled)
-    }
-
     func testSignUpDuplicateEmail() throws {
         let email = Self.uniqueEmail("dup")
 
@@ -126,7 +109,7 @@ final class AppAuthUITests: XCTestCase {
 
         // Try to sign up with the same email via UI
         openSignUp()
-        fillSignUpForm(email: email, password: defaultPassword, confirm: defaultPassword)
+        fillSignUpForm(email: email, password: defaultPassword)
         submitSignUp()
 
         let errorMessage = app.staticTexts["signup_errorMessage"]
