@@ -82,6 +82,9 @@ public sealed class ApiClient
     public Task<UserProfile> UpdatePreferencesAsync(string accessToken, object preferences) =>
         PatchAsync<UserProfile>("/users/me/preferences", preferences, accessToken);
 
+    public Task<UserProfile> UpdateEmailAsync(string accessToken, string email) =>
+        PatchAsync<UserProfile>("/auth/email", new { email }, accessToken);
+
     public async Task DeleteAccountAsync(string accessToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Delete, BaseUrl + "/auth/account");

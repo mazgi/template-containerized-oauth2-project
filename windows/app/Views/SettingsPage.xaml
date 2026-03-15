@@ -16,15 +16,79 @@
             Spacing="16">
 
             <TextBlock
-                Text="Linked Accounts"
-                Style="{StaticResource SubtitleTextBlockStyle}"
-                Margin="0,16,0,0" />
-
-            <TextBlock
                 x:Name="ErrorText"
                 Foreground="Red"
                 Visibility="Collapsed"
                 TextWrapping="Wrap" />
+
+            <!-- Email -->
+            <TextBlock
+                Text="Email"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Margin="0,16,0,0" />
+
+            <StackPanel
+                x:Name="EmailStatusPanel"
+                Orientation="Horizontal"
+                Spacing="8">
+                <TextBlock
+                    x:Name="EmailAddressText"
+                    VerticalAlignment="Center" />
+                <Border
+                    x:Name="EmailBadge"
+                    CornerRadius="10"
+                    Padding="8,2,8,2"
+                    VerticalAlignment="Center">
+                    <TextBlock
+                        x:Name="EmailBadgeText"
+                        FontSize="11"
+                        FontWeight="Medium" />
+                </Border>
+            </StackPanel>
+
+            <Button
+                x:Name="ResendVerificationButton"
+                Content="Resend verification email"
+                Click="ResendVerificationButton_Click"
+                Visibility="Collapsed"
+                AutomationProperties.AutomationId="settings_resendVerification" />
+
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="EmailInput"
+                    PlaceholderText="Enter new email address"
+                    InputScope="EmailSmtpAddress"
+                    AutomationProperties.AutomationId="settings_emailTextField" />
+                <DropDownButton
+                    x:Name="EmailDropdown"
+                    Grid.Column="1"
+                    Content="&#xE70D;"
+                    FontFamily="{StaticResource SymbolThemeFontFamily}"
+                    Visibility="Collapsed"
+                    AutomationProperties.AutomationId="settings_emailDropdown">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout x:Name="EmailMenuFlyout" />
+                    </DropDownButton.Flyout>
+                </DropDownButton>
+                <Button
+                    x:Name="SaveEmailButton"
+                    Grid.Column="2"
+                    Content="Save"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="SaveEmailButton_Click"
+                    AutomationProperties.AutomationId="settings_saveEmail" />
+            </Grid>
+
+            <!-- Linked Accounts -->
+            <TextBlock
+                Text="Linked Accounts"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Margin="0,24,0,0" />
 
             <!-- Apple -->
             <Grid ColumnSpacing="12">
