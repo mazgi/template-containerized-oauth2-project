@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { signin } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { PasswordInput } from '../components/PasswordInput'
 
 export default function SignInPage() {
   const t = useTranslations('SignIn')
@@ -59,17 +60,16 @@ export default function SignInPage() {
             />
           </div>
 
-          <div className="form-field">
-            <label htmlFor="password">{t('password')}</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            label={t('password')}
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={setPassword}
+            showLabel={t('showPassword')}
+            hideLabel={t('hidePassword')}
+          />
 
           <button type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? t('submitting') : t('submit')}
