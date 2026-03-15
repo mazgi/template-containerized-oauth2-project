@@ -49,6 +49,28 @@ resource "google_cloud_run_v2_service" "backend" {
         value = var.native_app_url_scheme
       }
 
+      # SMTP
+      env {
+        name  = "SMTP_HOST"
+        value = var.smtp_host
+      }
+      env {
+        name  = "SMTP_PORT"
+        value = var.smtp_port
+      }
+      env {
+        name  = "SMTP_SECURE"
+        value = var.smtp_secure
+      }
+      env {
+        name  = "SMTP_USER"
+        value = var.smtp_user
+      }
+      env {
+        name  = "SMTP_FROM"
+        value = var.smtp_from
+      }
+
       # JWT
       env {
         name  = "AUTH_JWT_ACCESS_EXPIRATION"
@@ -186,6 +208,15 @@ resource "google_cloud_run_v2_service" "backend" {
         value_source {
           secret_key_ref {
             secret  = local.persistent.secret_twitter_client_secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "SMTP_PASS"
+        value_source {
+          secret_key_ref {
+            secret  = local.persistent.secret_smtp_pass_id
             version = "latest"
           }
         }

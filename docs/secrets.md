@@ -1,6 +1,6 @@
 # Secrets Management
 
-Each cloud provider stores the same 9 backend secrets. The persistent Terraform layer creates the secret containers (empty); the ephemeral layer automatically populates `DATABASE_URL`. The remaining 8 secrets must be populated manually or via CI **before** deploying the ephemeral layer.
+Each cloud provider stores the same 10 backend secrets. The persistent Terraform layer creates the secret containers (empty); the ephemeral layer automatically populates `DATABASE_URL`. The remaining 9 secrets must be populated manually or via CI **before** deploying the ephemeral layer.
 
 ## Secrets list
 
@@ -15,6 +15,7 @@ Each cloud provider stores the same 9 backend secrets. The persistent Terraform 
 | 7 | `AUTH_GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret | [GitHub Developer Settings](https://github.com/settings/developers) > OAuth Apps |
 | 8 | `AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret | [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials |
 | 9 | `AUTH_TWITTER_CLIENT_SECRET` | X (Twitter) OAuth2 client secret | [Twitter Developer Portal](https://developer.twitter.com/) > App Settings > OAuth 2.0 |
+| 10 | `SMTP_PASS` | SMTP password (e.g. Amazon SES IAM SMTP credential) | AWS IAM > Create SMTP credentials |
 
 > **Note:** `DATABASE_URL` is the only secret whose value is computed by Terraform (from the database endpoint). All others require manual input.
 
@@ -35,6 +36,7 @@ Defined in `iac/aws/secrets-manager.tf`. Names use the pattern `{app_unique_id}/
 | `oauth2-app/backend/AUTH_GITHUB_CLIENT_SECRET` | `aws_secretsmanager_secret.backend_gh_client_secret` |
 | `oauth2-app/backend/AUTH_GOOGLE_CLIENT_SECRET` | `aws_secretsmanager_secret.backend_google_client_secret` |
 | `oauth2-app/backend/AUTH_TWITTER_CLIENT_SECRET` | `aws_secretsmanager_secret.backend_twitter_client_secret` |
+| `oauth2-app/backend/SMTP_PASS` | `aws_secretsmanager_secret.backend_smtp_pass` |
 
 Populate via CLI:
 
@@ -59,6 +61,7 @@ Key Vault (`{app_unique_id}-kv`) is defined in `iac/azure/key-vault.tf`. Secret 
 | `gh-client-secret` | *(populate manually)* |
 | `google-client-secret` | *(populate manually)* |
 | `twitter-client-secret` | *(populate manually)* |
+| `smtp-pass` | *(populate manually)* |
 
 Populate via CLI:
 
@@ -84,6 +87,7 @@ Defined in `iac/google/secret-manager.tf`. Names use the pattern `{app_unique_id
 | `oauth2-app-backend-auth-gh-client-secret` | `google_secret_manager_secret.backend_gh_client_secret` |
 | `oauth2-app-backend-auth-google-client-secret` | `google_secret_manager_secret.backend_google_client_secret` |
 | `oauth2-app-backend-auth-twitter-client-secret` | `google_secret_manager_secret.backend_twitter_client_secret` |
+| `oauth2-app-backend-smtp-pass` | `google_secret_manager_secret.backend_smtp_pass` |
 
 Populate via CLI:
 
@@ -95,13 +99,13 @@ gcloud secrets versions add "oauth2-app-backend-auth-jwt-secret" \
 ## Deployment workflow
 
 1. **`terraform apply` (persistent layer)** — creates secret containers with no values
-2. **Populate secrets** — set the 8 manually-managed secrets via CLI or cloud console (see commands above)
-3. **`terraform apply` (ephemeral layer)** — creates the database, auto-populates `DATABASE_URL`, and deploys containers that read all 9 secrets at startup
+2. **Populate secrets** — set the 9 manually-managed secrets via CLI or cloud console (see commands above)
+3. **`terraform apply` (ephemeral layer)** — creates the database, auto-populates `DATABASE_URL`, and deploys containers that read all 10 secrets at startup
 
 ## Access control
 
 | Provider | Mechanism | Permissions |
 |---|---|---|
-| AWS | IAM policy on ECS execution role | `secretsmanager:GetSecretValue` for all 9 secrets |
+| AWS | IAM policy on ECS execution role | `secretsmanager:GetSecretValue` for all 10 secrets |
 | Azure | Key Vault access policy on user-assigned managed identity | `Get` (read-only) |
-| Google | IAM binding on default Compute service account | `roles/secretmanager.secretAccessor` for all 9 secrets |
+| Google | IAM binding on default Compute service account | `roles/secretmanager.secretAccessor` for all 10 secrets |

@@ -91,6 +91,11 @@ services:
       TF_VAR_base_domain_name: ${BASE_DOMAIN_NAME}
       TF_VAR_image_tag: ${IMAGE_TAG:-latest}
       TF_VAR_native_app_url_scheme: ${NATIVE_APP_URL_SCHEME}
+      TF_VAR_smtp_host: ${SMTP_HOST:-mailpit}
+      TF_VAR_smtp_port: ${SMTP_PORT:-1025}
+      TF_VAR_smtp_secure: ${SMTP_SECURE:-false}
+      TF_VAR_smtp_user: ${SMTP_USER:-}
+      TF_VAR_smtp_from: ${SMTP_FROM:-noreply@localhost}
     profiles:
       - iac
     volumes:

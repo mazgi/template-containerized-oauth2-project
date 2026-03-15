@@ -130,6 +130,11 @@ output "secret_twitter_client_secret_arn" {
   value       = aws_secretsmanager_secret.backend_twitter_client_secret.arn
 }
 
+output "secret_smtp_pass_arn" {
+  description = "Secrets Manager ARN for SMTP_PASS"
+  value       = aws_secretsmanager_secret.backend_smtp_pass.arn
+}
+
 # -----------------------------------------------------------------------------
 # Route 53 (referenced by ephemeral layer)
 # -----------------------------------------------------------------------------

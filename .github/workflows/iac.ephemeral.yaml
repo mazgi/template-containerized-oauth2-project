@@ -187,6 +187,11 @@ jobs:
           TF_VAR_google_oauth_client_id: ${{ vars.AUTH_GOOGLE_CLIENT_ID }}
           TF_VAR_twitter_client_id: ${{ vars.AUTH_TWITTER_CLIENT_ID }}
           TF_VAR_native_app_url_scheme: ${{ vars.NATIVE_APP_URL_SCHEME }}
+          TF_VAR_smtp_host: ${{ vars.SMTP_HOST }}
+          TF_VAR_smtp_port: ${{ vars.SMTP_PORT }}
+          TF_VAR_smtp_secure: ${{ vars.SMTP_SECURE }}
+          TF_VAR_smtp_user: ${{ vars.SMTP_USER }}
+          TF_VAR_smtp_from: ${{ vars.SMTP_FROM }}
         run: |
           terraform -chdir=iac/${{ inputs.provider }}/ephemeral plan -no-color -input=false 2>&1 | tee plan-output.txt
           {
@@ -222,6 +227,11 @@ jobs:
           TF_VAR_google_oauth_client_id: ${{ vars.AUTH_GOOGLE_CLIENT_ID }}
           TF_VAR_twitter_client_id: ${{ vars.AUTH_TWITTER_CLIENT_ID }}
           TF_VAR_native_app_url_scheme: ${{ vars.NATIVE_APP_URL_SCHEME }}
+          TF_VAR_smtp_host: ${{ vars.SMTP_HOST }}
+          TF_VAR_smtp_port: ${{ vars.SMTP_PORT }}
+          TF_VAR_smtp_secure: ${{ vars.SMTP_SECURE }}
+          TF_VAR_smtp_user: ${{ vars.SMTP_USER }}
+          TF_VAR_smtp_from: ${{ vars.SMTP_FROM }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral apply -auto-approve -input=false
 
       - name: Terraform Destroy
@@ -250,4 +260,9 @@ jobs:
           TF_VAR_google_oauth_client_id: ${{ vars.AUTH_GOOGLE_CLIENT_ID }}
           TF_VAR_twitter_client_id: ${{ vars.AUTH_TWITTER_CLIENT_ID }}
           TF_VAR_native_app_url_scheme: ${{ vars.NATIVE_APP_URL_SCHEME }}
+          TF_VAR_smtp_host: ${{ vars.SMTP_HOST }}
+          TF_VAR_smtp_port: ${{ vars.SMTP_PORT }}
+          TF_VAR_smtp_secure: ${{ vars.SMTP_SECURE }}
+          TF_VAR_smtp_user: ${{ vars.SMTP_USER }}
+          TF_VAR_smtp_from: ${{ vars.SMTP_FROM }}
         run: terraform -chdir=iac/${{ inputs.provider }}/ephemeral destroy -auto-approve -input=false

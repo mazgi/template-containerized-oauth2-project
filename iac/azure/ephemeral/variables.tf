@@ -141,6 +141,39 @@ variable "twitter_client_id" {
 }
 
 # -----------------------------------------------------------------------------
+# SMTP
+# SMTP_PASS is populated externally in Key Vault.
+# Only non-sensitive config is managed here.
+# -----------------------------------------------------------------------------
+
+variable "smtp_host" {
+  description = "SMTP server hostname"
+  type        = string
+}
+
+variable "smtp_port" {
+  description = "SMTP server port"
+  type        = string
+  default     = "587"
+}
+
+variable "smtp_secure" {
+  description = "Use implicit TLS (true for port 465, false for STARTTLS on port 587)"
+  type        = string
+  default     = "false"
+}
+
+variable "smtp_user" {
+  description = "SMTP username (e.g. SES IAM SMTP credential)"
+  type        = string
+}
+
+variable "smtp_from" {
+  description = "From address for outgoing emails"
+  type        = string
+}
+
+# -----------------------------------------------------------------------------
 # Native app
 # -----------------------------------------------------------------------------
 

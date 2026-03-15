@@ -89,6 +89,26 @@ resource "aws_ecs_express_gateway_service" "backend" {
       name  = "PORT"
       value = "4000"
     }
+    environment {
+      name  = "SMTP_HOST"
+      value = var.smtp_host
+    }
+    environment {
+      name  = "SMTP_PORT"
+      value = var.smtp_port
+    }
+    environment {
+      name  = "SMTP_SECURE"
+      value = var.smtp_secure
+    }
+    environment {
+      name  = "SMTP_USER"
+      value = var.smtp_user
+    }
+    environment {
+      name  = "SMTP_FROM"
+      value = var.smtp_from
+    }
 
     secret {
       name       = "AUTH_APPLE_PRIVATE_KEY"
@@ -125,6 +145,10 @@ resource "aws_ecs_express_gateway_service" "backend" {
     secret {
       name       = "DATABASE_URL"
       value_from = local.persistent.secret_database_url_arn
+    }
+    secret {
+      name       = "SMTP_PASS"
+      value_from = local.persistent.secret_smtp_pass_arn
     }
   }
 }
