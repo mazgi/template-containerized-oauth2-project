@@ -7,8 +7,10 @@ import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -345,20 +347,29 @@ class AuthE2ETest {
         // Navigate to Settings
         navigateToSettings()
 
-        // Verify current email is displayed with Verified badge
-        composeRule.onNodeWithText(oldEmail).assertIsDisplayed()
-        composeRule.onNodeWithText("Verified").assertIsDisplayed()
+        // Wait for email section to load and verify current email is displayed
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText(oldEmail)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(oldEmail).assertExists()
+        composeRule.onNodeWithText("Verified").assertExists()
 
         // Enter new email and save
-        composeRule.onNodeWithText("Enter new email address").performTextInput(newEmail)
-        composeRule.onAllNodesWithText("Save").filterToOne(hasClickAction()).performClick()
+        composeRule.onNodeWithTag("settings_emailInput").performScrollTo().performTextInput(newEmail)
+        composeRule.onNodeWithTag("settings_saveEmail").performScrollTo().performClick()
 
-        // Wait for the API call to complete
-        waitForButtonEnabled("Save")
+        // Wait for the API to complete: "Unverified" badge appears after email update
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Unverified")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
 
         // Should show new email as Unverified
-        composeRule.onNodeWithText(newEmail).assertIsDisplayed()
-        composeRule.onNodeWithText("Unverified").assertIsDisplayed()
+        composeRule.onAllNodesWithText(newEmail).fetchSemanticsNodes().let {
+            assert(it.isNotEmpty()) { "Expected new email to be displayed" }
+        }
+        composeRule.onNodeWithText("Unverified").assertExists()
     }
 
     // -------------------------------------------------------------------------

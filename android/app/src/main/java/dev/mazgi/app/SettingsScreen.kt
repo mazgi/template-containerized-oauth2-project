@@ -143,7 +143,9 @@ fun SettingsScreen(
                             onValueChange = { emailInput = it },
                             placeholder = { Text("Enter new email address") },
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_emailInput"),
                         )
                     }
                     if (selectableEmails.isNotEmpty()) {
@@ -172,6 +174,7 @@ fun SettingsScreen(
                     Button(
                         onClick = { onUpdateEmail(emailInput.trim()) },
                         enabled = !uiState.isLoading && emailInput.trim().isNotEmpty() && emailInput.trim() != user?.email,
+                        modifier = Modifier.testTag("settings_saveEmail"),
                     ) {
                         Text("Save")
                     }
