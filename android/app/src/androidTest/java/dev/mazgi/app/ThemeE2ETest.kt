@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -97,6 +98,9 @@ class ThemeE2ETest {
         composeRule.waitUntil(5_000L) {
             composeRule.onAllNodesWithText("Theme").fetchSemanticsNodes().isNotEmpty()
         }
+
+        // Scroll the theme picker into view (Email section may push it off-screen)
+        composeRule.onNodeWithTag("settings_themePicker").performScrollTo()
     }
 
     private fun postJson(url: String, body: String): String {
