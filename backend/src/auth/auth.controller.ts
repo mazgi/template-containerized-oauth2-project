@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Query,
   Request,
@@ -27,6 +28,7 @@ import { RefreshDto } from './dto/refresh.dto';
 import { SignInDto } from './dto/signin.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { UpdateEmailDto } from './dto/update-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AppleProfile } from './strategies/apple.strategy';
 import { DiscordProfile } from './strategies/discord.strategy';
@@ -100,6 +102,20 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMe(@Request() req: { user: { userId: string; email: string } }) {
     return this.authService.getMe(req.user.userId);
+  }
+
+  @Patch('email')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update email address (resets verification and sends new verification email)' })
+  @ApiResponse({ status: 200, description: 'Email updated, verification email sent' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 409, description: 'Email already in use' })
+  async updateEmail(
+    @Request() req: { user: { userId: string } },
+    @Body() dto: UpdateEmailDto,
+  ) {
+    return this.authService.updateEmail(req.user.userId, dto.email);
   }
 
   @Delete('account')

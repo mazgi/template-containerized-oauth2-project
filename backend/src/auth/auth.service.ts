@@ -27,7 +27,7 @@ type UserRecord = {
   updatedAt: Date;
 };
 
-type SocialAccountRow = { providerId: string } | null;
+type SocialAccountRow = { providerId: string; email: string | null } | null;
 
 type UserWithSocial = UserRecord & {
   socialApple: SocialAccountRow;
@@ -189,7 +189,7 @@ export class AuthService {
       });
       if (existingUser) {
         await this.prisma.socialAccountApple.create({
-          data: { providerId: profile.appleId, userId: existingUser.id },
+          data: { providerId: profile.appleId, email: profile.email, userId: existingUser.id },
         });
         return this.buildTokenResponse(existingUser);
       }
@@ -202,8 +202,8 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
-        emailVerified: true,
-        socialApple: { create: { providerId: profile.appleId } },
+        emailVerified: !email.endsWith('.invalid'),
+        socialApple: { create: { providerId: profile.appleId, email: profile.email } },
       },
     });
 
@@ -227,7 +227,7 @@ export class AuthService {
       });
       if (existingUser) {
         await this.prisma.socialAccountGoogle.create({
-          data: { providerId: profile.googleId, userId: existingUser.id },
+          data: { providerId: profile.googleId, email: profile.email, userId: existingUser.id },
         });
         return this.buildTokenResponse(existingUser);
       }
@@ -240,7 +240,7 @@ export class AuthService {
         name: profile.name,
         passwordHash: null,
         emailVerified: true,
-        socialGoogle: { create: { providerId: profile.googleId } },
+        socialGoogle: { create: { providerId: profile.googleId, email: profile.email } },
       },
     });
 
@@ -264,7 +264,7 @@ export class AuthService {
       });
       if (existingUser) {
         await this.prisma.socialAccountTwitter.create({
-          data: { providerId: profile.twitterId, userId: existingUser.id },
+          data: { providerId: profile.twitterId, email: profile.email, userId: existingUser.id },
         });
         return this.buildTokenResponse(existingUser);
       }
@@ -277,8 +277,8 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
-        emailVerified: true,
-        socialTwitter: { create: { providerId: profile.twitterId } },
+        emailVerified: !email.endsWith('.invalid'),
+        socialTwitter: { create: { providerId: profile.twitterId, email: profile.email } },
       },
     });
 
@@ -302,7 +302,7 @@ export class AuthService {
       });
       if (existingUser) {
         await this.prisma.socialAccountDiscord.create({
-          data: { providerId: profile.discordId, userId: existingUser.id },
+          data: { providerId: profile.discordId, email: profile.email, userId: existingUser.id },
         });
         return this.buildTokenResponse(existingUser);
       }
@@ -315,8 +315,8 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
-        emailVerified: true,
-        socialDiscord: { create: { providerId: profile.discordId } },
+        emailVerified: !email.endsWith('.invalid'),
+        socialDiscord: { create: { providerId: profile.discordId, email: profile.email } },
       },
     });
 
@@ -340,7 +340,7 @@ export class AuthService {
       });
       if (existingUser) {
         await this.prisma.socialAccountGithub.create({
-          data: { providerId: profile.githubId, userId: existingUser.id },
+          data: { providerId: profile.githubId, email: profile.email, userId: existingUser.id },
         });
         return this.buildTokenResponse(existingUser);
       }
@@ -353,8 +353,8 @@ export class AuthService {
         email,
         name: profile.name,
         passwordHash: null,
-        emailVerified: true,
-        socialGithub: { create: { providerId: profile.githubId } },
+        emailVerified: !email.endsWith('.invalid'),
+        socialGithub: { create: { providerId: profile.githubId, email: profile.email } },
       },
     });
 
@@ -405,6 +405,38 @@ export class AuthService {
     };
   }
 
+  async updateEmail(userId: string, newEmail: string) {
+    const existing = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+    if (existing && existing.id !== userId) {
+      throw new ConflictException('Email already in use');
+    }
+
+    const token = randomUUID();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: newEmail,
+        emailVerified: false,
+        emailVerificationToken: token,
+        emailVerificationExpires: expires,
+      },
+      include: SOCIAL_INCLUDES,
+    });
+
+    await this.mailService.sendVerificationEmail(newEmail, token);
+
+    const { passwordHash, emailVerificationToken, emailVerificationExpires, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
+    return {
+      ...result,
+      ...this.socialToFlat(user),
+      hasPassword: passwordHash != null,
+    };
+  }
+
   // --- Account linking ---
 
   async linkApple(userId: string, profile: AppleProfile) {
@@ -416,8 +448,8 @@ export class AuthService {
     }
     await this.prisma.socialAccountApple.upsert({
       where: { userId },
-      create: { providerId: profile.appleId, userId },
-      update: { providerId: profile.appleId },
+      create: { providerId: profile.appleId, email: profile.email, userId },
+      update: { providerId: profile.appleId, email: profile.email },
     });
   }
 
@@ -430,8 +462,8 @@ export class AuthService {
     }
     await this.prisma.socialAccountGithub.upsert({
       where: { userId },
-      create: { providerId: profile.githubId, userId },
-      update: { providerId: profile.githubId },
+      create: { providerId: profile.githubId, email: profile.email, userId },
+      update: { providerId: profile.githubId, email: profile.email },
     });
   }
 
@@ -444,8 +476,8 @@ export class AuthService {
     }
     await this.prisma.socialAccountGoogle.upsert({
       where: { userId },
-      create: { providerId: profile.googleId, userId },
-      update: { providerId: profile.googleId },
+      create: { providerId: profile.googleId, email: profile.email, userId },
+      update: { providerId: profile.googleId, email: profile.email },
     });
   }
 
@@ -458,8 +490,8 @@ export class AuthService {
     }
     await this.prisma.socialAccountDiscord.upsert({
       where: { userId },
-      create: { providerId: profile.discordId, userId },
-      update: { providerId: profile.discordId },
+      create: { providerId: profile.discordId, email: profile.email, userId },
+      update: { providerId: profile.discordId, email: profile.email },
     });
   }
 
@@ -472,8 +504,8 @@ export class AuthService {
     }
     await this.prisma.socialAccountTwitter.upsert({
       where: { userId },
-      create: { providerId: profile.twitterId, userId },
-      update: { providerId: profile.twitterId },
+      create: { providerId: profile.twitterId, email: profile.email, userId },
+      update: { providerId: profile.twitterId, email: profile.email },
     });
   }
 
@@ -536,12 +568,21 @@ export class AuthService {
   }
 
   private socialToFlat(user: UserWithSocial) {
+    const socialEmails: string[] = [];
+    const seen = new Set<string>();
+    for (const acct of [user.socialApple, user.socialGithub, user.socialGoogle, user.socialTwitter, user.socialDiscord]) {
+      if (acct?.email && !acct.email.endsWith('.invalid') && !seen.has(acct.email)) {
+        seen.add(acct.email);
+        socialEmails.push(acct.email);
+      }
+    }
     return {
       appleId: user.socialApple?.providerId ?? null,
       githubId: user.socialGithub?.providerId ?? null,
       googleId: user.socialGoogle?.providerId ?? null,
       twitterId: user.socialTwitter?.providerId ?? null,
       discordId: user.socialDiscord?.providerId ?? null,
+      socialEmails,
     };
   }
 

@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme, Theme } from '../contexts/ThemeContext'
 import { AppHeader } from '../components/AppHeader'
-import { unlinkProvider, deleteAccount } from '../lib/api'
+import { unlinkProvider, deleteAccount, updateEmail, resendVerification } from '../lib/api'
 
 const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
   { value: 'system', labelKey: 'themeSystem' },
@@ -26,6 +26,10 @@ export default function SettingsPage() {
   const { theme, changeTheme } = useTheme()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const [emailInput, setEmailInput] = useState('')
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [emailResending, setEmailResending] = useState(false)
+  const [emailSuccess, setEmailSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -74,6 +78,41 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleEmailSave() {
+    if (!accessToken || !emailInput.trim()) return
+    setEmailSaving(true)
+    setError(null)
+    setEmailSuccess(null)
+    try {
+      await updateEmail(accessToken, emailInput.trim())
+      await refreshUser()
+      setEmailSuccess(t('emailUpdated'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorFallback'))
+    } finally {
+      setEmailSaving(false)
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!user) return
+    setEmailResending(true)
+    setError(null)
+    setEmailSuccess(null)
+    try {
+      await resendVerification(user.email)
+      setEmailSuccess(t('emailVerificationSent'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorFallback'))
+    } finally {
+      setEmailResending(false)
+    }
+  }
+
+  function handleEmailSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    setEmailInput(e.target.value)
+  }
+
   function linkUrl(provider: string): string {
     return `/backend/auth/link/${provider}?token=${accessToken}`
   }
@@ -85,8 +124,76 @@ export default function SettingsPage() {
       <main className="dashboard-body">
         <div className="user-card">
           <h2>{t('title')}</h2>
-          <h3 className="settings-section-title">{t('linkedAccounts')}</h3>
           {error && <p className="error-msg">{error}</p>}
+          {emailSuccess && <p className="success-msg">{emailSuccess}</p>}
+
+          <h3 className="settings-section-title">{t('email')}</h3>
+          <div className="email-section">
+            {(() => {
+              const isInvalidEmail = user.email.endsWith('.invalid')
+              const selectableEmails = (user.socialEmails ?? []).filter((e) => e !== user.email)
+              return (
+                <>
+                  <div className="email-status-row">
+                    <span className={`email-current${isInvalidEmail ? ' email-not-set' : ''}`}>
+                      {isInvalidEmail ? t('emailNotSet') : user.email}
+                    </span>
+                    {!isInvalidEmail && (
+                      <span className={`email-badge ${user.emailVerified ? 'email-badge-verified' : 'email-badge-unverified'}`}>
+                        {user.emailVerified ? t('emailVerified') : t('emailUnverified')}
+                      </span>
+                    )}
+                  </div>
+
+                  {!isInvalidEmail && !user.emailVerified && (
+                    <button
+                      className="btn-ghost email-resend-btn"
+                      onClick={handleResendVerification}
+                      disabled={emailResending}
+                    >
+                      {emailResending ? t('emailResending') : t('emailResendVerification')}
+                    </button>
+                  )}
+
+                  <div className="email-edit-row">
+                    <div className="email-combo">
+                      <input
+                        type="email"
+                        className="email-combo-input"
+                        placeholder={t('emailInputPlaceholder')}
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                      />
+                      {selectableEmails.length > 0 && (
+                        <select
+                          className="email-combo-select"
+                          value=""
+                          onChange={handleEmailSelect}
+                          aria-label={t('emailSelectLabel')}
+                        >
+                          <option value="" disabled></option>
+                          {selectableEmails.map((e) => (
+                            <option key={e} value={e}>{e}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                    <button
+                      className="btn-primary email-save-btn"
+                      onClick={handleEmailSave}
+                      disabled={emailSaving || !emailInput.trim() || emailInput.trim() === user.email}
+                    >
+                      {emailSaving ? t('emailSaving') : t('emailSave')}
+                    </button>
+                  </div>
+                </>
+              )
+            })()}
+          </div>
+        </div>
+
+        <div className="user-card" style={{ marginTop: '1.5rem' }}>
+          <h3 className="settings-section-title">{t('linkedAccounts')}</h3>
           <div className="linked-accounts-list">
             {PROVIDERS.map(({ key, label }) => (
               <div key={key} className="linked-account-row">

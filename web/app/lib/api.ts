@@ -17,6 +17,7 @@ export interface User {
   twitterId?: string | null
   discordId?: string | null
   hasPassword?: boolean
+  socialEmails?: string[]
   preferences?: UserPreferences | null
   createdAt: string
   updatedAt: string
@@ -90,6 +91,14 @@ export function refreshTokens(refreshToken: string): Promise<AuthResponse> {
   return request('/auth/refresh', {
     method: 'POST',
     body: JSON.stringify({ refreshToken }),
+  })
+}
+
+export function updateEmail(accessToken: string, email: string): Promise<User> {
+  return request('/auth/email', {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ email }),
   })
 }
 

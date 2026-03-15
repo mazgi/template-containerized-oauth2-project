@@ -694,6 +694,143 @@ button {
   border-color: #374151;
 }
 
+/* Email section */
+
+.email-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.email-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.email-current {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.email-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.email-badge-verified {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.email-badge-unverified {
+  background: rgba(234, 179, 8, 0.1);
+  color: #ca8a04;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.email-resend-btn {
+  align-self: flex-start;
+  font-size: 0.8125rem;
+}
+
+.email-edit-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.email-combo {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-width: 0;
+}
+
+.email-combo-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  min-width: 0;
+}
+
+.email-combo-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.email-combo-select {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  direction: rtl;
+}
+
+.email-combo:has(.email-combo-select)::after {
+  content: '';
+  position: absolute;
+  right: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--color-text-muted);
+  pointer-events: none;
+}
+
+.email-combo:has(.email-combo-select)::before {
+  content: '';
+  position: absolute;
+  right: 2rem;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--color-border);
+  pointer-events: none;
+}
+
+.email-combo:has(.email-combo-select) .email-combo-input {
+  padding-right: 2.25rem;
+}
+
+.email-not-set {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.email-save-btn {
+  width: auto;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* Success message */
+
+.success-msg {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: var(--radius);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+}
+
 /* Theme selector */
 
 .theme-selector {
