@@ -261,6 +261,64 @@ describe('Auth (e2e)', () => {
     });
   });
 
+  // ── PATCH /auth/email ──
+
+  describe('PATCH /auth/email', () => {
+    it('should update email and reset verification', async () => {
+      const { accessToken, email: oldEmail } = await signUpUser(app);
+      const newEmail = uniqueEmail('newemail');
+
+      const res = await request(app.getHttpServer())
+        .patch('/auth/email')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ email: newEmail })
+        .expect(200);
+
+      expect(res.body.email).toBe(newEmail);
+      expect(res.body.emailVerified).toBe(false);
+
+      // Database should reflect the change
+      const user = await prisma.user.findUnique({ where: { email: newEmail } });
+      expect(user).not.toBeNull();
+      expect(user!.emailVerified).toBe(false);
+      expect(user!.emailVerificationToken).not.toBeNull();
+
+      // Old email should no longer exist
+      const oldUser = await prisma.user.findUnique({ where: { email: oldEmail } });
+      expect(oldUser).toBeNull();
+    });
+
+    it('should return 409 when email is already in use by another user', async () => {
+      const { accessToken } = await signUpUser(app);
+      const { email: existingEmail } = await signUpUser(app);
+
+      const res = await request(app.getHttpServer())
+        .patch('/auth/email')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ email: existingEmail })
+        .expect(409);
+
+      expect(res.body.message).toContain('Email already in use');
+    });
+
+    it('should return 401 when no token is provided', async () => {
+      await request(app.getHttpServer())
+        .patch('/auth/email')
+        .send({ email: 'new@test.example' })
+        .expect(401);
+    });
+
+    it('should return 400 for invalid email format', async () => {
+      const { accessToken } = await signUpUser(app);
+
+      await request(app.getHttpServer())
+        .patch('/auth/email')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ email: 'not-an-email' })
+        .expect(400);
+    });
+  });
+
   // ── GET /auth/me ──
 
   describe('GET /auth/me', () => {

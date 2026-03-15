@@ -121,6 +121,37 @@ public class AuthE2ETests : BaseTest
         WaitForElement("signin_emailTextBox", 5);
     }
 
+    // --- Change Email ---
+
+    [Test]
+    public void ChangeEmail_UpdatesEmailAndResetsVerification()
+    {
+        var oldEmail = TestHelpers.UniqueEmail("oldemail");
+        var newEmail = TestHelpers.UniqueEmail("newemail");
+        CreateVerifiedUserAndSignIn(oldEmail);
+
+        // Navigate to Settings tab
+        var settingsTab = WaitForText("Settings", 10);
+        settingsTab.Click();
+
+        // Wait for Email section to appear
+        ScrollToElement("settings_emailTextField", 15);
+
+        // Enter new email and save
+        var emailBox = FindByAutomationId("settings_emailTextField");
+        emailBox.Clear();
+        emailBox.SendKeys(newEmail);
+
+        FindByAutomationId("settings_saveEmail").Click();
+
+        // Wait for API call to complete
+        WaitForEnabled("settings_saveEmail", 15);
+
+        // Verify the new email is displayed as Unverified
+        var unverifiedText = WaitForText("Unverified", 10);
+        Assert.That(unverifiedText.Displayed, Is.True);
+    }
+
     // --- Helpers ---
 
     private void NavigateToSignUp()

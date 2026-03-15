@@ -322,6 +322,49 @@ class AuthE2ETest {
     // Sign Out test
     // -------------------------------------------------------------------------
 
+    /** Navigate to the Settings tab in the bottom navigation. */
+    private fun navigateToSettings() {
+        composeRule.onNodeWithText("Settings").performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithText("Linked Accounts")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Change Email test
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun changeEmail_updatesEmailAndResetsVerification() {
+        waitForSignInScreen()
+        val oldEmail = uniqueEmail()
+        val newEmail = uniqueEmail()
+        signUpAndSignIn(oldEmail)
+
+        // Navigate to Settings
+        navigateToSettings()
+
+        // Verify current email is displayed with Verified badge
+        composeRule.onNodeWithText(oldEmail).assertIsDisplayed()
+        composeRule.onNodeWithText("Verified").assertIsDisplayed()
+
+        // Enter new email and save
+        composeRule.onNodeWithText("Enter new email address").performTextInput(newEmail)
+        composeRule.onAllNodesWithText("Save").filterToOne(hasClickAction()).performClick()
+
+        // Wait for the API call to complete
+        waitForButtonEnabled("Save")
+
+        // Should show new email as Unverified
+        composeRule.onNodeWithText(newEmail).assertIsDisplayed()
+        composeRule.onNodeWithText("Unverified").assertIsDisplayed()
+    }
+
+    // -------------------------------------------------------------------------
+    // Sign Out test
+    // -------------------------------------------------------------------------
+
     @Test
     fun signOut_returnsToSignInScreen() {
         waitForSignInScreen()

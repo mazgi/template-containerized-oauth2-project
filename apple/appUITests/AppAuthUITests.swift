@@ -157,6 +157,37 @@ final class AppAuthUITests: XCTestCase {
         XCTAssertTrue(app.textFields["signin_emailTextField"].exists)
     }
 
+    // MARK: - Change Email
+
+    func testChangeEmail() throws {
+        let oldEmail = Self.uniqueEmail("oldemail")
+        let newEmail = Self.uniqueEmail("newemail")
+        createVerifiedUserAndSignIn(email: oldEmail)
+
+        // Navigate to Settings tab
+        let settingsTab = app.buttons["Settings"]
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
+
+        // Verify current email is displayed with Verified badge
+        XCTAssertTrue(app.staticTexts[oldEmail].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Verified"].exists)
+
+        // Enter new email and save
+        let emailField = app.textFields["settings_emailTextField"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 5))
+        emailField.tap()
+        emailField.typeText(newEmail)
+
+        let saveButton = app.buttons["settings_saveEmail"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
+        saveButton.tap()
+
+        // Should show new email as Unverified
+        XCTAssertTrue(app.staticTexts[newEmail].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Unverified"].waitForExistence(timeout: 5))
+    }
+
     // MARK: - Navigation
 
     func testSignInHasSignUpLink() throws {

@@ -277,6 +277,39 @@ test.describe('Delete account', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Change email
+// ---------------------------------------------------------------------------
+test.describe('Change email', () => {
+  test('changes email from settings, resets verification, and can verify new email', async ({ page }) => {
+    const oldEmail = uniqueEmail('oldemail')
+    const newEmail = uniqueEmail('newemail')
+    await signUpAndVerify(page, oldEmail)
+
+    // Navigate to settings
+    await page.getByRole('link', { name: 'Settings' }).click()
+    await expect(page).toHaveURL(/\/settings/)
+    await page.waitForLoadState('networkidle')
+
+    // Should show current email as verified
+    await expect(page.getByText(oldEmail)).toBeVisible()
+    await expect(page.getByText('Verified')).toBeVisible()
+
+    // Enter new email and save
+    await page.locator('.email-combo-input').fill(newEmail)
+    await page.getByRole('button', { name: 'Save' }).click()
+
+    // Should show new email as unverified
+    await expect(page.getByText(newEmail)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText('Unverified')).toBeVisible()
+
+    // Verify the new email via Mailpit
+    const token = await getVerificationToken(newEmail)
+    await page.goto(`/verify-email?token=${token}`)
+    await expect(page.getByText('verified successfully')).toBeVisible()
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Page navigation
 // ---------------------------------------------------------------------------
 test.describe('Page navigation', () => {
