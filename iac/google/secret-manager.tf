@@ -91,3 +91,13 @@ resource "google_secret_manager_secret" "backend_twitter_client_secret" {
 
   depends_on = [google_project_service.apis]
 }
+
+resource "google_secret_manager_secret" "backend_smtp_pass" {
+  secret_id = "${var.app_unique_id}-backend-smtp-pass"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.apis]
+}

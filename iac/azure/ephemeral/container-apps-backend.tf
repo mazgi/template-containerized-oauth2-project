@@ -69,6 +69,11 @@ resource "azurerm_container_app" "backend" {
     identity            = azurerm_user_assigned_identity.backend.id
     key_vault_secret_id = "${local.persistent.key_vault_uri}secrets/twitter-client-secret"
   }
+  secret {
+    name                = "smtp-pass"
+    identity            = azurerm_user_assigned_identity.backend.id
+    key_vault_secret_id = "${local.persistent.key_vault_uri}secrets/smtp-pass"
+  }
 
   ingress {
     external_enabled = true
@@ -106,6 +111,28 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "NATIVE_APP_URL_SCHEME"
         value = var.native_app_url_scheme
+      }
+
+      # SMTP
+      env {
+        name  = "SMTP_HOST"
+        value = var.smtp_host
+      }
+      env {
+        name  = "SMTP_PORT"
+        value = var.smtp_port
+      }
+      env {
+        name  = "SMTP_SECURE"
+        value = var.smtp_secure
+      }
+      env {
+        name  = "SMTP_USER"
+        value = var.smtp_user
+      }
+      env {
+        name  = "SMTP_FROM"
+        value = var.smtp_from
       }
 
       # JWT
@@ -203,6 +230,10 @@ resource "azurerm_container_app" "backend" {
       env {
         name        = "AUTH_TWITTER_CLIENT_SECRET"
         secret_name = "twitter-client-secret"
+      }
+      env {
+        name        = "SMTP_PASS"
+        secret_name = "smtp-pass"
       }
     }
   }

@@ -77,6 +77,11 @@ output "secret_twitter_client_secret_id" {
   value       = google_secret_manager_secret.backend_twitter_client_secret.id
 }
 
+output "secret_smtp_pass_id" {
+  description = "Secret Manager secret ID for SMTP_PASS"
+  value       = google_secret_manager_secret.backend_smtp_pass.id
+}
+
 # -----------------------------------------------------------------------------
 # Cloud DNS (referenced by ephemeral layer)
 # -----------------------------------------------------------------------------

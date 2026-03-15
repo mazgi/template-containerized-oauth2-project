@@ -25,6 +25,7 @@ locals {
     local.persistent.secret_gh_client_secret_id,
     local.persistent.secret_google_client_secret_id,
     local.persistent.secret_twitter_client_secret_id,
+    local.persistent.secret_smtp_pass_id,
   ]
 }
 

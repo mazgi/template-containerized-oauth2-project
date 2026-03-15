@@ -56,6 +56,12 @@ resource "aws_secretsmanager_secret" "backend_twitter_client_secret" {
   recovery_window_in_days = 0
 }
 
+resource "aws_secretsmanager_secret" "backend_smtp_pass" {
+  name                    = "${var.app_unique_id}/backend/SMTP_PASS"
+  description             = "SMTP password (e.g. Amazon SES IAM SMTP credential)"
+  recovery_window_in_days = 0
+}
+
 # -----------------------------------------------------------------------------
 # IAM — grant ECS execution role permission to read these secrets
 # -----------------------------------------------------------------------------
@@ -80,6 +86,7 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
           aws_secretsmanager_secret.backend_gh_client_secret.arn,
           aws_secretsmanager_secret.backend_google_client_secret.arn,
           aws_secretsmanager_secret.backend_twitter_client_secret.arn,
+          aws_secretsmanager_secret.backend_smtp_pass.arn,
         ]
       },
     ]
