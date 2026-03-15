@@ -6,10 +6,17 @@ export class MailService {
   private readonly transporter: Transporter;
 
   constructor() {
+    const host = process.env.SMTP_HOST ?? 'mailpit';
+    const port = Number(process.env.SMTP_PORT ?? 1025);
+    const secure = process.env.SMTP_SECURE === 'true';
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+
     this.transporter = createTransport({
-      host: process.env.SMTP_HOST ?? 'mailpit',
-      port: Number(process.env.SMTP_PORT ?? 1025),
-      secure: false,
+      host,
+      port,
+      secure,
+      ...(user && pass ? { auth: { user, pass } } : {}),
     });
   }
 
