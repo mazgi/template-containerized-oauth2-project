@@ -24,7 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
 @Composable
 fun SignUpScreen(
@@ -35,8 +41,7 @@ fun SignUpScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    val passwordMismatch = confirmPassword.isNotEmpty() && password != confirmPassword
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -99,25 +104,18 @@ fun SignUpScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = passwordMismatch,
-                supportingText = if (passwordMismatch) {
-                    { Text("Passwords do not match") }
-                } else null,
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                        )
+                    }
+                },
             )
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -132,7 +130,7 @@ fun SignUpScreen(
 
             Button(
                 onClick = { onSignUp(email, password) },
-                enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank() && !passwordMismatch,
+                enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (uiState.isLoading) {
