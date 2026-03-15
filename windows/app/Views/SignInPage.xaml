@@ -42,6 +42,7 @@
                 x:Name="PasswordBox"
                 Header="Password"
                 PlaceholderText="Password"
+                PasswordRevealMode="Peek"
                 KeyDown="PasswordBox_KeyDown"
                 AutomationProperties.AutomationId="signin_passwordBox" />
 

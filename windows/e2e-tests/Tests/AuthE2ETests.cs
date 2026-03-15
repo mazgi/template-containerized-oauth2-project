@@ -22,7 +22,7 @@ public class AuthE2ETests : BaseTest
     {
         var email = TestHelpers.UniqueEmail("signup");
         NavigateToSignUp();
-        FillSignUpForm(email, TestHelpers.DefaultPassword, TestHelpers.DefaultPassword);
+        FillSignUpForm(email, TestHelpers.DefaultPassword);
         FindByAutomationId("signup_submitButton").Click();
 
         // Should show verification-sent screen, not Dashboard
@@ -31,18 +31,6 @@ public class AuthE2ETests : BaseTest
 
         var resendButton = WaitForElement("signup_resendButton", 5);
         Assert.That(resendButton.Displayed, Is.True);
-    }
-
-    [Test]
-    public void SignUp_PasswordMismatch_ShowsError()
-    {
-        NavigateToSignUp();
-        FillSignUpForm(TestHelpers.UniqueEmail("mismatch"), TestHelpers.DefaultPassword, "DifferentPassword!");
-        FindByAutomationId("signup_submitButton").Click();
-
-        var mismatchError = WaitForElement("signup_mismatchText", 5);
-        Assert.That(mismatchError.Displayed, Is.True);
-        Assert.That(mismatchError.Text, Is.EqualTo("Passwords do not match"));
     }
 
     [Test]
@@ -55,7 +43,7 @@ public class AuthE2ETests : BaseTest
 
         // Second sign-up with same email via UI
         NavigateToSignUp();
-        FillSignUpForm(email, TestHelpers.DefaultPassword, TestHelpers.DefaultPassword);
+        FillSignUpForm(email, TestHelpers.DefaultPassword);
         FindByAutomationId("signup_submitButton").Click();
 
         // Wait for API call to finish
@@ -142,7 +130,7 @@ public class AuthE2ETests : BaseTest
         WaitForElement("signup_emailTextBox", 5);
     }
 
-    private void FillSignUpForm(string email, string password, string confirmPassword)
+    private void FillSignUpForm(string email, string password)
     {
         var emailBox = FindByAutomationId("signup_emailTextBox");
         emailBox.Clear();
@@ -151,10 +139,6 @@ public class AuthE2ETests : BaseTest
         var passwordBox = FindByAutomationId("signup_passwordBox");
         passwordBox.Clear();
         passwordBox.SendKeys(password);
-
-        var confirmBox = FindByAutomationId("signup_confirmPasswordBox");
-        confirmBox.Clear();
-        confirmBox.SendKeys(confirmPassword);
     }
 
     private void CreateVerifiedUserAndSignIn(string email)
