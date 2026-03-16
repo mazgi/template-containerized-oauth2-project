@@ -65,10 +65,8 @@ services:
     build:
       context: ./iac
       dockerfile: ../Dockerfiles.d/iac/Dockerfile
-    env_file:
-      - .secrets.env
-      - .env
     environment:
+      AWS_PROFILE: ${AWS_PROFILE:-}
       TF_VAR_app_unique_id: ${APP_UNIQUE_ID}
       TF_VAR_aws_region: ${AWS_REGION}
       TF_VAR_aws_tf_state_bucket: ${AWS_TF_STATE_BUCKET}

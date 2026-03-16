@@ -48,7 +48,6 @@ After creating a repository from this template, follow these steps. Only step 1 
 ```
 .
 ├── compose.yaml
-├── compose.staging.yaml   # Staging env file override
 ├── .example.secrets.env
 ├── backend/               # NestJS API
 ├── web/

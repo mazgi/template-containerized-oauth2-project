@@ -59,10 +59,10 @@ docker compose --profile=iac run --rm iac terraform -chdir=<provider>/ephemeral 
 
 ## Using staging environment variables
 
-By default, the `iac` service loads `.env` and `.secrets.env`. To use staging-specific files (`.staging.env` and `.staging.secrets.env`), pass the `compose.staging.yaml` override:
+To use staging-specific files (`.staging.env` and `.staging.secrets.env`), pass them via `--env-file`:
 
 ```sh
-docker compose -f compose.yaml -f compose.staging.yaml \
+docker compose --env-file .staging.env --env-file .staging.secrets.env \
   --profile=iac run --rm iac \
   terraform -chdir=<provider>/ephemeral apply
 ```
@@ -70,7 +70,7 @@ docker compose -f compose.yaml -f compose.staging.yaml \
 To force-update a resource when Terraform cannot detect changes (e.g. the image tag is unchanged but the image contents have been updated):
 
 ```sh
-docker compose -f compose.yaml -f compose.staging.yaml \
+docker compose --env-file .staging.env --env-file .staging.secrets.env \
   --profile=iac run --rm iac \
   terraform -chdir=google/ephemeral apply -replace="google_cloud_run_v2_job.db_push"
 ```

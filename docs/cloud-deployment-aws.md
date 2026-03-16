@@ -90,6 +90,8 @@ docker compose --profile=iac run --rm iac terraform -chdir=aws init \
 docker compose --profile=iac run --rm iac terraform -chdir=aws apply -var-file=terraform.tfvars
 ```
 
+> **Note:** On a fresh AWS account that has never used ECS, the first `terraform apply` may fail because the `AWSServiceRoleForECS` service-linked role does not yet exist. AWS creates this role automatically in the background, so simply re-running `terraform apply` will succeed.
+
 Then build and push the production images (the registry URL comes from the persistent layer output):
 
 ```sh
