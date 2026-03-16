@@ -26,7 +26,7 @@ public sealed partial class MainWindow : Window
 #if DEBUG
         var textBox = new TextBox
         {
-            Text = DebugSettings.ApiBaseUrl ?? "",
+            Text = Services.DebugSettings.ApiBaseUrl ?? "",
             PlaceholderText = "http://localhost:4000",
             Margin = new Thickness(0, 8, 0, 0),
         };
@@ -53,7 +53,7 @@ public sealed partial class MainWindow : Window
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
         {
             var trimmed = textBox.Text?.Trim();
-            DebugSettings.ApiBaseUrl = string.IsNullOrEmpty(trimmed) ? null : trimmed;
+            Services.DebugSettings.ApiBaseUrl = string.IsNullOrEmpty(trimmed) ? null : trimmed;
         }
 #endif
     }
