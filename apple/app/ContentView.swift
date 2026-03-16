@@ -11,6 +11,9 @@ struct ContentView: View {
     @Environment(AuthViewModel.self) private var auth
     @State private var shaLabel = BuildConfig.gitSHA
     @State private var selectedTab = 0
+    #if DEBUG
+    @State private var showDebugSettings = false
+    #endif
 
     private var isUITesting: Bool {
         CommandLine.arguments.contains("--uitesting")
@@ -71,6 +74,18 @@ struct ContentView: View {
         }
         .preferredColorScheme(auth.themeMode.colorScheme)
         .animation(.default, value: auth.isAuthenticated)
+        #if DEBUG
+        .overlay(alignment: .topTrailing) {
+            Button("Debug") { showDebugSettings = true }
+                .font(.caption2)
+                .buttonStyle(.bordered)
+                .padding(.trailing, 8)
+                .padding(.top, 52)
+        }
+        .sheet(isPresented: $showDebugSettings) {
+            DebugSettingsView()
+        }
+        #endif
         .overlay(alignment: .bottomTrailing) {
             Text(shaLabel)
                 .font(.system(size: 9))
