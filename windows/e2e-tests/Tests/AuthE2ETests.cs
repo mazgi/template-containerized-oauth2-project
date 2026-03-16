@@ -152,6 +152,109 @@ public class AuthE2ETests : BaseTest
         Assert.That(unverifiedText.Displayed, Is.True);
     }
 
+    // --- Password Reset ---
+
+    [Test]
+    public void PasswordReset_SendResetLinkFromSettings()
+    {
+        var email = TestHelpers.UniqueEmail("pwreset");
+        CreateVerifiedUserAndSignIn(email);
+
+        // Navigate to Settings tab
+        var settingsTab = WaitForText("Settings", 10);
+        settingsTab.Click();
+
+        // Click "Send reset link"
+        var resetButton = ScrollToElement("settings_passwordReset", 15);
+        resetButton.Click();
+
+        // Wait for success message
+        WaitForText("Password reset link sent. Please check your inbox.", 15);
+
+        // Verify reset email arrived in Mailpit
+        var token = TestHelpers.GetPasswordResetToken(email);
+        Assert.That(token, Is.Not.Empty);
+    }
+
+    [Test]
+    public void PasswordReset_ResetAndSignInWithNewPassword()
+    {
+        var email = TestHelpers.UniqueEmail("pwresetlogin");
+        var newPassword = "NewPassword1!";
+        CreateVerifiedUserAndSignIn(email);
+
+        // Request password reset via API
+        TestHelpers.PostJson($"http://localhost:4000/auth/forgot-password",
+            $"{{\"email\":\"{email}\"}}");
+
+        // Get reset token and reset password via API
+        var token = TestHelpers.GetPasswordResetToken(email);
+        TestHelpers.PostJson($"http://localhost:4000/auth/reset-password",
+            $"{{\"token\":\"{token}\",\"password\":\"{newPassword}\"}}");
+
+        // Sign out
+        SignOut();
+
+        // Sign in with new password
+        SignInViaUI(email, newPassword);
+        var userEmail = WaitForElement("dashboard_userEmail", 15);
+        Assert.That(userEmail.Text, Is.EqualTo(email));
+    }
+
+    [Test]
+    public void PasswordReset_OldPasswordFailsAfterReset()
+    {
+        var email = TestHelpers.UniqueEmail("pwold");
+        var newPassword = "NewPassword1!";
+        CreateVerifiedUserAndSignIn(email);
+
+        // Request password reset via API and reset
+        TestHelpers.PostJson($"http://localhost:4000/auth/forgot-password",
+            $"{{\"email\":\"{email}\"}}");
+        var token = TestHelpers.GetPasswordResetToken(email);
+        TestHelpers.PostJson($"http://localhost:4000/auth/reset-password",
+            $"{{\"token\":\"{token}\",\"password\":\"{newPassword}\"}}");
+
+        // Sign out
+        SignOut();
+
+        // Try to sign in with old password — should fail
+        SignInViaUI(email, TestHelpers.DefaultPassword);
+        WaitForEnabled("signin_submitButton", 15);
+
+        var errorText = WaitForElement("signin_errorText", 5);
+        Assert.That(errorText.Displayed, Is.True);
+    }
+
+    [Test]
+    public void PasswordReset_ButtonDisabledWhenEmailUnverified()
+    {
+        var oldEmail = TestHelpers.UniqueEmail("pwunverified");
+        var newEmail = TestHelpers.UniqueEmail("pwunverifiednew");
+        CreateVerifiedUserAndSignIn(oldEmail);
+
+        // Navigate to Settings
+        var settingsTab = WaitForText("Settings", 10);
+        settingsTab.Click();
+
+        // Change email to reset verification
+        ScrollToElement("settings_emailTextField", 15);
+        var emailBox = FindByAutomationId("settings_emailTextField");
+        emailBox.Clear();
+        emailBox.SendKeys(newEmail);
+        FindByAutomationId("settings_saveEmail").Click();
+
+        // Wait for "Unverified" to appear
+        WaitForText("Unverified", 15);
+
+        // The password reset button should be disabled
+        var resetButton = ScrollToElement("settings_passwordReset", 10);
+        Assert.That(resetButton.Enabled, Is.False);
+
+        // Verify the description text indicates verification is required
+        WaitForText("To use this feature, please verify your email address first.", 10);
+    }
+
     // --- Helpers ---
 
     private void NavigateToSignUp()

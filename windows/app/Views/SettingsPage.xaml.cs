@@ -77,6 +77,27 @@ public sealed partial class SettingsPage : Page
             EmailDropdown.Visibility = Visibility.Collapsed;
         }
 
+        // Password section
+        PasswordResetSuccessText.Visibility = Visibility.Collapsed;
+        if (!user.EmailVerified)
+        {
+            PasswordDescription.Text = "To use this feature, please verify your email address first.";
+            PasswordResetButton.Content = user.HasPassword == true ? "Send reset link" : "Send setup link";
+            PasswordResetButton.IsEnabled = false;
+        }
+        else if (user.HasPassword == true)
+        {
+            PasswordDescription.Text = "Send a password reset link to your email address.";
+            PasswordResetButton.Content = "Send reset link";
+            PasswordResetButton.IsEnabled = true;
+        }
+        else
+        {
+            PasswordDescription.Text = "Set a password so you can also sign in with email and password.";
+            PasswordResetButton.Content = "Send setup link";
+            PasswordResetButton.IsEnabled = true;
+        }
+
         // Provider buttons
         AppleButton.Content = user.AppleId is not null ? "Unlink" : "Link";
         DiscordButton.Content = user.DiscordId is not null ? "Unlink" : "Link";
@@ -120,6 +141,22 @@ public sealed partial class SettingsPage : Page
         try
         {
             await App.Auth.ResendVerificationFromSettingsAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorText.Text = ex.Message;
+            ErrorText.Visibility = Visibility.Visible;
+        }
+    }
+
+    private async void PasswordResetButton_Click(object sender, RoutedEventArgs e)
+    {
+        ErrorText.Visibility = Visibility.Collapsed;
+        PasswordResetSuccessText.Visibility = Visibility.Collapsed;
+        try
+        {
+            await App.Auth.RequestPasswordResetAsync();
+            PasswordResetSuccessText.Visibility = Visibility.Visible;
         }
         catch (Exception ex)
         {

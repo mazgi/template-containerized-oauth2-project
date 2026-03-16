@@ -84,6 +84,31 @@
                     AutomationProperties.AutomationId="settings_saveEmail" />
             </Grid>
 
+            <!-- Password -->
+            <TextBlock
+                Text="Password"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Margin="0,24,0,0" />
+
+            <TextBlock
+                x:Name="PasswordDescription"
+                TextWrapping="Wrap"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Margin="0,4,0,0" />
+
+            <TextBlock
+                x:Name="PasswordResetSuccessText"
+                Text="Password reset link sent. Please check your inbox."
+                Foreground="Green"
+                Visibility="Collapsed"
+                Margin="0,4,0,0" />
+
+            <Button
+                x:Name="PasswordResetButton"
+                Click="PasswordResetButton_Click"
+                AutomationProperties.AutomationId="settings_passwordReset"
+                Margin="0,8,0,0" />
+
             <!-- Linked Accounts -->
             <TextBlock
                 Text="Linked Accounts"

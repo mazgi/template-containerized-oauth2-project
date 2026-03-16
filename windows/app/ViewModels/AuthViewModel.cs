@@ -216,6 +216,15 @@ public partial class AuthViewModel : ObservableObject
         });
     }
 
+    public async Task RequestPasswordResetAsync()
+    {
+        if (User is null) return;
+        await PerformAsync(async () =>
+        {
+            await _api.ForgotPasswordAsync(User.Email);
+        });
+    }
+
     public async Task DeleteAccountAsync()
     {
         if (AccessToken is null) return;
