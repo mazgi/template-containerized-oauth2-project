@@ -25,7 +25,18 @@ public sealed class ApiClient
     public static readonly ApiClient Shared = new(LoadBaseUrl());
 
     private readonly HttpClient _http;
-    public string BaseUrl { get; }
+    private readonly string _defaultBaseUrl;
+    public string BaseUrl
+    {
+        get
+        {
+#if DEBUG
+            var debugUrl = DebugSettings.ApiBaseUrl;
+            if (!string.IsNullOrEmpty(debugUrl)) return debugUrl;
+#endif
+            return _defaultBaseUrl;
+        }
+    }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -48,7 +59,7 @@ public sealed class ApiClient
 
     public ApiClient(string baseUrl = "http://localhost:4000")
     {
-        BaseUrl = baseUrl;
+        _defaultBaseUrl = baseUrl;
         _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
     }
 

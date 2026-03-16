@@ -16,6 +16,46 @@ public sealed partial class MainWindow : Window
         FetchBackendSha();
         App.Auth.ThemeChanged += ApplyTheme;
         ApplyTheme();
+#if DEBUG
+        DebugButton.Visibility = Visibility.Visible;
+#endif
+    }
+
+    private async void DebugButton_Click(object sender, RoutedEventArgs e)
+    {
+#if DEBUG
+        var textBox = new TextBox
+        {
+            Text = DebugSettings.ApiBaseUrl ?? "",
+            PlaceholderText = "http://localhost:4000",
+            Margin = new Thickness(0, 8, 0, 0),
+        };
+        var panel = new StackPanel();
+        panel.Children.Add(new TextBlock { Text = "API Base URL" });
+        panel.Children.Add(textBox);
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Leave empty to use the default URL.",
+            FontSize = 12,
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+            Margin = new Thickness(0, 8, 0, 0),
+        });
+
+        var dialog = new ContentDialog
+        {
+            Title = "Debug Settings",
+            Content = panel,
+            PrimaryButtonText = "Save",
+            CloseButtonText = "Cancel",
+            XamlRoot = Content.XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            var trimmed = textBox.Text?.Trim();
+            DebugSettings.ApiBaseUrl = string.IsNullOrEmpty(trimmed) ? null : trimmed;
+        }
+#endif
     }
 
     public void ApplyTheme()

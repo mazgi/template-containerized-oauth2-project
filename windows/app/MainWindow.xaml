@@ -20,6 +20,16 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center" />
         <Frame x:Name="RootFrame" Visibility="Collapsed" />
+        <Button
+            x:Name="DebugButton"
+            Content="Debug"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="0,8,8,0"
+            FontSize="10"
+            Padding="8,4"
+            Click="DebugButton_Click"
+            Visibility="Collapsed" />
         <TextBlock
             x:Name="GitSHAText"
             AutomationProperties.AutomationId="gitShaLabel"
