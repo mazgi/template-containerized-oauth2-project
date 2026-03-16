@@ -8,10 +8,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
@@ -46,6 +49,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        DebugSettings.init(this)
         authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
         // Handle OAuth callback when launched via deep link
@@ -218,12 +222,28 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+                if (BuildConfig.DEBUG) {
+                    var showDebugSettings by remember { mutableStateOf(false) }
+                    Button(
+                        onClick = { showDebugSettings = true },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = 8.dp, top = 48.dp)
+                            .size(width = 64.dp, height = 32.dp),
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+                    ) {
+                        Text("Debug", style = MaterialTheme.typography.labelSmall)
+                    }
+                    if (showDebugSettings) {
+                        DebugSettingsDialog(onDismiss = { showDebugSettings = false })
+                    }
+                }
                 val frontSha = BuildConfig.GIT_SHA
                 var shaLabel by remember { mutableStateOf(frontSha) }
                 LaunchedEffect(Unit) {
                     val backSha = try {
                         withContext(Dispatchers.IO) {
-                            val conn = java.net.URL("${BuildConfig.API_BASE_URL}/health")
+                            val conn = java.net.URL("${APIClient.shared.baseUrl}/health")
                                 .openConnection() as java.net.HttpURLConnection
                             conn.connectTimeout = 3000
                             conn.readTimeout = 3000
