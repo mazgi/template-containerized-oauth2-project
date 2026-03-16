@@ -131,6 +131,14 @@ class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
         parseUserProfile(JSONObject(patch("/auth/email", body, accessToken)))
     }
 
+    suspend fun forgotPassword(email: String): MessageResponse = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply {
+            put("email", email)
+        }
+        val json = JSONObject(post("/auth/forgot-password", body))
+        MessageResponse(message = json.getString("message"))
+    }
+
     suspend fun deleteAccount(accessToken: String) = withContext(Dispatchers.IO) {
         delete("/auth/account", accessToken)
     }

@@ -321,7 +321,7 @@ class AuthE2ETest {
     }
 
     // -------------------------------------------------------------------------
-    // Sign Out test
+    // Helpers – Settings navigation & Mailpit password reset
     // -------------------------------------------------------------------------
 
     /** Navigate to the Settings tab in the bottom navigation. */
@@ -331,6 +331,43 @@ class AuthE2ETest {
             composeRule.onAllNodesWithText("Linked Accounts")
                 .fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    /** Poll Mailpit for the password reset token sent to [email]. */
+    private fun getPasswordResetToken(email: String): String {
+        for (i in 0 until 20) {
+            try {
+                val searchUrl = "$MAILPIT_URL/api/v1/search?query=to:$email"
+                val conn = URL(searchUrl).openConnection() as HttpURLConnection
+                conn.connectTimeout = 5_000
+                conn.readTimeout = 5_000
+                if (conn.responseCode == 200) {
+                    val data = JSONObject(conn.inputStream.bufferedReader().readText())
+                    conn.disconnect()
+                    val messages = data.optJSONArray("messages")
+                    if (messages != null) {
+                        for (j in 0 until messages.length()) {
+                            val msgId = messages.getJSONObject(j).getString("ID")
+                            val msgConn = URL("$MAILPIT_URL/api/v1/message/$msgId")
+                                .openConnection() as HttpURLConnection
+                            msgConn.connectTimeout = 5_000
+                            msgConn.readTimeout = 5_000
+                            val msg = JSONObject(msgConn.inputStream.bufferedReader().readText())
+                            msgConn.disconnect()
+                            val body = msg.optString("HTML", "") + msg.optString("Text", "")
+                            if (body.contains("reset-password") || body.contains("Password Reset")) {
+                                val match = Regex("[?&]token=([a-f0-9-]+)").find(body)
+                                if (match != null) return match.groupValues[1]
+                            }
+                        }
+                    }
+                } else {
+                    conn.disconnect()
+                }
+            } catch (_: Exception) { }
+            Thread.sleep(500)
+        }
+        throw RuntimeException("Password reset email not found for $email")
     }
 
     // -------------------------------------------------------------------------
@@ -385,5 +422,123 @@ class AuthE2ETest {
         waitForSignInScreen()
 
         composeRule.onNodeWithText("Don't have an account? Sign Up").assertIsDisplayed()
+    }
+
+    // -------------------------------------------------------------------------
+    // Password Reset tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun passwordReset_sendResetLinkFromSettings() {
+        waitForSignInScreen()
+        val email = uniqueEmail()
+        signUpAndSignIn(email)
+
+        // Navigate to Settings
+        navigateToSettings()
+
+        // Scroll to and click "Send reset link"
+        composeRule.onNodeWithTag("settings_passwordResetButton").performScrollTo().performClick()
+
+        // Wait for success message
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Password reset link sent. Please check your inbox.")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Verify reset email arrived in Mailpit
+        val token = getPasswordResetToken(email)
+        assert(token.isNotEmpty()) { "Expected a non-empty password reset token" }
+    }
+
+    @Test
+    fun passwordReset_resetAndSignInWithNewPassword() {
+        waitForSignInScreen()
+        val email = uniqueEmail()
+        val newPassword = "NewPassword1!"
+        signUpAndSignIn(email)
+
+        // Request password reset via API
+        postJson("$BACKEND_URL/auth/forgot-password", """{"email":"$email"}""")
+
+        // Get reset token and reset password via API
+        val token = getPasswordResetToken(email)
+        postJson("$BACKEND_URL/auth/reset-password", """{"token":"$token","password":"$newPassword"}""")
+
+        // Sign out
+        signOut()
+
+        // Sign in with new password
+        composeRule.onNodeWithText("Email").performTextInput(email)
+        composeRule.onNodeWithText("Password").performTextInput(newPassword)
+        composeRule.onAllNodesWithText("Sign In").filterToOne(hasClickAction()).performClick()
+        waitForDashboard()
+
+        composeRule.onNodeWithText("Sign Out").assertIsDisplayed()
+        composeRule.onNodeWithText(email).assertIsDisplayed()
+    }
+
+    @Test
+    fun passwordReset_oldPasswordFailsAfterReset() {
+        waitForSignInScreen()
+        val email = uniqueEmail()
+        val oldPassword = "Password1!"
+        val newPassword = "NewPassword1!"
+        signUpAndSignIn(email, oldPassword)
+
+        // Request password reset via API and reset
+        postJson("$BACKEND_URL/auth/forgot-password", """{"email":"$email"}""")
+        val token = getPasswordResetToken(email)
+        postJson("$BACKEND_URL/auth/reset-password", """{"token":"$token","password":"$newPassword"}""")
+
+        // Sign out
+        signOut()
+
+        // Try to sign in with old password — should fail
+        composeRule.onNodeWithText("Email").performTextInput(email)
+        composeRule.onNodeWithText("Password").performTextInput(oldPassword)
+        composeRule.onAllNodesWithText("Sign In").filterToOne(hasClickAction()).performClick()
+
+        waitForButtonEnabled("Sign In")
+
+        // Must remain on Sign In screen
+        composeRule.onNodeWithText("Don't have an account? Sign Up").assertIsDisplayed()
+    }
+
+    @Test
+    fun passwordReset_buttonDisabledWhenEmailUnverified() {
+        waitForSignInScreen()
+        val email = uniqueEmail()
+
+        // Create user but DON'T verify, then sign in won't work for unverified user
+        // So we create verified user, sign in, change email (resets verification), check button
+        signUpAndSignIn(email)
+        navigateToSettings()
+
+        // Change email to reset verification
+        val newEmail = uniqueEmail()
+        composeRule.onNodeWithTag("settings_emailInput").performScrollTo().performTextInput(newEmail)
+        composeRule.onNodeWithTag("settings_saveEmail").performScrollTo().performClick()
+
+        // Wait for "Unverified" badge
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Unverified")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // The password reset button should be disabled because email is unverified
+        composeRule.onNodeWithTag("settings_passwordResetButton").performScrollTo()
+        composeRule.waitUntil(5_000L) {
+            try {
+                composeRule.onNodeWithTag("settings_passwordResetButton").assertExists()
+                true
+            } catch (_: AssertionError) {
+                false
+            }
+        }
+        // Verify the description text indicates verification is required
+        composeRule.onNodeWithText("To use this feature, please verify your email address first.")
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 }

@@ -157,6 +157,9 @@ class MainActivity : ComponentActivity() {
                                         onResendVerification = {
                                             authViewModel.resendVerificationFromSettings()
                                         },
+                                        onRequestPasswordReset = {
+                                            authViewModel.requestPasswordReset()
+                                        },
                                         onSetTheme = { mode ->
                                             authViewModel.setTheme(mode)
                                         },
