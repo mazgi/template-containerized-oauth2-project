@@ -26,17 +26,9 @@ resource "aws_ecs_express_gateway_service" "backend" {
     image          = "${local.persistent.ecr_backend_repository_url}:${var.image_tag}"
     container_port = 4000
 
-    # Web callback base URL uses the frontend proxy (frontend_url/backend)
-    # so the session cookie stays on the same domain throughout the OAuth flow.
-    # Native callback base URL uses the backend directly (native apps connect to the backend).
-    environment {
-      name  = "AUTH_CALLBACK_BASE_URL"
-      value = "${local.frontend_url}/backend"
-    }
-    environment {
-      name  = "AUTH_NATIVE_CALLBACK_BASE_URL"
-      value = local.backend_base_url
-    }
+    # Environment variables MUST be sorted alphabetically by name.
+    # The AWS API returns them sorted, and the provider will report
+    # "inconsistent result after apply" if the declared order differs.
     environment {
       name  = "AUTH_APPLE_CLIENT_ID"
       value = var.apple_client_id
@@ -48,6 +40,12 @@ resource "aws_ecs_express_gateway_service" "backend" {
     environment {
       name  = "AUTH_APPLE_TEAM_ID"
       value = var.apple_team_id
+    }
+    # Web callback base URL uses the frontend proxy (frontend_url/backend)
+    # so the session cookie stays on the same domain throughout the OAuth flow.
+    environment {
+      name  = "AUTH_CALLBACK_BASE_URL"
+      value = "${local.frontend_url}/backend"
     }
     environment {
       name  = "AUTH_DISCORD_CLIENT_ID"
@@ -68,6 +66,11 @@ resource "aws_ecs_express_gateway_service" "backend" {
     environment {
       name  = "AUTH_JWT_REFRESH_EXPIRATION"
       value = var.jwt_refresh_expiration
+    }
+    # Native callback base URL uses the backend directly (native apps connect to the backend).
+    environment {
+      name  = "AUTH_NATIVE_CALLBACK_BASE_URL"
+      value = local.backend_base_url
     }
     environment {
       name  = "AUTH_TWITTER_CLIENT_ID"
@@ -90,6 +93,10 @@ resource "aws_ecs_express_gateway_service" "backend" {
       value = "4000"
     }
     environment {
+      name  = "SMTP_FROM"
+      value = var.smtp_from
+    }
+    environment {
       name  = "SMTP_HOST"
       value = var.smtp_host
     }
@@ -104,10 +111,6 @@ resource "aws_ecs_express_gateway_service" "backend" {
     environment {
       name  = "SMTP_USER"
       value = var.smtp_user
-    }
-    environment {
-      name  = "SMTP_FROM"
-      value = var.smtp_from
     }
 
     secret {
