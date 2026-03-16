@@ -60,7 +60,7 @@ variable "database_name" {
 variable "database_user" {
   description = "PostgreSQL user name"
   type        = string
-  default     = "user"
+  default     = "appuser"
 }
 
 # -----------------------------------------------------------------------------
