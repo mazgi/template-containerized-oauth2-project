@@ -192,6 +192,21 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun requestPasswordReset() {
+        viewModelScope.launch {
+            val email = _uiState.value.user?.email ?: return@launch
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                api.forgotPassword(email)
+                _uiState.value = _uiState.value.copy(isLoading = false)
+            } catch (e: APIException) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message, isLoading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknown error", isLoading = false)
+            }
+        }
+    }
+
     fun deleteAccount() {
         viewModelScope.launch {
             val token = _uiState.value.accessToken ?: return@launch

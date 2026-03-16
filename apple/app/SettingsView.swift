@@ -5,6 +5,7 @@ struct SettingsView: View {
     @State private var showDeleteConfirmation = false
     @State private var emailInput = ""
     @State private var showEmailMenu = false
+    @State private var passwordResetSent = false
 
     private let providers: [(key: String, label: String)] = [
         ("apple", "Apple"),
@@ -100,6 +101,37 @@ struct SettingsView: View {
                     )
                     .accessibilityIdentifier("settings_saveEmail")
                 }
+            }
+
+            Section("Password") {
+                if auth.user?.emailVerified != true {
+                    Text("To use this feature, please verify your email address first.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if auth.user?.hasPassword == true {
+                    Text("Send a password reset link to your email address.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Set a password so you can also sign in with email and password.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if passwordResetSent {
+                    Text("Password reset link sent. Please check your inbox.")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                }
+
+                Button(auth.user?.hasPassword == true ? "Send reset link" : "Send setup link") {
+                    Task {
+                        await auth.requestPasswordReset()
+                        passwordResetSent = true
+                    }
+                }
+                .disabled(auth.isLoading || auth.user?.emailVerified != true)
+                .accessibilityIdentifier("settings_passwordReset")
             }
 
             Section("Linked Accounts") {

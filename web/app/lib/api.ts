@@ -74,6 +74,20 @@ export function resendVerification(email: string): Promise<MessageResponse> {
   })
 }
 
+export function forgotPassword(email: string): Promise<MessageResponse> {
+  return request('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function resetPassword(token: string, password: string): Promise<MessageResponse> {
+  return request('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}
+
 export function signin(email: string, password: string): Promise<AuthResponse> {
   return request('/auth/signin', {
     method: 'POST',

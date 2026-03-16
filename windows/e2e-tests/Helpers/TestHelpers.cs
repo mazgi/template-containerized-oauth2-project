@@ -62,6 +62,41 @@ public static class TestHelpers
         throw new Exception($"Verification email not found for {email}");
     }
 
+    public static string GetPasswordResetToken(string email)
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            try
+            {
+                var searchUrl = $"{MailpitURL}/api/v1/search?query=to:{email}";
+                var response = Http.GetStringAsync(searchUrl).GetAwaiter().GetResult();
+                using var doc = JsonDocument.Parse(response);
+                var messages = doc.RootElement.GetProperty("messages");
+                for (int j = 0; j < messages.GetArrayLength(); j++)
+                {
+                    var msgId = messages[j].GetProperty("ID").GetString();
+                    var msgResponse = Http.GetStringAsync($"{MailpitURL}/api/v1/message/{msgId}").GetAwaiter().GetResult();
+                    using var msgDoc = JsonDocument.Parse(msgResponse);
+                    var body = "";
+                    if (msgDoc.RootElement.TryGetProperty("HTML", out var htmlProp))
+                        body += htmlProp.GetString();
+                    if (msgDoc.RootElement.TryGetProperty("Text", out var textProp))
+                        body += textProp.GetString();
+
+                    if ((body ?? "").Contains("reset-password") || (body ?? "").Contains("Password Reset"))
+                    {
+                        var match = Regex.Match(body ?? "", @"[?&]token=([a-f0-9-]+)");
+                        if (match.Success)
+                            return match.Groups[1].Value;
+                    }
+                }
+            }
+            catch { }
+            Thread.Sleep(500);
+        }
+        throw new Exception($"Password reset email not found for {email}");
+    }
+
     public static void CreateVerifiedUser(string email, string password = DefaultPassword)
     {
         PostJson($"{BackendURL}/auth/signup", $"{{\"email\":\"{email}\",\"password\":\"{password}\"}}");

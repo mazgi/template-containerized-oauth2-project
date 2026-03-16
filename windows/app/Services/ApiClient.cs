@@ -85,6 +85,9 @@ public sealed class ApiClient
     public Task<UserProfile> UpdateEmailAsync(string accessToken, string email) =>
         PatchAsync<UserProfile>("/auth/email", new { email }, accessToken);
 
+    public Task<MessageResponse> ForgotPasswordAsync(string email) =>
+        PostAsync<MessageResponse>("/auth/forgot-password", new { email });
+
     public async Task DeleteAccountAsync(string accessToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Delete, BaseUrl + "/auth/account");

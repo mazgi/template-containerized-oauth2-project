@@ -167,6 +167,10 @@ final class APIClient {
         try await patch("/auth/email", body: UpdateEmailRequest(email: email), token: accessToken)
     }
 
+    func forgotPassword(email: String) async throws -> MessageResponse {
+        try await post("/auth/forgot-password", body: ["email": email])
+    }
+
     func deleteAccount(accessToken: String) async throws {
         try await delete("/auth/account", token: accessToken)
     }

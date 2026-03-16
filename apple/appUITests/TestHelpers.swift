@@ -99,6 +99,54 @@ enum TestHelpers {
         return String(html[tokenRange])
     }
 
+    // MARK: - Password Reset Token
+
+    /// Poll Mailpit for the password reset token sent to the given email address.
+    static func getPasswordResetToken(email: String) throws -> String {
+        for i in 0..<20 {
+            if let token = try? fetchPasswordResetTokenFromMailpit(email: email) {
+                return token
+            }
+            if i < 19 {
+                Thread.sleep(forTimeInterval: 0.5)
+            }
+        }
+        throw NSError(
+            domain: "TestHelpers",
+            code: 2,
+            userInfo: [NSLocalizedDescriptionKey: "Password reset email not found for \(email) after 10s"]
+        )
+    }
+
+    private static func fetchPasswordResetTokenFromMailpit(email: String) throws -> String? {
+        let searchResult = try httpGet(
+            url: "\(mailpitURL)/api/v1/search?query=to:\(email)"
+        )
+        guard let data = searchResult.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let messages = json["messages"] as? [[String: Any]]
+        else { return nil }
+
+        for message in messages {
+            guard let msgId = message["ID"] as? String else { continue }
+            let msgResult = try httpGet(url: "\(mailpitURL)/api/v1/message/\(msgId)")
+            guard let msgData = msgResult.data(using: .utf8),
+                  let msgJson = try? JSONSerialization.jsonObject(with: msgData) as? [String: Any]
+            else { continue }
+
+            let body = (msgJson["HTML"] as? String ?? "") + (msgJson["Text"] as? String ?? "")
+            guard body.contains("reset-password") || body.contains("Password Reset") else { continue }
+
+            guard let tokenRange = body.range(
+                of: #"(?<=[?&]token=)[a-f0-9-]+"#,
+                options: .regularExpression
+            ) else { continue }
+
+            return String(body[tokenRange])
+        }
+        return nil
+    }
+
     // MARK: - System Alert Dismissal
 
     /// Dismiss any lingering system alerts (e.g., "Save Password?") via springboard

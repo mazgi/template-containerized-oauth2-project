@@ -49,11 +49,13 @@ fun SettingsScreen(
     onDeleteAccount: () -> Unit,
     onUpdateEmail: (String) -> Unit = {},
     onResendVerification: () -> Unit = {},
+    onRequestPasswordReset: () -> Unit = {},
     onSetTheme: (ThemeMode) -> Unit = {},
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var emailInput by remember { mutableStateOf("") }
     var showEmailDropdown by remember { mutableStateOf(false) }
+    var passwordResetSent by remember { mutableStateOf(false) }
     val providers = listOf(
         "apple" to "Apple",
         "discord" to "Discord",
@@ -178,6 +180,50 @@ fun SettingsScreen(
                     ) {
                         Text("Save")
                     }
+                }
+            }
+        }
+
+        // Password section
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(text = "Password", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = if (user?.emailVerified != true) {
+                        "To use this feature, please verify your email address first."
+                    } else if (user.hasPassword == true) {
+                        "Send a password reset link to your email address."
+                    } else {
+                        "Set a password so you can also sign in with email and password."
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                if (passwordResetSent) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Password reset link sent. Please check your inbox.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF16A34A),
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = {
+                        onRequestPasswordReset()
+                        passwordResetSent = true
+                    },
+                    enabled = !uiState.isLoading && user?.emailVerified == true,
+                    modifier = Modifier.testTag("settings_passwordResetButton"),
+                ) {
+                    Text(
+                        if (user?.hasPassword == true) "Send reset link" else "Send setup link"
+                    )
                 }
             }
         }
