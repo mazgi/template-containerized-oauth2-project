@@ -197,6 +197,25 @@ public partial class AuthViewModel : ObservableObject
         });
     }
 
+    public async Task UpdateEmailAsync(string newEmail)
+    {
+        if (AccessToken is null) return;
+        await PerformAsync(async () =>
+        {
+            var updatedUser = await _api.UpdateEmailAsync(AccessToken, newEmail);
+            User = updatedUser;
+        });
+    }
+
+    public async Task ResendVerificationFromSettingsAsync()
+    {
+        if (User is null) return;
+        await PerformAsync(async () =>
+        {
+            await _api.ResendVerificationAsync(User.Email);
+        });
+    }
+
     public async Task DeleteAccountAsync()
     {
         if (AccessToken is null) return;

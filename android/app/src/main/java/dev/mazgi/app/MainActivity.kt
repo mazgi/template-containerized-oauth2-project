@@ -151,6 +151,12 @@ class MainActivity : ComponentActivity() {
                                         onDeleteAccount = {
                                             authViewModel.deleteAccount()
                                         },
+                                        onUpdateEmail = { email ->
+                                            authViewModel.updateEmail(email)
+                                        },
+                                        onResendVerification = {
+                                            authViewModel.resendVerificationFromSettings()
+                                        },
                                         onSetTheme = { mode ->
                                             authViewModel.setTheme(mode)
                                         },

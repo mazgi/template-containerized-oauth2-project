@@ -20,6 +20,10 @@ struct CreateItemRequest: Encodable {
     let name: String
 }
 
+struct UpdateEmailRequest: Encodable {
+    let email: String
+}
+
 // MARK: - Response models
 
 struct UserPreferences: Codable {
@@ -29,6 +33,7 @@ struct UserPreferences: Codable {
 struct UserProfile: Decodable, Identifiable {
     let id: String
     let email: String
+    let emailVerified: Bool
     let name: String?
     let appleId: String?
     let githubId: String?
@@ -36,6 +41,7 @@ struct UserProfile: Decodable, Identifiable {
     let twitterId: String?
     let discordId: String?
     let hasPassword: Bool?
+    let socialEmails: [String]?
     let preferences: UserPreferences?
     let createdAt: String
     let updatedAt: String
@@ -155,6 +161,10 @@ final class APIClient {
 
     func updatePreferences(accessToken: String, preferences: UserPreferences) async throws -> UserProfile {
         try await patch("/users/me/preferences", body: preferences, token: accessToken)
+    }
+
+    func updateEmail(accessToken: String, email: String) async throws -> UserProfile {
+        try await patch("/auth/email", body: UpdateEmailRequest(email: email), token: accessToken)
     }
 
     func deleteAccount(accessToken: String) async throws {

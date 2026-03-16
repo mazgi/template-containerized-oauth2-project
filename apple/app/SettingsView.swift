@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AuthViewModel.self) private var auth
     @State private var showDeleteConfirmation = false
+    @State private var emailInput = ""
+    @State private var showEmailMenu = false
 
     private let providers: [(key: String, label: String)] = [
         ("apple", "Apple"),
@@ -12,8 +14,94 @@ struct SettingsView: View {
         ("twitter", "X (Twitter)"),
     ]
 
+    private var isInvalidEmail: Bool {
+        auth.user?.email.hasSuffix(".invalid") == true
+    }
+
+    private var selectableEmails: [String] {
+        (auth.user?.socialEmails ?? []).filter { $0 != auth.user?.email }
+    }
+
     var body: some View {
         List {
+            // Email section
+            Section("Email") {
+                HStack(spacing: 8) {
+                    if isInvalidEmail {
+                        Text("Not set")
+                            .italic()
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(auth.user?.email ?? "")
+                        if auth.user?.emailVerified == true {
+                            Text("Verified")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.green.opacity(0.1))
+                                .foregroundStyle(.green)
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.green.opacity(0.3), lineWidth: 1))
+                        } else {
+                            Text("Unverified")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.yellow.opacity(0.1))
+                                .foregroundStyle(.orange)
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.yellow.opacity(0.3), lineWidth: 1))
+                        }
+                    }
+                }
+
+                if !isInvalidEmail && auth.user?.emailVerified == false {
+                    Button("Resend verification email") {
+                        Task { await auth.resendVerificationFromSettings() }
+                    }
+                    .disabled(auth.isLoading)
+                    .accessibilityIdentifier("settings_resendVerification")
+                }
+
+                HStack {
+                    TextField("Enter new email address", text: $emailInput)
+                        .textContentType(.emailAddress)
+                        #if os(iOS)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        #endif
+                        .accessibilityIdentifier("settings_emailTextField")
+
+                    if !selectableEmails.isEmpty {
+                        Menu {
+                            ForEach(selectableEmails, id: \.self) { email in
+                                Button(email) {
+                                    emailInput = email
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.down")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 32, height: 32)
+                        }
+                        .accessibilityIdentifier("settings_emailDropdown")
+                    }
+
+                    Button("Save") {
+                        Task { await auth.updateEmail(emailInput.trimmingCharacters(in: .whitespaces)) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(
+                        auth.isLoading
+                        || emailInput.trimmingCharacters(in: .whitespaces).isEmpty
+                        || emailInput.trimmingCharacters(in: .whitespaces) == auth.user?.email
+                    )
+                    .accessibilityIdentifier("settings_saveEmail")
+                }
+            }
+
             Section("Linked Accounts") {
                 ForEach(providers, id: \.key) { provider in
                     HStack {

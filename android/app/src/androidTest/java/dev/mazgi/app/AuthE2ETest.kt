@@ -7,8 +7,10 @@ import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -316,6 +318,58 @@ class AuthE2ETest {
         waitForSignInScreen()
 
         composeRule.onNodeWithText("Don't have an account? Sign Up").assertIsDisplayed()
+    }
+
+    // -------------------------------------------------------------------------
+    // Sign Out test
+    // -------------------------------------------------------------------------
+
+    /** Navigate to the Settings tab in the bottom navigation. */
+    private fun navigateToSettings() {
+        composeRule.onNodeWithText("Settings").performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithText("Linked Accounts")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Change Email test
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun changeEmail_updatesEmailAndResetsVerification() {
+        waitForSignInScreen()
+        val oldEmail = uniqueEmail()
+        val newEmail = uniqueEmail()
+        signUpAndSignIn(oldEmail)
+
+        // Navigate to Settings
+        navigateToSettings()
+
+        // Wait for email section to load and verify current email is displayed
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText(oldEmail)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(oldEmail).assertExists()
+        composeRule.onNodeWithText("Verified").assertExists()
+
+        // Enter new email and save
+        composeRule.onNodeWithTag("settings_emailInput").performScrollTo().performTextInput(newEmail)
+        composeRule.onNodeWithTag("settings_saveEmail").performScrollTo().performClick()
+
+        // Wait for the API to complete: "Unverified" badge appears after email update
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Unverified")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Should show new email as Unverified
+        composeRule.onAllNodesWithText(newEmail).fetchSemanticsNodes().let {
+            assert(it.isNotEmpty()) { "Expected new email to be displayed" }
+        }
+        composeRule.onNodeWithText("Unverified").assertExists()
     }
 
     // -------------------------------------------------------------------------

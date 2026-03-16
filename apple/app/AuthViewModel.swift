@@ -267,6 +267,28 @@ final class AuthViewModel {
         }
     }
 
+    func updateEmail(_ newEmail: String) async {
+        guard let token = accessToken else { return }
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            let updatedUser = try await api.updateEmail(accessToken: token, email: newEmail)
+            user = updatedUser
+        } catch let e as APIError {
+            errorMessage = e.message
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func resendVerificationFromSettings() async {
+        guard let email = user?.email else { return }
+        await perform {
+            _ = try await self.api.resendVerification(email: email)
+        }
+    }
+
     func deleteAccount() async {
         guard let token = accessToken else { return }
         isLoading = true
