@@ -44,8 +44,9 @@ COPY --from=deps /usr/src/app/prisma ./prisma
 COPY --from=deps /usr/src/app/prisma.config.ts ./
 COPY --from=deps /usr/src/app/tsconfig.json ./
 COPY --from=deps /usr/src/app/package.json ./
+COPY --from=deps /usr/src/app/scripts ./scripts
 
-CMD ["npx", "prisma", "db", "push", "--accept-data-loss"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node ./scripts/apply-session-table.mjs"]
 
 # --- db-migrate stage (Cloud Run Job for production migrations) ------------
 # Runs `prisma migrate deploy` to apply pending migrations.
@@ -62,8 +63,9 @@ COPY --from=deps /usr/src/app/prisma ./prisma
 COPY --from=deps /usr/src/app/prisma.config.ts ./
 COPY --from=deps /usr/src/app/tsconfig.json ./
 COPY --from=deps /usr/src/app/package.json ./
+COPY --from=deps /usr/src/app/scripts ./scripts
 
-CMD ["npx", "prisma", "migrate", "deploy"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node ./scripts/apply-session-table.mjs"]
 
 # --- build stage -----------------------------------------------------------
 FROM deps AS builder
