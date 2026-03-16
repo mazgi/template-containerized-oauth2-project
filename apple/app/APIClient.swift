@@ -109,11 +109,19 @@ struct APIError: Error, LocalizedError {
 final class APIClient {
     static let shared = APIClient()
 
-    let baseURL: String
+    private let defaultBaseURL: String
+    var baseURL: String {
+        #if DEBUG
+        if let override = UserDefaults.standard.string(forKey: "debug_api_base_url"), !override.isEmpty {
+            return override
+        }
+        #endif
+        return defaultBaseURL
+    }
     private let session: URLSession
 
     init(baseURL: String = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String ?? "http://localhost:4000") {
-        self.baseURL = baseURL
+        self.defaultBaseURL = baseURL
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         self.session = URLSession(configuration: config)

@@ -118,7 +118,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         // so the session cookie domain matches the TWITTER_NATIVE_CALLBACK_URL.
         // If 10.0.2.2 were used here, the PKCE code_verifier stored in express-session would be
         // lost at the callback step because the browser won't send a 10.0.2.2 cookie to localhost.
-        val uri = Uri.parse("${BuildConfig.TWITTER_AUTH_BASE_URL}/auth/twitter/native")
+        val uri = Uri.parse("${api.twitterAuthBaseUrl}/auth/twitter/native")
         try {
             CustomTabsIntent.Builder().build().launchUrl(context, uri)
         } catch (e: Exception) {
@@ -138,7 +138,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun linkProvider(context: Context, provider: String) {
         val token = _uiState.value.accessToken ?: return
         // For Twitter, must use TWITTER_AUTH_BASE_URL (session cookie domain consistency for PKCE)
-        val baseUrl = if (provider == "twitter") BuildConfig.TWITTER_AUTH_BASE_URL else api.baseUrl
+        val baseUrl = if (provider == "twitter") api.twitterAuthBaseUrl else api.baseUrl
         val uri = Uri.parse("$baseUrl/auth/link/$provider/native?token=$token")
         try {
             CustomTabsIntent.Builder().build().launchUrl(context, uri)

@@ -54,11 +54,29 @@ class APIException(val statusCode: Int, message: String) : Exception(message)
 
 // MARK: - Client
 
-class APIClient(val baseUrl: String = BuildConfig.API_BASE_URL) {
+class APIClient(private val defaultBaseUrl: String = BuildConfig.API_BASE_URL) {
 
     companion object {
         val shared = APIClient()
     }
+
+    val baseUrl: String
+        get() {
+            if (BuildConfig.DEBUG) {
+                val override = DebugSettings.apiBaseUrl
+                if (!override.isNullOrBlank()) return override
+            }
+            return defaultBaseUrl
+        }
+
+    val twitterAuthBaseUrl: String
+        get() {
+            if (BuildConfig.DEBUG) {
+                val override = DebugSettings.twitterAuthBaseUrl
+                if (!override.isNullOrBlank()) return override
+            }
+            return BuildConfig.TWITTER_AUTH_BASE_URL
+        }
 
     suspend fun signIn(email: String, password: String): AuthResponse = withContext(Dispatchers.IO) {
         val body = JSONObject().apply {
