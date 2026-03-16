@@ -70,9 +70,15 @@ final class AppThemeUITests: XCTestCase {
 
     private func navigateToSettings() {
         tapTab("Settings")
+        // The theme picker may be off-screen due to the Password section pushing
+        // it below the fold. Swipe up until it appears in the UI tree.
         let themePicker = app.descendants(matching: .any)
             .matching(identifier: "settings_themePicker")
             .firstMatch
+        for _ in 0..<5 {
+            if themePicker.waitForExistence(timeout: 2) { break }
+            app.swipeUp()
+        }
         XCTAssertTrue(themePicker.waitForExistence(timeout: 5))
     }
 

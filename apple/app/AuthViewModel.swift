@@ -289,6 +289,13 @@ final class AuthViewModel {
         }
     }
 
+    func requestPasswordReset() async {
+        guard let email = user?.email else { return }
+        await perform {
+            _ = try await self.api.forgotPassword(email: email)
+        }
+    }
+
     func deleteAccount() async {
         guard let token = accessToken else { return }
         isLoading = true

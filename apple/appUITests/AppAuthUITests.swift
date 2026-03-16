@@ -188,6 +188,122 @@ final class AppAuthUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Unverified"].waitForExistence(timeout: 5))
     }
 
+    // MARK: - Password Reset
+
+    func testPasswordReset_SendResetLinkFromSettings() throws {
+        let email = Self.uniqueEmail("pwreset")
+        createVerifiedUserAndSignIn(email: email)
+
+        // Navigate to Settings tab
+        let settingsTab = app.tabBars.buttons["Settings"]
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
+
+        // Tap "Send reset link"
+        let resetButton = app.buttons["settings_passwordReset"]
+        XCTAssertTrue(resetButton.waitForExistence(timeout: 10))
+        resetButton.tap()
+
+        // Wait for success message
+        let successText = app.staticTexts["Password reset link sent. Please check your inbox."]
+        XCTAssertTrue(successText.waitForExistence(timeout: 15))
+
+        // Verify reset email arrived in Mailpit
+        let token = try TestHelpers.getPasswordResetToken(email: email)
+        XCTAssertFalse(token.isEmpty)
+    }
+
+    func testPasswordReset_ResetAndSignInWithNewPassword() throws {
+        let email = Self.uniqueEmail("pwresetlogin")
+        let newPassword = "newpassword456"
+        createVerifiedUserAndSignIn(email: email)
+
+        // Request password reset via API
+        try TestHelpers.postJSON(
+            url: "\(TestHelpers.backendURL)/auth/forgot-password",
+            body: #"{"email":"\#(email)"}"#
+        )
+
+        // Get reset token and reset password via API
+        let token = try TestHelpers.getPasswordResetToken(email: email)
+        try TestHelpers.postJSON(
+            url: "\(TestHelpers.backendURL)/auth/reset-password",
+            body: #"{"token":"\#(token)","password":"\#(newPassword)"}"#
+        )
+
+        // Sign out
+        signOut()
+
+        // Sign in with new password
+        signIn(email: email, password: newPassword)
+        TestHelpers.dismissSystemAlerts(app: app)
+
+        let userEmail = app.staticTexts["dashboard_userEmail"]
+        XCTAssertTrue(userEmail.waitForExistence(timeout: 10))
+        XCTAssertEqual(userEmail.label, email)
+    }
+
+    func testPasswordReset_OldPasswordFailsAfterReset() throws {
+        let email = Self.uniqueEmail("pwold")
+        let newPassword = "newpassword789"
+        createVerifiedUserAndSignIn(email: email)
+
+        // Request password reset via API and reset
+        try TestHelpers.postJSON(
+            url: "\(TestHelpers.backendURL)/auth/forgot-password",
+            body: #"{"email":"\#(email)"}"#
+        )
+        let token = try TestHelpers.getPasswordResetToken(email: email)
+        try TestHelpers.postJSON(
+            url: "\(TestHelpers.backendURL)/auth/reset-password",
+            body: #"{"token":"\#(token)","password":"\#(newPassword)"}"#
+        )
+
+        // Sign out
+        signOut()
+
+        // Try to sign in with old password — should fail
+        signIn(email: email, password: defaultPassword)
+
+        let errorMessage = app.staticTexts["signin_errorMessage"]
+        XCTAssertTrue(errorMessage.waitForExistence(timeout: 10))
+    }
+
+    func testPasswordReset_ButtonDisabledWhenEmailUnverified() throws {
+        let oldEmail = Self.uniqueEmail("pwunverified")
+        let newEmail = Self.uniqueEmail("pwunverifiednew")
+        createVerifiedUserAndSignIn(email: oldEmail)
+
+        // Navigate to Settings
+        let settingsTab = app.tabBars.buttons["Settings"]
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
+
+        // Change email to reset verification
+        let emailField = app.textFields["settings_emailTextField"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 5))
+        emailField.tap()
+        emailField.typeText(newEmail)
+
+        let saveButton = app.buttons["settings_saveEmail"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
+        saveButton.tap()
+
+        // Wait for "Unverified" badge
+        XCTAssertTrue(app.staticTexts["Unverified"].waitForExistence(timeout: 10))
+
+        // The password reset button should be disabled
+        let resetButton = app.buttons["settings_passwordReset"]
+        XCTAssertTrue(resetButton.waitForExistence(timeout: 5))
+        XCTAssertFalse(resetButton.isEnabled)
+
+        // Verify description text
+        XCTAssertTrue(
+            app.staticTexts["To use this feature, please verify your email address first."]
+                .waitForExistence(timeout: 5)
+        )
+    }
+
     // MARK: - Navigation
 
     func testSignInHasSignUpLink() throws {
