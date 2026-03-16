@@ -38,6 +38,37 @@ async function getVerificationToken(email: string): Promise<string> {
 }
 
 /**
+ * Fetch the password reset token for a given email from Mailpit API.
+ * Searches for the most recent "Reset your password" email.
+ */
+async function getPasswordResetToken(email: string): Promise<string> {
+  let token: string | undefined
+  for (let i = 0; i < 10; i++) {
+    const res = await fetch(`${MAILPIT_API_URL}/api/v1/search?query=to:${email}`)
+    const data = await res.json()
+    if (data.messages && data.messages.length > 0) {
+      // Find the password reset email (not verification email)
+      for (const message of data.messages) {
+        const msgRes = await fetch(`${MAILPIT_API_URL}/api/v1/message/${message.ID}`)
+        const msg = await msgRes.json()
+        const body = msg.HTML || msg.Text || ''
+        if (body.includes('reset-password') || body.includes('Password Reset')) {
+          const match = body.match(/[?&]token=([a-f0-9-]+)/)
+          if (match) {
+            token = match[1]
+            break
+          }
+        }
+      }
+      if (token) break
+    }
+    await new Promise((r) => setTimeout(r, 500))
+  }
+  if (!token) throw new Error(`Password reset email not found for ${email}`)
+  return token
+}
+
+/**
  * Sign up via the UI, verify email via Mailpit, and sign in.
  * Returns the page on the dashboard.
  */
@@ -306,6 +337,97 @@ test.describe('Change email', () => {
     const token = await getVerificationToken(newEmail)
     await page.goto(`/verify-email?token=${token}`)
     await expect(page.getByText('verified successfully')).toBeVisible()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Password reset
+// ---------------------------------------------------------------------------
+test.describe('Password reset', () => {
+  test('resets password from settings and signs in with new password', async ({ page }) => {
+    const email = uniqueEmail('pwreset')
+    const newPassword = 'newpassword456'
+    await signUpAndVerify(page, email)
+
+    // Navigate to settings
+    await page.getByRole('link', { name: 'Settings' }).click()
+    await expect(page).toHaveURL(/\/settings/)
+    await page.waitForLoadState('networkidle')
+
+    // Click "Send reset link" button
+    await page.getByRole('button', { name: 'Send reset link' }).click()
+
+    // Should show success message
+    await expect(page.locator('.success-msg')).toBeVisible()
+
+    // Get reset token from Mailpit
+    const token = await getPasswordResetToken(email)
+
+    // Navigate to reset password page
+    await page.goto(`/reset-password?token=${token}`)
+    await expect(page.getByRole('heading', { name: 'Reset Password' })).toBeVisible()
+
+    // Fill new password and submit
+    await page.locator('#password').fill(newPassword)
+    await page.locator('button[type="submit"]').click()
+
+    // Should show success message
+    await expect(page.getByText('reset successfully')).toBeVisible()
+
+    // Sign out (clear auth state) before trying to sign in with new password
+    await page.evaluate(() => localStorage.removeItem('auth_tokens'))
+
+    // Sign in with new password
+    await page.goto('/signin')
+    await page.locator('#email').fill(email)
+    await page.locator('#password').fill(newPassword)
+    await page.locator('button[type="submit"]').click()
+    await expect(page).toHaveURL(/\/dashboard/)
+  })
+
+  test('shows error for invalid reset token', async ({ page }) => {
+    await page.goto('/reset-password?token=invalid-token')
+
+    await page.locator('#password').fill('newpassword456')
+    await page.locator('button[type="submit"]').click()
+
+    await expect(page.locator('.error-msg')).toBeVisible()
+  })
+
+  test('shows error when no token is provided', async ({ page }) => {
+    await page.goto('/reset-password')
+    await expect(page.locator('.error-msg')).toBeVisible()
+  })
+
+  test('old password no longer works after reset', async ({ page }) => {
+    const email = uniqueEmail('pwold')
+    const newPassword = 'newpassword789'
+    await signUpAndVerify(page, email)
+
+    // Request password reset via API
+    await fetch(`${BACKEND_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+
+    // Reset password
+    const token = await getPasswordResetToken(email)
+    await page.goto(`/reset-password?token=${token}`)
+    await page.locator('#password').fill(newPassword)
+    await page.locator('button[type="submit"]').click()
+    await expect(page.getByText('reset successfully')).toBeVisible()
+
+    // Sign out (clear auth state) before trying to sign in
+    await page.evaluate(() => localStorage.removeItem('auth_tokens'))
+
+    // Old password should fail
+    await page.goto('/signin')
+    await page.locator('#email').fill(email)
+    await page.locator('#password').fill(DEFAULT_PASSWORD)
+    await page.locator('button[type="submit"]').click()
+    await expect(page.locator('.error-msg')).toBeVisible()
+    await expect(page).toHaveURL(/\/signin/)
   })
 })
 

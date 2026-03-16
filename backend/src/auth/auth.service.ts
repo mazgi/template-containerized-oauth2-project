@@ -437,6 +437,59 @@ export class AuthService {
     };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user || !user.emailVerified) {
+      // Return success even if user not found to prevent email enumeration
+      return { message: 'If the email is registered and verified, a password reset email has been sent' };
+    }
+
+    const token = randomUUID();
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: token,
+        passwordResetExpires: expires,
+      },
+    });
+
+    await this.mailService.sendPasswordResetEmail(email, token);
+
+    return { message: 'If the email is registered and verified, a password reset email has been sent' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { passwordResetToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid password reset token');
+    }
+
+    if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
+      throw new BadRequestException('Password reset token has expired');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    return { message: 'Password has been reset successfully' };
+  }
+
   // --- Account linking ---
 
   async linkApple(userId: string, profile: AppleProfile) {
@@ -607,7 +660,7 @@ export class AuthService {
       include: SOCIAL_INCLUDES,
     });
 
-    const { passwordHash: _pw, emailVerificationToken: _evt, emailVerificationExpires: _eve, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...userWithoutPassword } = userWithSocial!;
+    const { passwordHash: _pw, emailVerificationToken: _evt, emailVerificationExpires: _eve, passwordResetToken: _prt, passwordResetExpires: _pre, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...userWithoutPassword } = userWithSocial!;
 
     return {
       accessToken,

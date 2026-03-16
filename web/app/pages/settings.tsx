@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme, Theme } from '../contexts/ThemeContext'
 import { AppHeader } from '../components/AppHeader'
-import { unlinkProvider, deleteAccount, updateEmail, resendVerification } from '../lib/api'
+import { unlinkProvider, deleteAccount, updateEmail, resendVerification, forgotPassword } from '../lib/api'
 
 const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
   { value: 'system', labelKey: 'themeSystem' },
@@ -30,6 +30,7 @@ export default function SettingsPage() {
   const [emailSaving, setEmailSaving] = useState(false)
   const [emailResending, setEmailResending] = useState(false)
   const [emailSuccess, setEmailSuccess] = useState<string | null>(null)
+  const [passwordResetSending, setPasswordResetSending] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -106,6 +107,21 @@ export default function SettingsPage() {
       setError(err instanceof Error ? err.message : t('errorFallback'))
     } finally {
       setEmailResending(false)
+    }
+  }
+
+  async function handlePasswordReset() {
+    if (!user) return
+    setPasswordResetSending(true)
+    setError(null)
+    setEmailSuccess(null)
+    try {
+      await forgotPassword(user.email)
+      setEmailSuccess(t('passwordResetSent'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorFallback'))
+    } finally {
+      setPasswordResetSending(false)
     }
   }
 
@@ -190,6 +206,24 @@ export default function SettingsPage() {
               )
             })()}
           </div>
+        </div>
+
+        <div className="user-card" style={{ marginTop: '1.5rem' }}>
+          <h3 className="settings-section-title">{t('passwordReset')}</h3>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: '0.5rem 0 1rem' }}>
+            {!user.emailVerified
+              ? t('passwordRequiresVerification')
+              : user.hasPassword
+                ? t('passwordResetDescription')
+                : t('passwordSetDescription')}
+          </p>
+          <button
+            className="btn-ghost"
+            onClick={handlePasswordReset}
+            disabled={passwordResetSending || !user.emailVerified}
+          >
+            {passwordResetSending ? t('passwordResetSending') : (user.hasPassword ? t('passwordResetButton') : t('passwordSetButton'))}
+          </button>
         </div>
 
         <div className="user-card" style={{ marginTop: '1.5rem' }}>
