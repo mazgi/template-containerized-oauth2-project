@@ -165,7 +165,7 @@ final class AppAuthUITests: XCTestCase {
         createVerifiedUserAndSignIn(email: oldEmail)
 
         // Navigate to Settings tab
-        let settingsTab = app.buttons["Settings"]
+        let settingsTab = app.tabBars.buttons["Settings"]
         XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
         settingsTab.tap()
 
