@@ -65,6 +65,9 @@ services:
     build:
       context: ./iac
       dockerfile: ../Dockerfiles.d/iac/Dockerfile
+      args:
+        GID: "${GID:-1000}"
+        UID: "${UID:-1000}"
     environment:
       AWS_PROFILE: ${AWS_PROFILE:-}
       TF_VAR_app_unique_id: ${APP_UNIQUE_ID}
@@ -98,9 +101,9 @@ services:
       - iac
     volumes:
       - .:/work
-      - ~/.aws:/root/.aws:ro
-      - ~/.azure:/root/.azure:ro
-      - ~/.config/gcloud:/root/.config/gcloud:ro
+      - ~/.aws:/mnt/.aws:ro
+      - ~/.azure:/mnt/.azure:ro
+      - ~/.config/gcloud:/mnt/.config/gcloud:ro
     working_dir: /work/iac
 
   mailpit:
