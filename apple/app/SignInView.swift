@@ -7,8 +7,84 @@ struct SignInView: View {
     @State private var password = ""
     @State private var passwordVisible = false
     @State private var showSignUp = false
+    @State private var mfaCode = ""
 
     var body: some View {
+        if auth.mfaToken != nil {
+            mfaChallengeView
+        } else {
+            signInFormView
+        }
+    }
+
+    private var mfaChallengeView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "lock.shield")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 64, height: 64)
+                .foregroundStyle(Color.accentColor)
+
+            Text("Two-factor authentication")
+                .font(.largeTitle)
+                .bold()
+                .accessibilityIdentifier("mfa_title")
+
+            Text("Enter the 6-digit code from your authenticator app")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            if let error = auth.errorMessage {
+                Text(error)
+                    .foregroundStyle(.red)
+                    .font(.callout)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .accessibilityIdentifier("mfa_errorMessage")
+            }
+
+            TextField("000000", text: $mfaCode)
+                #if os(iOS)
+                .keyboardType(.numberPad)
+                #endif
+                .textFieldStyle(.roundedBorder)
+                .multilineTextAlignment(.center)
+                .font(.title2.monospaced())
+                .frame(maxWidth: 200)
+                .accessibilityIdentifier("mfa_codeTextField")
+
+            Button {
+                Task { await auth.verifyMfa(code: mfaCode) }
+            } label: {
+                Group {
+                    if auth.isLoading {
+                        ProgressView()
+                    } else {
+                        Text("Verify")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 20)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(auth.isLoading || mfaCode.count < 6)
+            .accessibilityIdentifier("mfa_verifyButton")
+
+            Text("You can also use a recovery code")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+        }
+        .padding(32)
+        .frame(maxWidth: 400)
+        .frame(maxWidth: .infinity)
+    }
+
+    private var signInFormView: some View {
         VStack(spacing: 24) {
             Spacer()
 

@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var emailInput = ""
     @State private var showEmailMenu = false
     @State private var passwordResetSent = false
+    @State private var totpCode = ""
 
     private let providers: [(key: String, label: String)] = [
         ("apple", "Apple"),
@@ -132,6 +133,129 @@ struct SettingsView: View {
                 }
                 .disabled(auth.isLoading || auth.user?.emailVerified != true)
                 .accessibilityIdentifier("settings_passwordReset")
+            }
+
+            Section("Two-factor authentication") {
+                switch auth.mfaStep {
+                case .idle:
+                    if auth.user?.totpEnabled == true {
+                        HStack {
+                            Text("Status")
+                            Spacer()
+                            Text("Enabled")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.green.opacity(0.1))
+                                .foregroundStyle(.green)
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.green.opacity(0.3), lineWidth: 1))
+                                .accessibilityIdentifier("settings_mfaEnabledBadge")
+                        }
+                        Button("Disable", role: .destructive) {
+                            totpCode = ""
+                            auth.beginDisableTotp()
+                        }
+                        .accessibilityIdentifier("settings_mfaDisableButton")
+                        Button("Regenerate recovery codes") {
+                            totpCode = ""
+                            auth.beginRegenerateRecoveryCodes()
+                        }
+                        .accessibilityIdentifier("settings_mfaRegenerateButton")
+                    } else {
+                        Text("Add an extra layer of security to your account by enabling two-factor authentication.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("Enable") {
+                            Task { await auth.setupTotp() }
+                        }
+                        .disabled(auth.isLoading)
+                        .accessibilityIdentifier("settings_mfaEnableButton")
+                    }
+                case .setup:
+                    if let secret = auth.totpSetupSecret {
+                        Text("Add this secret to your authenticator app:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(secret)
+                            .font(.system(.body, design: .monospaced))
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier("settings_mfaSecret")
+                    }
+                    if let uri = auth.totpSetupUri {
+                        Text(uri)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier("settings_mfaUri")
+                    }
+                    TextField("Enter 6-digit code", text: $totpCode)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
+                        .accessibilityIdentifier("settings_mfaSetupCodeTextField")
+                    Button("Verify and enable") {
+                        Task { await auth.enableTotp(code: totpCode) }
+                    }
+                    .disabled(auth.isLoading || totpCode.count < 6)
+                    .accessibilityIdentifier("settings_mfaVerifyEnableButton")
+                case .recovery:
+                    if let codes = auth.recoveryCodes {
+                        Text("Save these recovery codes in a safe place. Each code can only be used once.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        ForEach(codes, id: \.self) { code in
+                            Text(code)
+                                .font(.system(.body, design: .monospaced))
+                                .textSelection(.enabled)
+                        }
+                        .accessibilityIdentifier("settings_mfaRecoveryCode")
+                    }
+                    Button("I've saved these codes") {
+                        auth.clearMfaStep()
+                        totpCode = ""
+                    }
+                    .accessibilityIdentifier("settings_mfaSavedCodesButton")
+                case .disable:
+                    Text("Enter a code from your authenticator app to disable MFA.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    TextField("Enter 6-digit code", text: $totpCode)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
+                        .accessibilityIdentifier("settings_mfaDisableCodeTextField")
+                    Button("Disable MFA", role: .destructive) {
+                        Task { await auth.disableTotp(code: totpCode) }
+                    }
+                    .disabled(auth.isLoading || totpCode.count < 6)
+                    .accessibilityIdentifier("settings_mfaConfirmDisableButton")
+                    Button("Cancel") {
+                        auth.clearMfaStep()
+                        totpCode = ""
+                    }
+                    .accessibilityIdentifier("settings_mfaCancelButton")
+                case .regenerate:
+                    Text("Enter a code from your authenticator app to regenerate recovery codes.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    TextField("Enter 6-digit code", text: $totpCode)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
+                        .accessibilityIdentifier("settings_mfaRegenerateCodeTextField")
+                    Button("Regenerate") {
+                        Task { await auth.regenerateRecoveryCodes(code: totpCode) }
+                    }
+                    .disabled(auth.isLoading || totpCode.count < 6)
+                    .accessibilityIdentifier("settings_mfaConfirmRegenerateButton")
+                    Button("Cancel") {
+                        auth.clearMfaStep()
+                        totpCode = ""
+                    }
+                    .accessibilityIdentifier("settings_mfaRegenCancelButton")
+                }
             }
 
             Section("Linked Accounts") {
