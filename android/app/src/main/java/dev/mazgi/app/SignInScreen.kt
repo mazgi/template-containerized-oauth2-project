@@ -45,7 +45,16 @@ fun SignInScreen(
     onSignInWithGoogle: () -> Unit,
     onSignInWithX: () -> Unit,
     onNavigateToSignUp: () -> Unit,
+    onVerifyMfa: (String) -> Unit = {},
 ) {
+    if (uiState.mfaToken != null) {
+        MfaChallengeScreen(
+            uiState = uiState,
+            onVerifyMfa = onVerifyMfa,
+        )
+        return
+    }
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -186,5 +195,76 @@ fun SignInScreen(
         TextButton(onClick = onNavigateToSignUp) {
             Text("Don't have an account? Sign Up")
         }
+    }
+}
+
+@Composable
+private fun MfaChallengeScreen(
+    uiState: AuthUiState,
+    onVerifyMfa: (String) -> Unit,
+) {
+    var code by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = "Two-factor authentication",
+            style = MaterialTheme.typography.headlineMedium,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Enter the 6-digit code from your authenticator app",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = code,
+            onValueChange = { if (it.length <= 6) code = it },
+            label = { Text("Code") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        uiState.errorMessage?.let { error ->
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        Button(
+            onClick = { onVerifyMfa(code) },
+            enabled = !uiState.isLoading && code.length == 6,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
+            } else {
+                Text("Verify")
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "You can also use a recovery code",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

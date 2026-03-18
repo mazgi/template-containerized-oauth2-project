@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+enum class MfaStep { IDLE, SETUP, RECOVERY, DISABLE, REGENERATE }
+
 enum class ThemeMode(val label: String) {
     SYSTEM("System"),
     LIGHT("Light"),
@@ -37,6 +39,11 @@ data class AuthUiState(
     val errorMessage: String? = null,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val verificationSentEmail: String? = null,
+    val mfaToken: String? = null,
+    val totpSetupUri: String? = null,
+    val totpSetupSecret: String? = null,
+    val recoveryCodes: List<String>? = null,
+    val mfaStep: MfaStep = MfaStep.IDLE,
 )
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -57,10 +64,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
             perform {
-                val res = api.signIn(email, password)
-                storeTokens(res.accessToken, res.refreshToken)
-                _uiState.value = _uiState.value.copy(user = res.user, accessToken = res.accessToken, isAuthenticated = true)
-                syncTheme(res.user)
+                when (val result = api.signIn(email, password)) {
+                    is SignInResult.Success -> {
+                        val res = result.response
+                        storeTokens(res.accessToken, res.refreshToken)
+                        _uiState.value = _uiState.value.copy(user = res.user, accessToken = res.accessToken, isAuthenticated = true)
+                        syncTheme(res.user)
+                    }
+                    is SignInResult.MfaRequired -> {
+                        _uiState.value = _uiState.value.copy(mfaToken = result.mfaToken)
+                    }
+                }
             }
         }
     }
@@ -273,6 +287,122 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 // Theme already applied locally; ignore network errors
             }
         }
+    }
+
+    fun verifyMfa(code: String) {
+        viewModelScope.launch {
+            val token = _uiState.value.mfaToken ?: return@launch
+            perform {
+                val res = api.totpVerify(token, code)
+                storeTokens(res.accessToken, res.refreshToken)
+                _uiState.value = _uiState.value.copy(
+                    user = res.user,
+                    accessToken = res.accessToken,
+                    isAuthenticated = true,
+                    mfaToken = null,
+                )
+                syncTheme(res.user)
+            }
+        }
+    }
+
+    fun setupTotp() {
+        viewModelScope.launch {
+            val token = _uiState.value.accessToken ?: return@launch
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                val setup = api.totpSetup(token)
+                _uiState.value = _uiState.value.copy(
+                    totpSetupUri = setup.uri,
+                    totpSetupSecret = setup.secret,
+                    mfaStep = MfaStep.SETUP,
+                    isLoading = false,
+                )
+            } catch (e: APIException) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message, isLoading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknown error", isLoading = false)
+            }
+        }
+    }
+
+    fun enableTotp(code: String) {
+        viewModelScope.launch {
+            val token = _uiState.value.accessToken ?: return@launch
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                val result = api.totpEnable(token, code)
+                val profile = api.me(token)
+                _uiState.value = _uiState.value.copy(
+                    user = profile,
+                    recoveryCodes = result.recoveryCodes,
+                    mfaStep = MfaStep.RECOVERY,
+                    totpSetupUri = null,
+                    totpSetupSecret = null,
+                    isLoading = false,
+                )
+            } catch (e: APIException) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message, isLoading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknown error", isLoading = false)
+            }
+        }
+    }
+
+    fun disableTotp(code: String) {
+        viewModelScope.launch {
+            val token = _uiState.value.accessToken ?: return@launch
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                api.totpDisable(token, code)
+                val profile = api.me(token)
+                _uiState.value = _uiState.value.copy(
+                    user = profile,
+                    mfaStep = MfaStep.IDLE,
+                    isLoading = false,
+                )
+            } catch (e: APIException) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message, isLoading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknown error", isLoading = false)
+            }
+        }
+    }
+
+    fun regenerateRecoveryCodes(code: String) {
+        viewModelScope.launch {
+            val token = _uiState.value.accessToken ?: return@launch
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                val result = api.totpRegenerateRecoveryCodes(token, code)
+                _uiState.value = _uiState.value.copy(
+                    recoveryCodes = result.recoveryCodes,
+                    mfaStep = MfaStep.RECOVERY,
+                    isLoading = false,
+                )
+            } catch (e: APIException) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message, isLoading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknown error", isLoading = false)
+            }
+        }
+    }
+
+    fun startDisableTotp() {
+        _uiState.value = _uiState.value.copy(mfaStep = MfaStep.DISABLE, errorMessage = null)
+    }
+
+    fun startRegenerateRecoveryCodes() {
+        _uiState.value = _uiState.value.copy(mfaStep = MfaStep.REGENERATE, errorMessage = null)
+    }
+
+    fun clearMfaStep() {
+        _uiState.value = _uiState.value.copy(
+            mfaStep = MfaStep.IDLE,
+            totpSetupUri = null,
+            totpSetupSecret = null,
+            recoveryCodes = null,
+        )
     }
 
     fun signOut() {
