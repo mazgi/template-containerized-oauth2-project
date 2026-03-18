@@ -22,6 +22,10 @@ enum ThemeMode: String, CaseIterable {
     }
 }
 
+enum MfaStep {
+    case idle, setup, recovery, disable, regenerate
+}
+
 @Observable
 @MainActor
 final class AuthViewModel {
@@ -32,6 +36,11 @@ final class AuthViewModel {
     var isLoading = false
     var errorMessage: String?
     private(set) var verificationSentEmail: String?
+    private(set) var mfaToken: String?
+    private(set) var totpSetupUri: String?
+    private(set) var totpSetupSecret: String?
+    private(set) var recoveryCodes: [String]?
+    private(set) var mfaStep: MfaStep = .idle
 
     private let api: APIClient
     private let tokensKey = "auth_tokens"
@@ -50,8 +59,14 @@ final class AuthViewModel {
 
     func signIn(email: String, password: String) async {
         await perform {
-            let res = try await self.api.signIn(email: email, password: password)
-            self.store(res)
+            let result = try await self.api.signIn(email: email, password: password)
+            switch result {
+            case .success(let res):
+                self.mfaToken = nil
+                self.store(res)
+            case .mfaRequired(let token):
+                self.mfaToken = token
+            }
         }
     }
 
@@ -73,127 +88,27 @@ final class AuthViewModel {
     }
 
     func signInWithTwitter() async {
-        guard let url = URL(string: "\(api.baseURL)/auth/twitter/native") else { return }
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-        do {
-            let webAuth = WebAuthSession()
-            guard let callbackURL = try await webAuth.authenticate(
-                url: url,
-                callbackURLScheme: "oauth2app"
-            ) else {
-                return // User cancelled
-            }
-            let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
-            let items = components?.queryItems ?? []
-            guard
-                let accessToken = items.first(where: { $0.name == "accessToken" })?.value,
-                let refreshToken = items.first(where: { $0.name == "refreshToken" })?.value
-            else {
-                throw APIError(statusCode: 0, message: "Invalid OAuth callback URL")
-            }
-            let profile = try await api.me(accessToken: accessToken)
-            store(AuthResponse(accessToken: accessToken, refreshToken: refreshToken, user: profile))
-        } catch let e as APIError {
-            errorMessage = e.message
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        await signInWithOAuth(provider: "twitter")
     }
 
     func signInWithGithub() async {
-        guard let url = URL(string: "\(api.baseURL)/auth/github/native") else { return }
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-        do {
-            let webAuth = WebAuthSession()
-            guard let callbackURL = try await webAuth.authenticate(
-                url: url,
-                callbackURLScheme: "oauth2app"
-            ) else {
-                return // User cancelled
-            }
-            let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
-            let items = components?.queryItems ?? []
-            guard
-                let accessToken = items.first(where: { $0.name == "accessToken" })?.value,
-                let refreshToken = items.first(where: { $0.name == "refreshToken" })?.value
-            else {
-                throw APIError(statusCode: 0, message: "Invalid OAuth callback URL")
-            }
-            let profile = try await api.me(accessToken: accessToken)
-            store(AuthResponse(accessToken: accessToken, refreshToken: refreshToken, user: profile))
-        } catch let e as APIError {
-            errorMessage = e.message
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        await signInWithOAuth(provider: "github")
     }
 
     func signInWithGoogle() async {
-        guard let url = URL(string: "\(api.baseURL)/auth/google/native") else { return }
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-        do {
-            let webAuth = WebAuthSession()
-            guard let callbackURL = try await webAuth.authenticate(
-                url: url,
-                callbackURLScheme: "oauth2app"
-            ) else {
-                return // User cancelled
-            }
-            let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
-            let items = components?.queryItems ?? []
-            guard
-                let accessToken = items.first(where: { $0.name == "accessToken" })?.value,
-                let refreshToken = items.first(where: { $0.name == "refreshToken" })?.value
-            else {
-                throw APIError(statusCode: 0, message: "Invalid OAuth callback URL")
-            }
-            let profile = try await api.me(accessToken: accessToken)
-            store(AuthResponse(accessToken: accessToken, refreshToken: refreshToken, user: profile))
-        } catch let e as APIError {
-            errorMessage = e.message
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        await signInWithOAuth(provider: "google")
     }
 
     func signInWithApple() async {
-        guard let url = URL(string: "\(api.baseURL)/auth/apple/native") else { return }
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-        do {
-            let webAuth = WebAuthSession()
-            guard let callbackURL = try await webAuth.authenticate(
-                url: url,
-                callbackURLScheme: "oauth2app"
-            ) else {
-                return // User cancelled
-            }
-            let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
-            let items = components?.queryItems ?? []
-            guard
-                let accessToken = items.first(where: { $0.name == "accessToken" })?.value,
-                let refreshToken = items.first(where: { $0.name == "refreshToken" })?.value
-            else {
-                throw APIError(statusCode: 0, message: "Invalid OAuth callback URL")
-            }
-            let profile = try await api.me(accessToken: accessToken)
-            store(AuthResponse(accessToken: accessToken, refreshToken: refreshToken, user: profile))
-        } catch let e as APIError {
-            errorMessage = e.message
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        await signInWithOAuth(provider: "apple")
     }
 
     func signInWithDiscord() async {
-        guard let url = URL(string: "\(api.baseURL)/auth/discord/native") else { return }
+        await signInWithOAuth(provider: "discord")
+    }
+
+    private func signInWithOAuth(provider: String) async {
+        guard let url = URL(string: "\(api.baseURL)/auth/\(provider)/native") else { return }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
@@ -207,6 +122,7 @@ final class AuthViewModel {
             }
             let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
             let items = components?.queryItems ?? []
+
             guard
                 let accessToken = items.first(where: { $0.name == "accessToken" })?.value,
                 let refreshToken = items.first(where: { $0.name == "refreshToken" })?.value
@@ -325,12 +241,89 @@ final class AuthViewModel {
         }
     }
 
+    // MARK: - MFA
+
+    func verifyMfa(code: String) async {
+        guard let token = mfaToken else { return }
+        await perform {
+            let res = try await self.api.totpVerify(mfaToken: token, code: code)
+            self.mfaToken = nil
+            self.store(res)
+        }
+    }
+
+    func setupTotp() async {
+        guard let token = accessToken else { return }
+        await perform {
+            let res = try await self.api.totpSetup(accessToken: token)
+            self.totpSetupUri = res.uri
+            self.totpSetupSecret = res.secret
+            self.mfaStep = .setup
+        }
+    }
+
+    func enableTotp(code: String) async {
+        guard let token = accessToken else { return }
+        await perform {
+            let res = try await self.api.totpEnable(accessToken: token, code: code)
+            self.recoveryCodes = res.recoveryCodes
+            self.totpSetupUri = nil
+            self.totpSetupSecret = nil
+            self.mfaStep = .recovery
+            // Refresh user profile to reflect totpEnabled
+            if let profile = try? await self.api.me(accessToken: token) {
+                self.user = profile
+            }
+        }
+    }
+
+    func disableTotp(code: String) async {
+        guard let token = accessToken else { return }
+        await perform {
+            _ = try await self.api.totpDisable(accessToken: token, code: code)
+            self.mfaStep = .idle
+            // Refresh user profile to reflect totpEnabled
+            if let profile = try? await self.api.me(accessToken: token) {
+                self.user = profile
+            }
+        }
+    }
+
+    func regenerateRecoveryCodes(code: String) async {
+        guard let token = accessToken else { return }
+        await perform {
+            let res = try await self.api.totpRegenerateRecoveryCodes(accessToken: token, code: code)
+            self.recoveryCodes = res.recoveryCodes
+            self.mfaStep = .recovery
+        }
+    }
+
+    func clearMfaStep() {
+        mfaStep = .idle
+        totpSetupUri = nil
+        totpSetupSecret = nil
+        recoveryCodes = nil
+    }
+
+    func beginDisableTotp() {
+        mfaStep = .disable
+    }
+
+    func beginRegenerateRecoveryCodes() {
+        mfaStep = .regenerate
+    }
+
     func signOut() {
         UserDefaults.standard.removeObject(forKey: tokensKey)
         user = nil
         accessToken = nil
         isAuthenticated = false
         themeMode = .system
+        mfaToken = nil
+        mfaStep = .idle
+        totpSetupUri = nil
+        totpSetupSecret = nil
+        recoveryCodes = nil
     }
 
     // MARK: - Session restore

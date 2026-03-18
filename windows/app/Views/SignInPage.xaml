@@ -9,93 +9,160 @@
     Background="Transparent">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Width="360"
-            Padding="24"
-            Spacing="16">
-
-            <FontIcon Glyph="&#xE72E;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
-
-            <TextBlock
-                Text="Sign In"
-                Style="{StaticResource TitleTextBlockStyle}"
-                HorizontalAlignment="Center" />
-
-            <TextBlock
-                x:Name="ErrorText"
-                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                TextWrapping="Wrap"
+        <Grid>
+            <!-- Sign In Form -->
+            <StackPanel
+                x:Name="SignInPanel"
                 HorizontalAlignment="Center"
-                Visibility="Collapsed"
-                AutomationProperties.AutomationId="signin_errorText" />
+                VerticalAlignment="Center"
+                Width="360"
+                Padding="24"
+                Spacing="16">
 
-            <TextBox
-                x:Name="EmailBox"
-                Header="Email"
-                PlaceholderText="email@example.com"
-                InputScope="EmailSmtpAddress"
-                AutomationProperties.AutomationId="signin_emailTextBox" />
+                <FontIcon Glyph="&#xE72E;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
 
-            <PasswordBox
-                x:Name="PasswordBox"
-                Header="Password"
-                PlaceholderText="Password"
-                PasswordRevealMode="Peek"
-                KeyDown="PasswordBox_KeyDown"
-                AutomationProperties.AutomationId="signin_passwordBox" />
+                <TextBlock
+                    Text="Sign In"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    HorizontalAlignment="Center" />
 
-            <Button
-                x:Name="SignInButton"
-                Content="Sign In"
-                HorizontalAlignment="Stretch"
-                Style="{StaticResource AccentButtonStyle}"
-                Click="SignInButton_Click"
-                AutomationProperties.AutomationId="signin_submitButton" />
+                <TextBlock
+                    x:Name="ErrorText"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    Visibility="Collapsed"
+                    AutomationProperties.AutomationId="signin_errorText" />
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-                <Border Height="1" Width="80" Background="{ThemeResource DividerStrokeColorDefaultBrush}" VerticalAlignment="Center" />
-                <TextBlock Text="or" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
-                <Border Height="1" Width="80" Background="{ThemeResource DividerStrokeColorDefaultBrush}" VerticalAlignment="Center" />
+                <TextBox
+                    x:Name="EmailBox"
+                    Header="Email"
+                    PlaceholderText="email@example.com"
+                    InputScope="EmailSmtpAddress"
+                    AutomationProperties.AutomationId="signin_emailTextBox" />
+
+                <PasswordBox
+                    x:Name="PasswordBox"
+                    Header="Password"
+                    PlaceholderText="Password"
+                    PasswordRevealMode="Peek"
+                    KeyDown="PasswordBox_KeyDown"
+                    AutomationProperties.AutomationId="signin_passwordBox" />
+
+                <Button
+                    x:Name="SignInButton"
+                    Content="Sign In"
+                    HorizontalAlignment="Stretch"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="SignInButton_Click"
+                    AutomationProperties.AutomationId="signin_submitButton" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                    <Border Height="1" Width="80" Background="{ThemeResource DividerStrokeColorDefaultBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="or" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                    <Border Height="1" Width="80" Background="{ThemeResource DividerStrokeColorDefaultBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <Button
+                    Content="Sign in with Apple"
+                    HorizontalAlignment="Stretch"
+                    Click="AppleButton_Click"
+                    AutomationProperties.AutomationId="signin_appleButton" />
+
+                <Button
+                    Content="Sign in with Discord"
+                    HorizontalAlignment="Stretch"
+                    Click="DiscordButton_Click"
+                    AutomationProperties.AutomationId="signin_discordButton" />
+
+                <Button
+                    Content="Sign in with GitHub"
+                    HorizontalAlignment="Stretch"
+                    Click="GitHubButton_Click"
+                    AutomationProperties.AutomationId="signin_githubButton" />
+
+                <Button
+                    Content="Sign in with Google"
+                    HorizontalAlignment="Stretch"
+                    Click="GoogleButton_Click"
+                    AutomationProperties.AutomationId="signin_googleButton" />
+
+                <Button
+                    Content="Sign in with X"
+                    HorizontalAlignment="Stretch"
+                    Click="TwitterButton_Click"
+                    AutomationProperties.AutomationId="signin_xButton" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,8,0,32">
+                    <TextBlock Text="Don't have an account?" VerticalAlignment="Center" />
+                    <HyperlinkButton Content="Sign Up" Click="SignUpLink_Click"
+                                    AutomationProperties.AutomationId="signin_goToSignUpButton" />
+                </StackPanel>
+
             </StackPanel>
 
-            <Button
-                Content="Sign in with Apple"
-                HorizontalAlignment="Stretch"
-                Click="AppleButton_Click"
-                AutomationProperties.AutomationId="signin_appleButton" />
+            <!-- MFA Challenge Form -->
+            <StackPanel
+                x:Name="MfaPanel"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="360"
+                Padding="24"
+                Spacing="16"
+                Visibility="Collapsed">
 
-            <Button
-                Content="Sign in with Discord"
-                HorizontalAlignment="Stretch"
-                Click="DiscordButton_Click"
-                AutomationProperties.AutomationId="signin_discordButton" />
+                <FontIcon Glyph="&#xE8D7;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
 
-            <Button
-                Content="Sign in with GitHub"
-                HorizontalAlignment="Stretch"
-                Click="GitHubButton_Click"
-                AutomationProperties.AutomationId="signin_githubButton" />
+                <TextBlock
+                    Text="Two-factor authentication"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    HorizontalAlignment="Center" />
 
-            <Button
-                Content="Sign in with Google"
-                HorizontalAlignment="Stretch"
-                Click="GoogleButton_Click"
-                AutomationProperties.AutomationId="signin_googleButton" />
+                <TextBlock
+                    Text="Enter the 6-digit code from your authenticator app"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-            <Button
-                Content="Sign in with X"
-                HorizontalAlignment="Stretch"
-                Click="TwitterButton_Click"
-                AutomationProperties.AutomationId="signin_xButton" />
+                <TextBlock
+                    x:Name="MfaErrorText"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    Visibility="Collapsed"
+                    AutomationProperties.AutomationId="mfa_errorText" />
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,8,0,32">
-                <TextBlock Text="Don't have an account?" VerticalAlignment="Center" />
-                <HyperlinkButton Content="Sign Up" Click="SignUpLink_Click"
-                                AutomationProperties.AutomationId="signin_goToSignUpButton" />
+                <TextBox
+                    x:Name="MfaCodeBox"
+                    Header="Code"
+                    PlaceholderText="123456"
+                    InputScope="Number"
+                    MaxLength="8"
+                    KeyDown="MfaCodeBox_KeyDown"
+                    AutomationProperties.AutomationId="mfa_codeTextBox" />
+
+                <Button
+                    x:Name="MfaVerifyButton"
+                    Content="Verify"
+                    HorizontalAlignment="Stretch"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="MfaVerifyButton_Click"
+                    AutomationProperties.AutomationId="mfa_verifyButton" />
+
+                <TextBlock
+                    Text="You can also use a recovery code"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    FontSize="12"
+                    Margin="0,8,0,0" />
+
+                <HyperlinkButton
+                    Content="Back to sign in"
+                    HorizontalAlignment="Center"
+                    Click="MfaBackButton_Click"
+                    AutomationProperties.AutomationId="mfa_backButton" />
+
             </StackPanel>
-
-        </StackPanel>
+        </Grid>
     </ScrollViewer>
 </Page>

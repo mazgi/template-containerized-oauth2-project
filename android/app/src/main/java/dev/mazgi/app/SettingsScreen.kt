@@ -38,9 +38,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     uiState: AuthUiState,
@@ -51,6 +57,13 @@ fun SettingsScreen(
     onResendVerification: () -> Unit = {},
     onRequestPasswordReset: () -> Unit = {},
     onSetTheme: (ThemeMode) -> Unit = {},
+    onSetupTotp: () -> Unit = {},
+    onEnableTotp: (String) -> Unit = {},
+    onDisableTotp: (String) -> Unit = {},
+    onRegenerateRecoveryCodes: (String) -> Unit = {},
+    onClearMfaStep: () -> Unit = {},
+    onStartDisableTotp: () -> Unit = {},
+    onStartRegenerateRecoveryCodes: () -> Unit = {},
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var emailInput by remember { mutableStateOf("") }
@@ -224,6 +237,201 @@ fun SettingsScreen(
                     Text(
                         if (user?.hasPassword == true) "Send reset link" else "Send setup link"
                     )
+                }
+            }
+        }
+
+        // Two-factor authentication section
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(text = "Two-factor authentication", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                var totpCode by remember(uiState.mfaStep) { mutableStateOf("") }
+
+                when (uiState.mfaStep) {
+                    MfaStep.IDLE -> {
+                        if (user?.totpEnabled == true) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    text = "Status:",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color(0xFF22C55E).copy(alpha = 0.1f))
+                                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                                ) {
+                                    Text(
+                                        text = "Enabled",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF16A34A),
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = onStartDisableTotp,
+                                    enabled = !uiState.isLoading,
+                                ) {
+                                    Text("Disable")
+                                }
+                                OutlinedButton(
+                                    onClick = onStartRegenerateRecoveryCodes,
+                                    enabled = !uiState.isLoading,
+                                ) {
+                                    Text("Regenerate recovery codes")
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "Add an extra layer of security to your account using a TOTP authenticator app.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = onSetupTotp,
+                                enabled = !uiState.isLoading,
+                            ) {
+                                Text("Enable")
+                            }
+                        }
+                    }
+
+                    MfaStep.SETUP -> {
+                        uiState.totpSetupSecret?.let { secret ->
+                            Text(
+                                text = "Scan the QR code or enter this secret in your authenticator app:",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = secret,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            uiState.totpSetupUri?.let { uri ->
+                                Text(
+                                    text = uri,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            OutlinedTextField(
+                                value = totpCode,
+                                onValueChange = { if (it.length <= 6) totpCode = it },
+                                label = { Text("Verification code") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(
+                                    onClick = { onEnableTotp(totpCode) },
+                                    enabled = !uiState.isLoading && totpCode.length == 6,
+                                ) {
+                                    Text("Verify and enable")
+                                }
+                                OutlinedButton(onClick = onClearMfaStep) {
+                                    Text("Cancel")
+                                }
+                            }
+                        }
+                    }
+
+                    MfaStep.RECOVERY -> {
+                        Text(
+                            text = "Save these recovery codes in a safe place. Each code can only be used once.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        uiState.recoveryCodes?.let { codes ->
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                codes.forEach { code ->
+                                    Text(
+                                        text = code,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = onClearMfaStep) {
+                            Text("I've saved these codes")
+                        }
+                    }
+
+                    MfaStep.DISABLE -> {
+                        Text(
+                            text = "Enter a code from your authenticator app to disable two-factor authentication.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = totpCode,
+                            onValueChange = { if (it.length <= 6) totpCode = it },
+                            label = { Text("Code") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { onDisableTotp(totpCode) },
+                                enabled = !uiState.isLoading && totpCode.length == 6,
+                            ) {
+                                Text("Disable MFA")
+                            }
+                            OutlinedButton(onClick = onClearMfaStep) {
+                                Text("Cancel")
+                            }
+                        }
+                    }
+
+                    MfaStep.REGENERATE -> {
+                        Text(
+                            text = "Enter a code from your authenticator app to regenerate recovery codes.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = totpCode,
+                            onValueChange = { if (it.length <= 6) totpCode = it },
+                            label = { Text("Code") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { onRegenerateRecoveryCodes(totpCode) },
+                                enabled = !uiState.isLoading && totpCode.length == 6,
+                            ) {
+                                Text("Regenerate")
+                            }
+                            OutlinedButton(onClick = onClearMfaStep) {
+                                Text("Cancel")
+                            }
+                        }
+                    }
                 }
             }
         }

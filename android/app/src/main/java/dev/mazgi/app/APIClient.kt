@@ -24,6 +24,7 @@ data class UserProfile(
     val twitterId: String?,
     val discordId: String?,
     val hasPassword: Boolean?,
+    val totpEnabled: Boolean = false,
     val socialEmails: List<String>,
     val preferences: UserPreferences?,
     val createdAt: String,
@@ -38,6 +39,25 @@ data class AuthResponse(
 
 data class MessageResponse(
     val message: String,
+)
+
+sealed class SignInResult {
+    data class Success(val response: AuthResponse) : SignInResult()
+    data class MfaRequired(val mfaToken: String) : SignInResult()
+}
+
+data class MfaRequiredResponse(
+    val requiresMfa: Boolean,
+    val mfaToken: String,
+)
+
+data class TotpSetupResponse(
+    val secret: String,
+    val uri: String,
+)
+
+data class TotpEnableResponse(
+    val recoveryCodes: List<String>,
 )
 
 data class ItemResponse(
@@ -78,12 +98,17 @@ class APIClient(private val defaultBaseUrl: String = BuildConfig.API_BASE_URL) {
             return BuildConfig.TWITTER_AUTH_BASE_URL
         }
 
-    suspend fun signIn(email: String, password: String): AuthResponse = withContext(Dispatchers.IO) {
+    suspend fun signIn(email: String, password: String): SignInResult = withContext(Dispatchers.IO) {
         val body = JSONObject().apply {
             put("email", email)
             put("password", password)
         }
-        parseAuthResponse(JSONObject(post("/auth/signin", body)))
+        val json = JSONObject(post("/auth/signin", body))
+        if (json.optBoolean("requiresMfa", false)) {
+            SignInResult.MfaRequired(mfaToken = json.getString("mfaToken"))
+        } else {
+            SignInResult.Success(parseAuthResponse(json))
+        }
     }
 
     suspend fun signUp(email: String, password: String): MessageResponse = withContext(Dispatchers.IO) {
@@ -159,6 +184,44 @@ class APIClient(private val defaultBaseUrl: String = BuildConfig.API_BASE_URL) {
 
     suspend fun deleteAccount(accessToken: String) = withContext(Dispatchers.IO) {
         delete("/auth/account", accessToken)
+    }
+
+    suspend fun totpSetup(accessToken: String): TotpSetupResponse = withContext(Dispatchers.IO) {
+        val json = JSONObject(post("/auth/totp/setup", JSONObject(), accessToken))
+        TotpSetupResponse(
+            secret = json.getString("secret"),
+            uri = json.getString("uri"),
+        )
+    }
+
+    suspend fun totpEnable(accessToken: String, code: String): TotpEnableResponse = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply { put("code", code) }
+        val json = JSONObject(post("/auth/totp/enable", body, accessToken))
+        val codesArray = json.getJSONArray("recoveryCodes")
+        val codes = (0 until codesArray.length()).map { codesArray.getString(it) }
+        TotpEnableResponse(recoveryCodes = codes)
+    }
+
+    suspend fun totpDisable(accessToken: String, code: String): MessageResponse = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply { put("code", code) }
+        val json = JSONObject(post("/auth/totp/disable", body, accessToken))
+        MessageResponse(message = json.getString("message"))
+    }
+
+    suspend fun totpVerify(mfaToken: String, code: String): AuthResponse = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply {
+            put("mfaToken", mfaToken)
+            put("code", code)
+        }
+        parseAuthResponse(JSONObject(post("/auth/totp/verify", body)))
+    }
+
+    suspend fun totpRegenerateRecoveryCodes(accessToken: String, code: String): TotpEnableResponse = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply { put("code", code) }
+        val json = JSONObject(post("/auth/totp/recovery-codes", body, accessToken))
+        val codesArray = json.getJSONArray("recoveryCodes")
+        val codes = (0 until codesArray.length()).map { codesArray.getString(it) }
+        TotpEnableResponse(recoveryCodes = codes)
     }
 
     // MARK: - Helpers
@@ -255,6 +318,7 @@ class APIClient(private val defaultBaseUrl: String = BuildConfig.API_BASE_URL) {
             twitterId = json.optString("twitterId").takeIf { it.isNotEmpty() && it != "null" },
             discordId = json.optString("discordId").takeIf { it.isNotEmpty() && it != "null" },
             hasPassword = if (json.has("hasPassword")) json.getBoolean("hasPassword") else null,
+            totpEnabled = json.optBoolean("totpEnabled", false),
             socialEmails = socialEmails,
             preferences = json.optJSONObject("preferences")?.let { p ->
                 UserPreferences(theme = p.optString("theme").takeIf { it.isNotEmpty() && it != "null" })

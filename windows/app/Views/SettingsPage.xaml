@@ -109,6 +109,183 @@
                 AutomationProperties.AutomationId="settings_passwordReset"
                 Margin="0,8,0,0" />
 
+            <!-- Two-Factor Authentication -->
+            <TextBlock
+                Text="Two-factor authentication"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Margin="0,24,0,0" />
+
+            <!-- MFA Idle: Not Enabled -->
+            <StackPanel
+                x:Name="MfaIdleNotEnabledPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Add an extra layer of security to your account by enabling two-factor authentication."
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Button
+                    x:Name="MfaEnableButton"
+                    Content="Enable"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="MfaEnableButton_Click"
+                    AutomationProperties.AutomationId="settings_mfaEnableButton" />
+            </StackPanel>
+
+            <!-- MFA Idle: Enabled -->
+            <StackPanel
+                x:Name="MfaIdleEnabledPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Border
+                        CornerRadius="10"
+                        Padding="8,2,8,2"
+                        Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}">
+                        <TextBlock
+                            Text="Enabled"
+                            FontSize="11"
+                            FontWeight="Medium"
+                            Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                    </Border>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="MfaDisableButton"
+                        Content="Disable"
+                        Click="MfaDisableButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaDisableButton" />
+                    <Button
+                        x:Name="MfaRegenerateButton"
+                        Content="Regenerate recovery codes"
+                        Click="MfaRegenerateButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaRegenerateButton" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- MFA Setup -->
+            <StackPanel
+                x:Name="MfaSetupPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Scan the QR code with your authenticator app, or enter the secret manually:"
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock
+                    x:Name="MfaSetupSecretText"
+                    IsTextSelectionEnabled="True"
+                    FontFamily="Consolas"
+                    TextWrapping="Wrap" />
+                <TextBox
+                    x:Name="MfaSetupCodeBox"
+                    Header="Verification code"
+                    PlaceholderText="123456"
+                    InputScope="Number"
+                    MaxLength="6"
+                    AutomationProperties.AutomationId="settings_mfaSetupCodeBox" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="MfaSetupVerifyButton"
+                        Content="Verify and enable"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Click="MfaSetupVerifyButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaSetupVerifyButton" />
+                    <Button
+                        Content="Cancel"
+                        Click="MfaCancelButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaSetupCancelButton" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- MFA Recovery Codes -->
+            <StackPanel
+                x:Name="MfaRecoveryPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Save these recovery codes in a safe place. Each code can only be used once."
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Border
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="12">
+                    <StackPanel
+                        x:Name="RecoveryCodesList"
+                        Spacing="4" />
+                </Border>
+                <Button
+                    x:Name="MfaRecoverySavedButton"
+                    Content="I've saved these codes"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="MfaRecoverySavedButton_Click"
+                    AutomationProperties.AutomationId="settings_mfaRecoverySavedButton" />
+            </StackPanel>
+
+            <!-- MFA Disable -->
+            <StackPanel
+                x:Name="MfaDisablePanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Enter a code from your authenticator app to disable two-factor authentication."
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBox
+                    x:Name="MfaDisableCodeBox"
+                    Header="Code"
+                    PlaceholderText="123456"
+                    InputScope="Number"
+                    MaxLength="6"
+                    AutomationProperties.AutomationId="settings_mfaDisableCodeBox" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="MfaDisableConfirmButton"
+                        Content="Disable MFA"
+                        Foreground="Red"
+                        BorderBrush="Red"
+                        Click="MfaDisableConfirmButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaDisableConfirmButton" />
+                    <Button
+                        Content="Cancel"
+                        Click="MfaCancelButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaDisableCancelButton" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- MFA Regenerate -->
+            <StackPanel
+                x:Name="MfaRegeneratePanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Enter a code from your authenticator app to regenerate recovery codes."
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBox
+                    x:Name="MfaRegenerateCodeBox"
+                    Header="Code"
+                    PlaceholderText="123456"
+                    InputScope="Number"
+                    MaxLength="6"
+                    AutomationProperties.AutomationId="settings_mfaRegenerateCodeBox" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="MfaRegenerateConfirmButton"
+                        Content="Regenerate"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Click="MfaRegenerateConfirmButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaRegenerateConfirmButton" />
+                    <Button
+                        Content="Cancel"
+                        Click="MfaCancelButton_Click"
+                        AutomationProperties.AutomationId="settings_mfaRegenerateCancelButton" />
+                </StackPanel>
+            </StackPanel>
+
             <!-- Linked Accounts -->
             <TextBlock
                 Text="Linked Accounts"

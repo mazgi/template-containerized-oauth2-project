@@ -24,6 +24,8 @@ struct UpdateEmailRequest: Encodable {
     let email: String
 }
 
+private struct EmptyBody: Encodable {}
+
 // MARK: - Response models
 
 struct UserPreferences: Codable {
@@ -41,6 +43,7 @@ struct UserProfile: Decodable, Identifiable {
     let twitterId: String?
     let discordId: String?
     let hasPassword: Bool?
+    let totpEnabled: Bool?
     let socialEmails: [String]?
     let preferences: UserPreferences?
     let createdAt: String
@@ -55,6 +58,36 @@ struct AuthResponse: Decodable {
 
 struct MessageResponse: Decodable {
     let message: String
+}
+
+// MARK: - MFA models
+
+struct MfaRequiredResponse: Decodable {
+    let requiresMfa: Bool
+    let mfaToken: String
+}
+
+struct TotpSetupResponse: Decodable {
+    let secret: String
+    let uri: String
+}
+
+struct TotpEnableResponse: Decodable {
+    let recoveryCodes: [String]
+}
+
+struct TotpVerifyRequest: Encodable {
+    let mfaToken: String
+    let code: String
+}
+
+struct TotpCodeRequest: Encodable {
+    let code: String
+}
+
+enum SignInResult {
+    case success(AuthResponse)
+    case mfaRequired(String) // mfaToken
 }
 
 // MARK: - Error
@@ -127,8 +160,22 @@ final class APIClient {
         self.session = URLSession(configuration: config)
     }
 
-    func signIn(email: String, password: String) async throws -> AuthResponse {
-        try await post("/auth/signin", body: SignInRequest(email: email, password: password))
+    func signIn(email: String, password: String) async throws -> SignInResult {
+        guard let url = URL(string: baseURL + "/auth/signin") else { throw URLError(.badURL) }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(SignInRequest(email: email, password: password))
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        guard (200..<300).contains(http.statusCode) else {
+            throw APIError.from(data: data, statusCode: http.statusCode)
+        }
+        if let mfa = try? JSONDecoder().decode(MfaRequiredResponse.self, from: data), mfa.requiresMfa {
+            return .mfaRequired(mfa.mfaToken)
+        }
+        let authRes = try JSONDecoder().decode(AuthResponse.self, from: data)
+        return .success(authRes)
     }
 
     func signUp(email: String, password: String) async throws -> MessageResponse {
@@ -181,6 +228,28 @@ final class APIClient {
 
     func deleteAccount(accessToken: String) async throws {
         try await delete("/auth/account", token: accessToken)
+    }
+
+    // MARK: - TOTP
+
+    func totpSetup(accessToken: String) async throws -> TotpSetupResponse {
+        try await post("/auth/totp/setup", body: EmptyBody(), token: accessToken)
+    }
+
+    func totpEnable(accessToken: String, code: String) async throws -> TotpEnableResponse {
+        try await post("/auth/totp/enable", body: TotpCodeRequest(code: code), token: accessToken)
+    }
+
+    func totpDisable(accessToken: String, code: String) async throws -> MessageResponse {
+        try await post("/auth/totp/disable", body: TotpCodeRequest(code: code), token: accessToken)
+    }
+
+    func totpVerify(mfaToken: String, code: String) async throws -> AuthResponse {
+        try await post("/auth/totp/verify", body: TotpVerifyRequest(mfaToken: mfaToken, code: code))
+    }
+
+    func totpRegenerateRecoveryCodes(accessToken: String, code: String) async throws -> TotpEnableResponse {
+        try await post("/auth/totp/regenerate-recovery-codes", body: TotpCodeRequest(code: code), token: accessToken)
     }
 
     // MARK: - Helpers

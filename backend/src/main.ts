@@ -3,8 +3,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as session from 'express-session';
 import * as connectPgSimple from 'connect-pg-simple';
-import { Pool } from 'pg';
 import { AppModule } from './app.module';
+import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,9 +25,9 @@ async function bootstrap() {
 
   if (process.env.DATABASE_URL) {
     const PgStore = connectPgSimple(session);
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const prismaService = app.get(PrismaService);
     sessionConfig.store = new PgStore({
-      pool,
+      pool: prismaService.getPool(),
       createTableIfMissing: true,
     });
   }
@@ -47,18 +47,22 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Stub Backend API')
-    .setDescription('OAuth2 stub backend REST API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Stub Backend API')
+      .setDescription('OAuth2 stub backend REST API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`Swagger UI: http://localhost:${port}/api`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Swagger UI: http://localhost:${port}/api`);
+  }
 }
 bootstrap();

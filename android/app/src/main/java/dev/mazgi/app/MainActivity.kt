@@ -167,6 +167,27 @@ class MainActivity : ComponentActivity() {
                                         onSetTheme = { mode ->
                                             authViewModel.setTheme(mode)
                                         },
+                                        onSetupTotp = {
+                                            authViewModel.setupTotp()
+                                        },
+                                        onEnableTotp = { code ->
+                                            authViewModel.enableTotp(code)
+                                        },
+                                        onDisableTotp = { code ->
+                                            authViewModel.disableTotp(code)
+                                        },
+                                        onRegenerateRecoveryCodes = { code ->
+                                            authViewModel.regenerateRecoveryCodes(code)
+                                        },
+                                        onClearMfaStep = {
+                                            authViewModel.clearMfaStep()
+                                        },
+                                        onStartDisableTotp = {
+                                            authViewModel.startDisableTotp()
+                                        },
+                                        onStartRegenerateRecoveryCodes = {
+                                            authViewModel.startRegenerateRecoveryCodes()
+                                        },
                                     )
                                 }
                             }
@@ -200,6 +221,9 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToSignUp = {
                                         authViewModel.clearError()
                                         navController.navigate("signup")
+                                    },
+                                    onVerifyMfa = { code ->
+                                        authViewModel.verifyMfa(code)
                                     },
                                 )
                             }

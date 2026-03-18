@@ -17,6 +17,7 @@ public record UserProfile(
     [property: JsonPropertyName("twitterId")] string? TwitterId = null,
     [property: JsonPropertyName("discordId")] string? DiscordId = null,
     [property: JsonPropertyName("hasPassword")] bool? HasPassword = null,
+    [property: JsonPropertyName("totpEnabled")] bool? TotpEnabled = null,
     [property: JsonPropertyName("socialEmails")] string[]? SocialEmails = null,
     [property: JsonPropertyName("preferences")] UserPreferences? Preferences = null,
     [property: JsonPropertyName("createdAt")] string CreatedAt = "",

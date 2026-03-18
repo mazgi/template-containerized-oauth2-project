@@ -24,6 +24,31 @@ public sealed partial class SignInPage : Page
         UpdateUI();
     }
 
+    private async void MfaVerifyButton_Click(object sender, RoutedEventArgs e)
+    {
+        var code = MfaCodeBox.Text.Trim();
+        if (string.IsNullOrEmpty(code)) return;
+
+        SetMfaLoading(true);
+        await App.Auth.VerifyMfaAsync(code);
+        SetMfaLoading(false);
+        UpdateUI();
+    }
+
+    private void MfaCodeBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+            MfaVerifyButton_Click(sender, e);
+    }
+
+    private void MfaBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        App.Auth.ClearError();
+        App.Auth.MfaToken = null;
+        MfaCodeBox.Text = "";
+        UpdateUI();
+    }
+
     private async void AppleButton_Click(object sender, RoutedEventArgs e)
     {
         await App.Auth.SignInWithAppleAsync();
@@ -69,16 +94,42 @@ public sealed partial class SignInPage : Page
         SignInButton.Content = loading ? "Signing in..." : "Sign In";
     }
 
+    private void SetMfaLoading(bool loading)
+    {
+        MfaVerifyButton.IsEnabled = !loading;
+        MfaCodeBox.IsEnabled = !loading;
+        MfaVerifyButton.Content = loading ? "Verifying..." : "Verify";
+    }
+
     private void UpdateUI()
     {
-        if (App.Auth.ErrorMessage is { } msg)
+        var hasMfa = App.Auth.MfaToken is not null;
+        SignInPanel.Visibility = hasMfa ? Visibility.Collapsed : Visibility.Visible;
+        MfaPanel.Visibility = hasMfa ? Visibility.Visible : Visibility.Collapsed;
+
+        if (hasMfa)
         {
-            ErrorText.Text = msg;
-            ErrorText.Visibility = Visibility.Visible;
+            if (App.Auth.ErrorMessage is { } mfaMsg)
+            {
+                MfaErrorText.Text = mfaMsg;
+                MfaErrorText.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                MfaErrorText.Visibility = Visibility.Collapsed;
+            }
         }
         else
         {
-            ErrorText.Visibility = Visibility.Collapsed;
+            if (App.Auth.ErrorMessage is { } msg)
+            {
+                ErrorText.Text = msg;
+                ErrorText.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ErrorText.Visibility = Visibility.Collapsed;
+            }
         }
     }
 }
