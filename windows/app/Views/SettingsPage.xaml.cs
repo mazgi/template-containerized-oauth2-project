@@ -98,6 +98,9 @@ public sealed partial class SettingsPage : Page
             PasswordResetButton.IsEnabled = true;
         }
 
+        // MFA section
+        UpdateMfaUI(user);
+
         // Provider buttons
         AppleButton.Content = user.AppleId is not null ? "Unlink" : "Link";
         DiscordButton.Content = user.DiscordId is not null ? "Unlink" : "Link";
@@ -202,6 +205,137 @@ public sealed partial class SettingsPage : Page
     private async void TwitterButton_Click(object sender, RoutedEventArgs e)
     {
         await ToggleProviderAsync("twitter", App.Auth.User?.TwitterId);
+    }
+
+    private void UpdateMfaUI(Models.UserProfile user)
+    {
+        var step = App.Auth.MfaStep;
+        var totpEnabled = user.TotpEnabled == true;
+
+        MfaIdleNotEnabledPanel.Visibility = step == ViewModels.MfaStep.Idle && !totpEnabled
+            ? Visibility.Visible : Visibility.Collapsed;
+        MfaIdleEnabledPanel.Visibility = step == ViewModels.MfaStep.Idle && totpEnabled
+            ? Visibility.Visible : Visibility.Collapsed;
+        MfaSetupPanel.Visibility = step == ViewModels.MfaStep.Setup
+            ? Visibility.Visible : Visibility.Collapsed;
+        MfaRecoveryPanel.Visibility = step == ViewModels.MfaStep.Recovery
+            ? Visibility.Visible : Visibility.Collapsed;
+        MfaDisablePanel.Visibility = step == ViewModels.MfaStep.Disable
+            ? Visibility.Visible : Visibility.Collapsed;
+        MfaRegeneratePanel.Visibility = step == ViewModels.MfaStep.Regenerate
+            ? Visibility.Visible : Visibility.Collapsed;
+
+        if (step == ViewModels.MfaStep.Setup && App.Auth.TotpSetupSecret is { } secret)
+        {
+            MfaSetupSecretText.Text = secret;
+        }
+
+        if (step == ViewModels.MfaStep.Recovery && App.Auth.RecoveryCodes is { } codes)
+        {
+            RecoveryCodesList.Children.Clear();
+            foreach (var code in codes)
+            {
+                RecoveryCodesList.Children.Add(new TextBlock
+                {
+                    Text = code,
+                    FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+                    IsTextSelectionEnabled = true,
+                });
+            }
+        }
+    }
+
+    private async void MfaEnableButton_Click(object sender, RoutedEventArgs e)
+    {
+        ErrorText.Visibility = Visibility.Collapsed;
+        try
+        {
+            await App.Auth.SetupTotpAsync();
+            UpdateUI();
+        }
+        catch (Exception ex)
+        {
+            ErrorText.Text = ex.Message;
+            ErrorText.Visibility = Visibility.Visible;
+        }
+    }
+
+    private async void MfaSetupVerifyButton_Click(object sender, RoutedEventArgs e)
+    {
+        var code = MfaSetupCodeBox.Text.Trim();
+        if (string.IsNullOrEmpty(code)) return;
+        ErrorText.Visibility = Visibility.Collapsed;
+        try
+        {
+            await App.Auth.EnableTotpAsync(code);
+            MfaSetupCodeBox.Text = "";
+            UpdateUI();
+        }
+        catch (Exception ex)
+        {
+            ErrorText.Text = ex.Message;
+            ErrorText.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void MfaRecoverySavedButton_Click(object sender, RoutedEventArgs e)
+    {
+        App.Auth.ClearMfaStep();
+        UpdateUI();
+    }
+
+    private void MfaDisableButton_Click(object sender, RoutedEventArgs e)
+    {
+        App.Auth.MfaStep = ViewModels.MfaStep.Disable;
+        UpdateUI();
+    }
+
+    private async void MfaDisableConfirmButton_Click(object sender, RoutedEventArgs e)
+    {
+        var code = MfaDisableCodeBox.Text.Trim();
+        if (string.IsNullOrEmpty(code)) return;
+        ErrorText.Visibility = Visibility.Collapsed;
+        try
+        {
+            await App.Auth.DisableTotpAsync(code);
+            MfaDisableCodeBox.Text = "";
+            UpdateUI();
+        }
+        catch (Exception ex)
+        {
+            ErrorText.Text = ex.Message;
+            ErrorText.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void MfaRegenerateButton_Click(object sender, RoutedEventArgs e)
+    {
+        App.Auth.MfaStep = ViewModels.MfaStep.Regenerate;
+        UpdateUI();
+    }
+
+    private async void MfaRegenerateConfirmButton_Click(object sender, RoutedEventArgs e)
+    {
+        var code = MfaRegenerateCodeBox.Text.Trim();
+        if (string.IsNullOrEmpty(code)) return;
+        ErrorText.Visibility = Visibility.Collapsed;
+        try
+        {
+            await App.Auth.RegenerateRecoveryCodesAsync(code);
+            MfaRegenerateCodeBox.Text = "";
+            UpdateUI();
+        }
+        catch (Exception ex)
+        {
+            ErrorText.Text = ex.Message;
+            ErrorText.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void MfaCancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        App.Auth.ClearMfaStep();
+        UpdateUI();
     }
 
     private async void DeleteAccountButton_Click(object sender, RoutedEventArgs e)

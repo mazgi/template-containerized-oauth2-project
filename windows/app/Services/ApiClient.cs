@@ -63,8 +63,29 @@ public sealed class ApiClient
         _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
     }
 
-    public Task<AuthResponse> SignInAsync(string email, string password) =>
-        PostAsync<AuthResponse>("/auth/signin", new { email, password });
+    public async Task<SignInResult> SignInAsync(string email, string password)
+    {
+        var json = JsonSerializer.Serialize(new { email, password }, JsonOptions);
+        using var request = new HttpRequestMessage(HttpMethod.Post, BaseUrl + "/auth/signin")
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json"),
+        };
+        var response = await _http.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var msg = await ParseErrorAsync(response);
+            throw new ApiException((int)response.StatusCode, msg);
+        }
+        var text = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(text);
+        if (doc.RootElement.TryGetProperty("requiresMfa", out var mfaProp) && mfaProp.GetBoolean())
+        {
+            var mfaToken = doc.RootElement.GetProperty("mfaToken").GetString()!;
+            return new SignInResult.MfaRequired(mfaToken);
+        }
+        var authResponse = JsonSerializer.Deserialize<AuthResponse>(text, JsonOptions)!;
+        return new SignInResult.Success(authResponse);
+    }
 
     public Task<MessageResponse> SignUpAsync(string email, string password) =>
         PostAsync<MessageResponse>("/auth/signup", new { email, password });
@@ -98,6 +119,21 @@ public sealed class ApiClient
 
     public Task<MessageResponse> ForgotPasswordAsync(string email) =>
         PostAsync<MessageResponse>("/auth/forgot-password", new { email });
+
+    public Task<TotpSetupResponse> TotpSetupAsync(string accessToken) =>
+        PostAsync<TotpSetupResponse>("/auth/totp/setup", new { }, accessToken);
+
+    public Task<TotpEnableResponse> TotpEnableAsync(string accessToken, string code) =>
+        PostAsync<TotpEnableResponse>("/auth/totp/enable", new { code }, accessToken);
+
+    public Task<MessageResponse> TotpDisableAsync(string accessToken, string code) =>
+        PostAsync<MessageResponse>("/auth/totp/disable", new { code }, accessToken);
+
+    public Task<AuthResponse> TotpVerifyAsync(string mfaToken, string code) =>
+        PostAsync<AuthResponse>("/auth/totp/verify", new { mfaToken, code });
+
+    public Task<TotpEnableResponse> TotpRegenerateRecoveryCodesAsync(string accessToken, string code) =>
+        PostAsync<TotpEnableResponse>("/auth/totp/regenerate-recovery-codes", new { code }, accessToken);
 
     public async Task DeleteAccountAsync(string accessToken)
     {

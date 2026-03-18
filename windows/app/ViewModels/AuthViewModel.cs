@@ -39,6 +39,15 @@ public static class ThemeModeExtensions
     };
 }
 
+public enum MfaStep
+{
+    Idle,
+    Setup,
+    Recovery,
+    Disable,
+    Regenerate,
+}
+
 public partial class AuthViewModel : ObservableObject
 {
     private const string TokensKey = "auth_tokens";
@@ -68,6 +77,21 @@ public partial class AuthViewModel : ObservableObject
     [ObservableProperty]
     private string? _verificationSentEmail;
 
+    [ObservableProperty]
+    private string? _mfaToken;
+
+    [ObservableProperty]
+    private string? _totpSetupUri;
+
+    [ObservableProperty]
+    private string? _totpSetupSecret;
+
+    [ObservableProperty]
+    private string[]? _recoveryCodes;
+
+    [ObservableProperty]
+    private MfaStep _mfaStep = MfaStep.Idle;
+
     public event Action? AuthStateChanged;
     public event Action? ThemeChanged;
 
@@ -81,8 +105,17 @@ public partial class AuthViewModel : ObservableObject
     {
         await PerformAsync(async () =>
         {
-            var res = await _api.SignInAsync(email, password);
-            Store(res);
+            var result = await _api.SignInAsync(email, password);
+            switch (result)
+            {
+                case Models.SignInResult.Success success:
+                    MfaToken = null;
+                    Store(success.Response);
+                    break;
+                case Models.SignInResult.MfaRequired mfa:
+                    MfaToken = mfa.MfaToken;
+                    break;
+            }
         });
     }
 
@@ -300,6 +333,76 @@ public partial class AuthViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    public async Task VerifyMfaAsync(string code)
+    {
+        if (MfaToken is null) return;
+        await PerformAsync(async () =>
+        {
+            var res = await _api.TotpVerifyAsync(MfaToken, code);
+            MfaToken = null;
+            Store(res);
+        });
+    }
+
+    public async Task SetupTotpAsync()
+    {
+        if (AccessToken is null) return;
+        await PerformAsync(async () =>
+        {
+            var res = await _api.TotpSetupAsync(AccessToken);
+            TotpSetupSecret = res.Secret;
+            TotpSetupUri = res.Uri;
+            MfaStep = MfaStep.Setup;
+        });
+    }
+
+    public async Task EnableTotpAsync(string code)
+    {
+        if (AccessToken is null) return;
+        await PerformAsync(async () =>
+        {
+            var res = await _api.TotpEnableAsync(AccessToken, code);
+            RecoveryCodes = res.RecoveryCodes;
+            TotpSetupSecret = null;
+            TotpSetupUri = null;
+            MfaStep = MfaStep.Recovery;
+            var profile = await _api.MeAsync(AccessToken);
+            User = profile;
+        });
+    }
+
+    public async Task DisableTotpAsync(string code)
+    {
+        if (AccessToken is null) return;
+        await PerformAsync(async () =>
+        {
+            await _api.TotpDisableAsync(AccessToken, code);
+            MfaStep = MfaStep.Idle;
+            var profile = await _api.MeAsync(AccessToken);
+            User = profile;
+        });
+    }
+
+    public async Task RegenerateRecoveryCodesAsync(string code)
+    {
+        if (AccessToken is null) return;
+        await PerformAsync(async () =>
+        {
+            var res = await _api.TotpRegenerateRecoveryCodesAsync(AccessToken, code);
+            RecoveryCodes = res.RecoveryCodes;
+            MfaStep = MfaStep.Recovery;
+        });
+    }
+
+    public void ClearMfaStep()
+    {
+        MfaStep = MfaStep.Idle;
+        TotpSetupSecret = null;
+        TotpSetupUri = null;
+        RecoveryCodes = null;
+        ErrorMessage = null;
     }
 
     public void SignOut()
