@@ -17,6 +17,7 @@ export interface User {
   twitterId?: string | null
   discordId?: string | null
   hasPassword?: boolean
+  totpEnabled?: boolean
   socialEmails?: string[]
   preferences?: UserPreferences | null
   createdAt: string
@@ -32,6 +33,13 @@ export interface AuthResponse {
   refreshToken: string
   user: User
 }
+
+export interface MfaRequiredResponse {
+  requiresMfa: true
+  mfaToken: string
+}
+
+export type SignInResponse = AuthResponse | MfaRequiredResponse
 
 export interface Item {
   id: string
@@ -88,7 +96,7 @@ export function resetPassword(token: string, password: string): Promise<MessageR
   })
 }
 
-export function signin(email: string, password: string): Promise<AuthResponse> {
+export function signin(email: string, password: string): Promise<SignInResponse> {
   return request('/auth/signin', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
@@ -171,4 +179,44 @@ export async function deleteItem(accessToken: string, id: string): Promise<void>
     const body = await res.json().catch(() => ({}))
     throw new Error((body as { message?: string }).message ?? res.statusText)
   }
+}
+
+// --- TOTP MFA ---
+
+export function totpSetup(accessToken: string): Promise<{ secret: string; uri: string }> {
+  return request('/auth/totp/setup', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export function totpEnable(accessToken: string, code: string): Promise<{ recoveryCodes: string[] }> {
+  return request('/auth/totp/enable', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ code }),
+  })
+}
+
+export function totpDisable(accessToken: string, code: string): Promise<MessageResponse> {
+  return request('/auth/totp/disable', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ code }),
+  })
+}
+
+export function totpVerify(mfaToken: string, code: string): Promise<AuthResponse> {
+  return request('/auth/totp/verify', {
+    method: 'POST',
+    body: JSON.stringify({ mfaToken, code }),
+  })
+}
+
+export function totpRegenerateRecoveryCodes(accessToken: string, code: string): Promise<{ recoveryCodes: string[] }> {
+  return request('/auth/totp/recovery-codes', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ code }),
+  })
 }

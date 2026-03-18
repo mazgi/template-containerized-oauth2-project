@@ -30,6 +30,8 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SignInDto } from './dto/signin.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { TotpCodeDto } from './dto/totp-code.dto';
+import { TotpVerifyDto } from './dto/totp-verify.dto';
 import { UpdateEmailDto } from './dto/update-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AppleProfile } from './strategies/apple.strategy';
@@ -146,6 +148,70 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAccount(@Request() req: { user: { userId: string } }) {
     await this.authService.deleteAccount(req.user.userId);
+  }
+
+  // ── TOTP MFA ──
+
+  @Post('totp/setup')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Generate TOTP secret and QR code URI' })
+  @ApiResponse({ status: 200, description: 'Returns secret and otpauth URI' })
+  @ApiResponse({ status: 409, description: 'TOTP already enabled' })
+  @HttpCode(HttpStatus.OK)
+  async totpSetup(@Request() req: { user: { userId: string } }) {
+    return this.authService.totpSetup(req.user.userId);
+  }
+
+  @Post('totp/enable')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify TOTP code and enable MFA. Returns recovery codes.' })
+  @ApiResponse({ status: 200, description: 'TOTP enabled, recovery codes returned' })
+  @ApiResponse({ status: 400, description: 'Invalid TOTP code' })
+  @HttpCode(HttpStatus.OK)
+  async totpEnable(
+    @Request() req: { user: { userId: string } },
+    @Body() dto: TotpCodeDto,
+  ) {
+    return this.authService.totpEnable(req.user.userId, dto.code);
+  }
+
+  @Post('totp/disable')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Disable TOTP MFA' })
+  @ApiResponse({ status: 200, description: 'TOTP disabled' })
+  @ApiResponse({ status: 400, description: 'Invalid TOTP code or TOTP not enabled' })
+  @HttpCode(HttpStatus.OK)
+  async totpDisable(
+    @Request() req: { user: { userId: string } },
+    @Body() dto: TotpCodeDto,
+  ) {
+    return this.authService.totpDisable(req.user.userId, dto.code);
+  }
+
+  @Post('totp/verify')
+  @ApiOperation({ summary: 'Verify TOTP or recovery code during sign-in MFA challenge' })
+  @ApiResponse({ status: 200, description: 'Returns accessToken, refreshToken, and user' })
+  @ApiResponse({ status: 401, description: 'Invalid MFA token or code' })
+  @HttpCode(HttpStatus.OK)
+  async totpVerify(@Body() dto: TotpVerifyDto) {
+    return this.authService.totpVerify(dto.mfaToken, dto.code);
+  }
+
+  @Post('totp/recovery-codes')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Regenerate recovery codes (requires valid TOTP code)' })
+  @ApiResponse({ status: 200, description: 'New recovery codes returned' })
+  @ApiResponse({ status: 400, description: 'Invalid TOTP code or TOTP not enabled' })
+  @HttpCode(HttpStatus.OK)
+  async totpRegenerateRecoveryCodes(
+    @Request() req: { user: { userId: string } },
+    @Body() dto: TotpCodeDto,
+  ) {
+    return this.authService.totpRegenerateRecoveryCodes(req.user.userId, dto.code);
   }
 
   // ── Apple OAuth2 ──
@@ -623,7 +689,7 @@ export class AuthController {
         res.redirect(`${frontendUrl}/oauth/callback?linked=${provider}`);
       }
     } else {
-      // Normal sign-in flow
+      // Normal sign-in flow — OAuth bypasses TOTP MFA (provider handles its own MFA)
       let tokens: { accessToken: string; refreshToken: string };
       switch (provider) {
         case 'apple':

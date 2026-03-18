@@ -5,8 +5,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
+import * as OTPAuth from 'otpauth';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { SignUpDto } from './dto/signup.dto';
@@ -147,6 +148,17 @@ export class AuthService {
 
     if (!user.emailVerified) {
       throw new UnauthorizedException('Email not verified');
+    }
+
+    if (user.totpEnabled) {
+      const mfaToken = this.jwtService.sign(
+        { sub: user.id, purpose: 'mfa' },
+        {
+          secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
+          expiresIn: '5m',
+        },
+      );
+      return { requiresMfa: true as const, mfaToken };
     }
 
     return this.buildTokenResponse(user);
@@ -397,7 +409,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    const { passwordHash, emailVerificationToken, emailVerificationExpires, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
+    const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret, recoveryCodes, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
     return {
       ...result,
       ...this.socialToFlat(user),
@@ -429,7 +441,7 @@ export class AuthService {
 
     await this.mailService.sendVerificationEmail(newEmail, token);
 
-    const { passwordHash, emailVerificationToken, emailVerificationExpires, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
+    const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret: _ts, recoveryCodes: _rc, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
     return {
       ...result,
       ...this.socialToFlat(user),
@@ -660,7 +672,7 @@ export class AuthService {
       include: SOCIAL_INCLUDES,
     });
 
-    const { passwordHash: _pw, emailVerificationToken: _evt, emailVerificationExpires: _eve, passwordResetToken: _prt, passwordResetExpires: _pre, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...userWithoutPassword } = userWithSocial!;
+    const { passwordHash: _pw, emailVerificationToken: _evt, emailVerificationExpires: _eve, passwordResetToken: _prt, passwordResetExpires: _pre, totpSecret: _ts, recoveryCodes: _rc, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...userWithoutPassword } = userWithSocial!;
 
     return {
       accessToken,
@@ -670,5 +682,167 @@ export class AuthService {
         ...this.socialToFlat(userWithSocial as UserWithSocial),
       },
     };
+  }
+
+  // --- TOTP MFA ---
+
+  async totpSetup(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+    if (user.totpEnabled) throw new ConflictException('TOTP is already enabled');
+
+    const secret = new OTPAuth.Secret({ size: 20 });
+    const totp = new OTPAuth.TOTP({
+      issuer: process.env.APP_NAME ?? 'OAuth2App',
+      label: user.email,
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+      secret,
+    });
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { totpSecret: secret.base32 },
+    });
+
+    return {
+      secret: secret.base32,
+      uri: totp.toString(),
+    };
+  }
+
+  async totpEnable(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.totpSecret) throw new BadRequestException('TOTP not set up');
+    if (user.totpEnabled) throw new ConflictException('TOTP is already enabled');
+
+    const totp = new OTPAuth.TOTP({
+      secret: OTPAuth.Secret.fromBase32(user.totpSecret),
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+    });
+
+    const delta = totp.validate({ token: code, window: 1 });
+    if (delta === null) throw new BadRequestException('Invalid TOTP code');
+
+    const recoveryCodes = Array.from({ length: 8 }, () =>
+      randomBytes(4).toString('hex'),
+    );
+    const hashedCodes = await Promise.all(
+      recoveryCodes.map((c) => bcrypt.hash(c, 10)),
+    );
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        totpEnabled: true,
+        recoveryCodes: hashedCodes,
+      },
+    });
+
+    return { recoveryCodes };
+  }
+
+  async totpDisable(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.totpEnabled || !user.totpSecret)
+      throw new BadRequestException('TOTP is not enabled');
+
+    const totp = new OTPAuth.TOTP({
+      secret: OTPAuth.Secret.fromBase32(user.totpSecret),
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+    });
+    const delta = totp.validate({ token: code, window: 1 });
+    if (delta === null) throw new BadRequestException('Invalid TOTP code');
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { totpEnabled: false, totpSecret: null, recoveryCodes: null },
+    });
+
+    return { message: 'TOTP disabled' };
+  }
+
+  async totpVerify(mfaToken: string, code: string) {
+    let payload: { sub: string; purpose: string };
+    try {
+      payload = this.jwtService.verify(mfaToken, {
+        secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired MFA token');
+    }
+    if (payload.purpose !== 'mfa') {
+      throw new UnauthorizedException('Invalid MFA token');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user || !user.totpEnabled || !user.totpSecret) {
+      throw new UnauthorizedException('Invalid MFA token');
+    }
+
+    // Try TOTP code first
+    const totp = new OTPAuth.TOTP({
+      secret: OTPAuth.Secret.fromBase32(user.totpSecret),
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+    });
+    const delta = totp.validate({ token: code, window: 1 });
+
+    if (delta !== null) {
+      return this.buildTokenResponse(user);
+    }
+
+    // Try recovery code
+    if (user.recoveryCodes && Array.isArray(user.recoveryCodes)) {
+      const hashes = user.recoveryCodes as string[];
+      for (let i = 0; i < hashes.length; i++) {
+        if (await bcrypt.compare(code, hashes[i])) {
+          const remaining = [...hashes];
+          remaining.splice(i, 1);
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: { recoveryCodes: remaining },
+          });
+          return this.buildTokenResponse(user);
+        }
+      }
+    }
+
+    throw new UnauthorizedException('Invalid TOTP or recovery code');
+  }
+
+  async totpRegenerateRecoveryCodes(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.totpEnabled || !user.totpSecret)
+      throw new BadRequestException('TOTP is not enabled');
+
+    const totp = new OTPAuth.TOTP({
+      secret: OTPAuth.Secret.fromBase32(user.totpSecret),
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+    });
+    const delta = totp.validate({ token: code, window: 1 });
+    if (delta === null) throw new BadRequestException('Invalid TOTP code');
+
+    const recoveryCodes = Array.from({ length: 8 }, () =>
+      randomBytes(4).toString('hex'),
+    );
+    const hashedCodes = await Promise.all(
+      recoveryCodes.map((c) => bcrypt.hash(c, 10)),
+    );
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { recoveryCodes: hashedCodes },
+    });
+
+    return { recoveryCodes };
   }
 }
