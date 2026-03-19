@@ -29,9 +29,9 @@ struct ContentView: View {
                         // XCUITest synthesized taps, so this picker provides
                         // a reliable programmatic alternative.
                         Picker("Tab", selection: $selectedTab) {
-                            Text("Dashboard").tag(0)
-                            Text("Items").tag(1)
-                            Text("Settings").tag(2)
+                            Text(verbatim: "Dashboard").tag(0)
+                            Text(verbatim: "Items").tag(1)
+                            Text(verbatim: "Settings").tag(2)
                         }
                         .pickerStyle(.segmented)
                         .accessibilityIdentifier("test_tabPicker")
