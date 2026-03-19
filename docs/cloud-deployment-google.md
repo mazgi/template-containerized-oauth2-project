@@ -60,7 +60,7 @@ gsutil mb -p YOUR_PROJECT_ID -l us-central1 gs://YOUR_BUCKET_NAME
 gsutil versioning set on gs://YOUR_BUCKET_NAME
 ```
 
-The bucket name is passed via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
+Set the bucket name in `.env` as `GOOGLE_TF_STATE_BUCKET` and pass it via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
 
 ## 2. Configure variables
 
@@ -87,8 +87,9 @@ Edit `iac/google/ephemeral/terraform.tfvars`:
 ## 3. Create persistent infrastructure and push images
 
 ```sh
+source .env
 docker compose --profile=iac run --rm iac terraform -chdir=google init \
-  -backend-config="bucket=YOUR_BUCKET_NAME"
+  -backend-config="bucket=$GOOGLE_TF_STATE_BUCKET"
 docker compose --profile=iac run --rm iac terraform -chdir=google apply -var-file=terraform.tfvars
 ```
 
@@ -118,8 +119,9 @@ The ephemeral layer derives the registry URL from the persistent layer's Artifac
 ## 4. Deploy ephemeral infrastructure
 
 ```sh
+source .env
 docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral init \
-  -backend-config="bucket=YOUR_BUCKET_NAME"
+  -backend-config="bucket=$GOOGLE_TF_STATE_BUCKET"
 docker compose --profile=iac run --rm iac terraform -chdir=google/ephemeral apply -var-file=terraform.tfvars
 ```
 

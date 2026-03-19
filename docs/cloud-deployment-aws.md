@@ -59,7 +59,7 @@ aws s3api put-bucket-versioning --bucket YOUR_BUCKET_NAME \
   --versioning-configuration Status=Enabled
 ```
 
-The bucket name is passed via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
+Set the bucket name in `.env` as `AWS_TF_STATE_BUCKET` and pass it via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
 
 ## 2. Configure variables
 
@@ -85,8 +85,10 @@ Edit `iac/aws/ephemeral/terraform.tfvars`:
 ## 3. Create persistent infrastructure and push images
 
 ```sh
+source .env
 docker compose --profile=iac run --rm iac terraform -chdir=aws init \
-  -backend-config="bucket=YOUR_BUCKET_NAME"
+  -backend-config="bucket=$AWS_TF_STATE_BUCKET" \
+  -backend-config="region=$AWS_TF_STATE_REGION"
 docker compose --profile=iac run --rm iac terraform -chdir=aws apply -var-file=terraform.tfvars
 ```
 
@@ -119,8 +121,10 @@ The ephemeral layer derives the registry URL from the persistent layer's ECR rep
 ## 4. Deploy ephemeral infrastructure
 
 ```sh
+source .env
 docker compose --profile=iac run --rm iac terraform -chdir=aws/ephemeral init \
-  -backend-config="bucket=YOUR_BUCKET_NAME"
+  -backend-config="bucket=$AWS_TF_STATE_BUCKET" \
+  -backend-config="region=$AWS_TF_STATE_REGION"
 docker compose --profile=iac run --rm iac terraform -chdir=aws/ephemeral apply -var-file=terraform.tfvars
 ```
 

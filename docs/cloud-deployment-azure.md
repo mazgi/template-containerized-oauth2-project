@@ -50,7 +50,7 @@ az storage account create --name YOUR_STORAGE_ACCOUNT --resource-group terraform
 az storage container create --name tfstate --account-name YOUR_STORAGE_ACCOUNT
 ```
 
-The resource group and storage account names are passed via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
+Set the resource group and storage account names in `.env` as `AZURE_TF_STATE_RESOURCE_GROUP` and `AZURE_TF_STATE_STORAGE_ACCOUNT`, and pass them via `-backend-config` at `terraform init` time (see step 3), so you do not need to edit `versions.tf`.
 
 ## 2. Configure variables
 
@@ -78,9 +78,10 @@ Edit `iac/azure/ephemeral/terraform.tfvars`:
 ## 3. Create persistent infrastructure and push images
 
 ```sh
+source .env
 docker compose --profile=iac run --rm iac terraform -chdir=azure init \
-  -backend-config="resource_group_name=terraform-state-rg" \
-  -backend-config="storage_account_name=YOUR_STORAGE_ACCOUNT"
+  -backend-config="resource_group_name=$AZURE_TF_STATE_RESOURCE_GROUP" \
+  -backend-config="storage_account_name=$AZURE_TF_STATE_STORAGE_ACCOUNT"
 docker compose --profile=iac run --rm iac terraform -chdir=azure apply -var-file=terraform.tfvars
 ```
 
@@ -110,9 +111,10 @@ The ephemeral layer derives the registry URL from the persistent layer's ACR log
 ## 4. Deploy ephemeral infrastructure
 
 ```sh
+source .env
 docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral init \
-  -backend-config="resource_group_name=terraform-state-rg" \
-  -backend-config="storage_account_name=YOUR_STORAGE_ACCOUNT"
+  -backend-config="resource_group_name=$AZURE_TF_STATE_RESOURCE_GROUP" \
+  -backend-config="storage_account_name=$AZURE_TF_STATE_STORAGE_ACCOUNT"
 docker compose --profile=iac run --rm iac terraform -chdir=azure/ephemeral apply -var-file=terraform.tfvars
 ```
 
