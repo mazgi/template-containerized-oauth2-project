@@ -6,8 +6,7 @@
     xmlns:local="using:app"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    Title="OAuth2 App">
+    mc:Ignorable="d">
 
     <Window.SystemBackdrop>
         <MicaBackdrop />
@@ -22,7 +21,7 @@
         <Frame x:Name="RootFrame" Visibility="Collapsed" />
         <Button
             x:Name="DebugButton"
-            Content="Debug"
+            x:Uid="DebugButton"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Margin="0,8,8,0"

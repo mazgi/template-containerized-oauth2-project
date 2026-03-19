@@ -53,7 +53,7 @@
             </StackPanel>
 
             <Button
-                Content="Sign Out"
+                x:Uid="SignOutButton"
                 HorizontalAlignment="Center"
                 Click="SignOutButton_Click"
                 Margin="0,16,0,32"

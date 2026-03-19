@@ -22,27 +22,26 @@
                 <FontIcon Glyph="&#xE715;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
 
                 <TextBlock
-                    Text="Check your email"
+                    x:Uid="CheckEmailTitle"
                     Style="{StaticResource TitleTextBlockStyle}"
                     HorizontalAlignment="Center"
                     AutomationProperties.AutomationId="signup_verificationSentTitle" />
 
                 <TextBlock
-                    Text="We've sent a verification link to your email address. Please check your inbox and click the link to verify your account."
+                    x:Uid="VerificationSentMessage"
                     TextWrapping="Wrap"
                     HorizontalAlignment="Center"
                     TextAlignment="Center" />
 
                 <Button
                     x:Name="ResendButton"
-                    Content="Resend verification email"
                     HorizontalAlignment="Stretch"
                     Style="{StaticResource AccentButtonStyle}"
                     Click="ResendButton_Click"
                     AutomationProperties.AutomationId="signup_resendButton" />
 
                 <HyperlinkButton
-                    Content="Sign In"
+                    x:Uid="VerificationSignInLink"
                     HorizontalAlignment="Center"
                     Click="VerificationSignInLink_Click"
                     AutomationProperties.AutomationId="signup_verificationGoToSignInButton" />
@@ -59,7 +58,7 @@
                 <FontIcon Glyph="&#xE77B;" FontSize="64" HorizontalAlignment="Center" Margin="0,32,0,0" />
 
                 <TextBlock
-                    Text="Sign Up"
+                    x:Uid="SignUpTitle"
                     Style="{StaticResource TitleTextBlockStyle}"
                     HorizontalAlignment="Center" />
 
@@ -73,29 +72,26 @@
 
                 <TextBox
                     x:Name="EmailBox"
-                    Header="Email"
-                    PlaceholderText="email@example.com"
+                    x:Uid="SignUpEmailBox"
                     InputScope="EmailSmtpAddress"
                     AutomationProperties.AutomationId="signup_emailTextBox" />
 
                 <PasswordBox
                     x:Name="PasswordBox"
-                    Header="Password"
-                    PlaceholderText="Password (min 8 characters)"
+                    x:Uid="SignUpPasswordBox"
                     PasswordRevealMode="Peek"
                     AutomationProperties.AutomationId="signup_passwordBox" />
 
                 <Button
                     x:Name="SignUpButton"
-                    Content="Sign Up"
                     HorizontalAlignment="Stretch"
                     Style="{StaticResource AccentButtonStyle}"
                     Click="SignUpButton_Click"
                     AutomationProperties.AutomationId="signup_submitButton" />
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,8,0,32">
-                    <TextBlock Text="Already have an account?" VerticalAlignment="Center" />
-                    <HyperlinkButton Content="Sign In" Click="SignInLink_Click"
+                    <TextBlock x:Uid="AlreadyHaveAccountText" VerticalAlignment="Center" />
+                    <HyperlinkButton x:Uid="GoToSignInLink" Click="SignInLink_Click"
                                     AutomationProperties.AutomationId="signup_goToSignInButton" />
                 </StackPanel>
 

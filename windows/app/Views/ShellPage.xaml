@@ -16,17 +16,17 @@
         SelectionChanged="NavView_SelectionChanged">
 
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="Dashboard" Tag="dashboard">
+            <NavigationViewItem x:Uid="NavDashboard" Tag="dashboard">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE77B;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
-            <NavigationViewItem Content="Items" Tag="items">
+            <NavigationViewItem x:Uid="NavItems" Tag="items">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE8FD;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
-            <NavigationViewItem Content="Settings" Tag="settings">
+            <NavigationViewItem x:Uid="NavSettings" Tag="settings">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE713;" />
                 </NavigationViewItem.Icon>

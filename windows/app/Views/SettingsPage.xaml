@@ -23,7 +23,7 @@
 
             <!-- Email -->
             <TextBlock
-                Text="Email"
+                x:Uid="EmailSectionTitle"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Margin="0,16,0,0" />
 
@@ -48,7 +48,7 @@
 
             <Button
                 x:Name="ResendVerificationButton"
-                Content="Resend verification email"
+                x:Uid="ResendVerificationButton"
                 Click="ResendVerificationButton_Click"
                 Visibility="Collapsed"
                 AutomationProperties.AutomationId="settings_resendVerification" />
@@ -61,7 +61,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBox
                     x:Name="EmailInput"
-                    PlaceholderText="Enter new email address"
+                    x:Uid="NewEmailInput"
                     InputScope="EmailSmtpAddress"
                     AutomationProperties.AutomationId="settings_emailTextField" />
                 <DropDownButton
@@ -77,8 +77,8 @@
                 </DropDownButton>
                 <Button
                     x:Name="SaveEmailButton"
+                    x:Uid="SaveEmailButton"
                     Grid.Column="2"
-                    Content="Save"
                     Style="{StaticResource AccentButtonStyle}"
                     Click="SaveEmailButton_Click"
                     AutomationProperties.AutomationId="settings_saveEmail" />
@@ -86,7 +86,7 @@
 
             <!-- Password -->
             <TextBlock
-                Text="Password"
+                x:Uid="PasswordSectionTitle"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Margin="0,24,0,0" />
 
@@ -98,7 +98,7 @@
 
             <TextBlock
                 x:Name="PasswordResetSuccessText"
-                Text="Password reset link sent. Please check your inbox."
+                x:Uid="PasswordResetSuccess"
                 Foreground="Green"
                 Visibility="Collapsed"
                 Margin="0,4,0,0" />
@@ -111,7 +111,7 @@
 
             <!-- Two-Factor Authentication -->
             <TextBlock
-                Text="Two-factor authentication"
+                x:Uid="MfaSectionTitle"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Margin="0,24,0,0" />
 
@@ -121,12 +121,12 @@
                 Spacing="8"
                 Visibility="Collapsed">
                 <TextBlock
-                    Text="Add an extra layer of security to your account by enabling two-factor authentication."
+                    x:Uid="MfaIdleDescription"
                     TextWrapping="Wrap"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <Button
                     x:Name="MfaEnableButton"
-                    Content="Enable"
+                    x:Uid="MfaEnableButton"
                     Style="{StaticResource AccentButtonStyle}"
                     Click="MfaEnableButton_Click"
                     AutomationProperties.AutomationId="settings_mfaEnableButton" />
@@ -143,7 +143,7 @@
                         Padding="8,2,8,2"
                         Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}">
                         <TextBlock
-                            Text="Enabled"
+                            x:Uid="MfaEnabledBadge"
                             FontSize="11"
                             FontWeight="Medium"
                             Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
@@ -152,12 +152,12 @@
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button
                         x:Name="MfaDisableButton"
-                        Content="Disable"
+                        x:Uid="MfaDisableButton"
                         Click="MfaDisableButton_Click"
                         AutomationProperties.AutomationId="settings_mfaDisableButton" />
                     <Button
                         x:Name="MfaRegenerateButton"
-                        Content="Regenerate recovery codes"
+                        x:Uid="MfaRegenerateButton"
                         Click="MfaRegenerateButton_Click"
                         AutomationProperties.AutomationId="settings_mfaRegenerateButton" />
                 </StackPanel>
@@ -169,7 +169,7 @@
                 Spacing="8"
                 Visibility="Collapsed">
                 <TextBlock
-                    Text="Scan the QR code with your authenticator app, or enter the secret manually:"
+                    x:Uid="MfaSetupDescription"
                     TextWrapping="Wrap"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <TextBlock
@@ -179,20 +179,19 @@
                     TextWrapping="Wrap" />
                 <TextBox
                     x:Name="MfaSetupCodeBox"
-                    Header="Verification code"
-                    PlaceholderText="123456"
+                    x:Uid="MfaSetupCodeBox"
                     InputScope="Number"
                     MaxLength="6"
                     AutomationProperties.AutomationId="settings_mfaSetupCodeBox" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button
                         x:Name="MfaSetupVerifyButton"
-                        Content="Verify and enable"
+                        x:Uid="MfaVerifyEnableButton"
                         Style="{StaticResource AccentButtonStyle}"
                         Click="MfaSetupVerifyButton_Click"
                         AutomationProperties.AutomationId="settings_mfaSetupVerifyButton" />
                     <Button
-                        Content="Cancel"
+                        x:Uid="MfaSetupCancelButton"
                         Click="MfaCancelButton_Click"
                         AutomationProperties.AutomationId="settings_mfaSetupCancelButton" />
                 </StackPanel>
@@ -204,7 +203,7 @@
                 Spacing="8"
                 Visibility="Collapsed">
                 <TextBlock
-                    Text="Save these recovery codes in a safe place. Each code can only be used once."
+                    x:Uid="MfaRecoverySaveDescription"
                     TextWrapping="Wrap"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <Border
@@ -219,7 +218,7 @@
                 </Border>
                 <Button
                     x:Name="MfaRecoverySavedButton"
-                    Content="I've saved these codes"
+                    x:Uid="MfaRecoverySavedButton"
                     Style="{StaticResource AccentButtonStyle}"
                     Click="MfaRecoverySavedButton_Click"
                     AutomationProperties.AutomationId="settings_mfaRecoverySavedButton" />
@@ -231,26 +230,25 @@
                 Spacing="8"
                 Visibility="Collapsed">
                 <TextBlock
-                    Text="Enter a code from your authenticator app to disable two-factor authentication."
+                    x:Uid="MfaDisableDescription"
                     TextWrapping="Wrap"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <TextBox
                     x:Name="MfaDisableCodeBox"
-                    Header="Code"
-                    PlaceholderText="123456"
+                    x:Uid="MfaDisableCodeBox"
                     InputScope="Number"
                     MaxLength="6"
                     AutomationProperties.AutomationId="settings_mfaDisableCodeBox" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button
                         x:Name="MfaDisableConfirmButton"
-                        Content="Disable MFA"
+                        x:Uid="MfaDisableConfirmButton"
                         Foreground="Red"
                         BorderBrush="Red"
                         Click="MfaDisableConfirmButton_Click"
                         AutomationProperties.AutomationId="settings_mfaDisableConfirmButton" />
                     <Button
-                        Content="Cancel"
+                        x:Uid="MfaDisableCancelButton"
                         Click="MfaCancelButton_Click"
                         AutomationProperties.AutomationId="settings_mfaDisableCancelButton" />
                 </StackPanel>
@@ -262,25 +260,24 @@
                 Spacing="8"
                 Visibility="Collapsed">
                 <TextBlock
-                    Text="Enter a code from your authenticator app to regenerate recovery codes."
+                    x:Uid="MfaRegenerateDescription"
                     TextWrapping="Wrap"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <TextBox
                     x:Name="MfaRegenerateCodeBox"
-                    Header="Code"
-                    PlaceholderText="123456"
+                    x:Uid="MfaRegenerateCodeBox"
                     InputScope="Number"
                     MaxLength="6"
                     AutomationProperties.AutomationId="settings_mfaRegenerateCodeBox" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button
                         x:Name="MfaRegenerateConfirmButton"
-                        Content="Regenerate"
+                        x:Uid="MfaRegenerateConfirmButton"
                         Style="{StaticResource AccentButtonStyle}"
                         Click="MfaRegenerateConfirmButton_Click"
                         AutomationProperties.AutomationId="settings_mfaRegenerateConfirmButton" />
                     <Button
-                        Content="Cancel"
+                        x:Uid="MfaRegenerateCancelButton"
                         Click="MfaCancelButton_Click"
                         AutomationProperties.AutomationId="settings_mfaRegenerateCancelButton" />
                 </StackPanel>
@@ -288,7 +285,7 @@
 
             <!-- Linked Accounts -->
             <TextBlock
-                Text="Linked Accounts"
+                x:Uid="LinkedAccountsTitle"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Margin="0,24,0,0" />
 
@@ -298,7 +295,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Apple" VerticalAlignment="Center" />
+                <TextBlock x:Uid="AppleProviderLabel" VerticalAlignment="Center" />
                 <Button
                     x:Name="AppleButton"
                     Grid.Column="1"
@@ -312,7 +309,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Discord" VerticalAlignment="Center" />
+                <TextBlock x:Uid="DiscordProviderLabel" VerticalAlignment="Center" />
                 <Button
                     x:Name="DiscordButton"
                     Grid.Column="1"
@@ -326,7 +323,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="GitHub" VerticalAlignment="Center" />
+                <TextBlock x:Uid="GitHubProviderLabel" VerticalAlignment="Center" />
                 <Button
                     x:Name="GithubButton"
                     Grid.Column="1"
@@ -340,7 +337,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Google" VerticalAlignment="Center" />
+                <TextBlock x:Uid="GoogleProviderLabel" VerticalAlignment="Center" />
                 <Button
                     x:Name="GoogleButton"
                     Grid.Column="1"
@@ -354,7 +351,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="X (Twitter)" VerticalAlignment="Center" />
+                <TextBlock x:Uid="XProviderLabel" VerticalAlignment="Center" />
                 <Button
                     x:Name="TwitterButton"
                     Grid.Column="1"
@@ -364,7 +361,7 @@
 
             <!-- Theme -->
             <TextBlock
-                Text="Theme"
+                x:Uid="ThemeSectionTitle"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Margin="0,24,0,0" />
 
@@ -375,21 +372,21 @@
                 AutomationProperties.AutomationId="settings_themePicker">
                 <RadioButton
                     x:Name="ThemeSystemButton"
-                    Content="System"
+                    x:Uid="ThemeSystemRadio"
                     GroupName="Theme"
                     Click="ThemeButton_Click"
                     Tag="System"
                     AutomationProperties.AutomationId="theme_system" />
                 <RadioButton
                     x:Name="ThemeLightButton"
-                    Content="Light"
+                    x:Uid="ThemeLightRadio"
                     GroupName="Theme"
                     Click="ThemeButton_Click"
                     Tag="Light"
                     AutomationProperties.AutomationId="theme_light" />
                 <RadioButton
                     x:Name="ThemeDarkButton"
-                    Content="Dark"
+                    x:Uid="ThemeDarkRadio"
                     GroupName="Theme"
                     Click="ThemeButton_Click"
                     Tag="Dark"
@@ -398,19 +395,19 @@
 
             <!-- Delete Account -->
             <TextBlock
-                Text="Delete Account"
+                x:Uid="DeleteAccountSectionTitle"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Margin="0,24,0,0" />
 
             <TextBlock
-                Text="Permanently delete your account and all associated data. This action cannot be undone."
+                x:Uid="DeleteAccountDescription"
                 TextWrapping="Wrap"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Margin="0,4,0,0" />
 
             <Button
                 x:Name="DeleteAccountButton"
-                Content="Delete Account"
+                x:Uid="DeleteAccountButton"
                 Click="DeleteAccountButton_Click"
                 Foreground="Red"
                 BorderBrush="Red"
