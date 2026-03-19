@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun SignInScreen(
@@ -67,7 +68,7 @@ fun SignInScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = "Sign In",
+            text = stringResource(R.string.sign_in),
             style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -75,7 +76,7 @@ fun SignInScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -85,7 +86,7 @@ fun SignInScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.password)) },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
@@ -94,7 +95,7 @@ fun SignInScreen(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                        contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password),
                     )
                 }
             },
@@ -122,7 +123,7 @@ fun SignInScreen(
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
             } else {
-                Text("Sign In")
+                Text(stringResource(R.string.sign_in))
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -133,7 +134,7 @@ fun SignInScreen(
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
-                text = "  or  ",
+                text = stringResource(R.string.or_divider),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -147,7 +148,7 @@ fun SignInScreen(
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Sign in with Apple")
+            Text(stringResource(R.string.sign_in_with_apple))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -157,7 +158,7 @@ fun SignInScreen(
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Sign in with Discord")
+            Text(stringResource(R.string.sign_in_with_discord))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -167,7 +168,7 @@ fun SignInScreen(
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Sign in with GitHub")
+            Text(stringResource(R.string.sign_in_with_github))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -177,7 +178,7 @@ fun SignInScreen(
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Sign in with Google")
+            Text(stringResource(R.string.sign_in_with_google))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -187,13 +188,13 @@ fun SignInScreen(
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Sign in with X")
+            Text(stringResource(R.string.sign_in_with_x))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(onClick = onNavigateToSignUp) {
-            Text("Don't have an account? Sign Up")
+            Text(stringResource(R.string.no_account_sign_up))
         }
     }
 }
@@ -213,13 +214,13 @@ private fun MfaChallengeScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = "Two-factor authentication",
+            text = stringResource(R.string.mfa_title),
             style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Enter the 6-digit code from your authenticator app",
+            text = stringResource(R.string.mfa_prompt),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -228,7 +229,7 @@ private fun MfaChallengeScreen(
         OutlinedTextField(
             value = code,
             onValueChange = { if (it.length <= 6) code = it },
-            label = { Text("Code") },
+            label = { Text(stringResource(R.string.mfa_code)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -256,13 +257,13 @@ private fun MfaChallengeScreen(
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
             } else {
-                Text("Verify")
+                Text(stringResource(R.string.mfa_verify))
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "You can also use a recovery code",
+            text = stringResource(R.string.mfa_recovery_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

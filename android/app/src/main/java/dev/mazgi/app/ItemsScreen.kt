@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -52,7 +53,7 @@ fun ItemsScreen(
             OutlinedTextField(
                 value = uiState.newName,
                 onValueChange = { viewModel.updateNewName(it) },
-                label = { Text("Item name") },
+                label = { Text(stringResource(R.string.item_name)) },
                 singleLine = true,
                 enabled = !uiState.isSubmitting,
                 modifier = Modifier.weight(1f),
@@ -68,7 +69,7 @@ fun ItemsScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text("Add")
+                    Text(stringResource(R.string.add))
                 }
             }
         }
@@ -101,7 +102,7 @@ fun ItemsScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "No items yet.",
+                        text = stringResource(R.string.no_items_yet),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -118,7 +119,7 @@ fun ItemsScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
-                                        contentDescription = "Delete",
+                                        contentDescription = stringResource(R.string.delete),
                                         tint = MaterialTheme.colorScheme.error,
                                     )
                                 }

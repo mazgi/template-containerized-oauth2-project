@@ -44,6 +44,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -87,11 +88,11 @@ fun SettingsScreen(
             .padding(24.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Text(text = "Settings", style = MaterialTheme.typography.headlineMedium)
+        Text(text = stringResource(R.string.settings), style = MaterialTheme.typography.headlineMedium)
 
         // Email section
         Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Email", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.label_email), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(modifier = Modifier.fillMaxWidth()) {
@@ -102,7 +103,7 @@ fun SettingsScreen(
                 ) {
                     if (isInvalidEmail) {
                         Text(
-                            text = "Not set",
+                            text = stringResource(R.string.not_set),
                             style = MaterialTheme.typography.bodyLarge,
                             fontStyle = FontStyle.Italic,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -129,7 +130,7 @@ fun SettingsScreen(
                                 .padding(horizontal = 8.dp, vertical = 2.dp),
                         ) {
                             Text(
-                                text = if (user?.emailVerified == true) "Verified" else "Unverified",
+                                text = if (user?.emailVerified == true) stringResource(R.string.verified) else stringResource(R.string.unverified),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = badgeColor,
                             )
@@ -143,7 +144,7 @@ fun SettingsScreen(
                         onClick = onResendVerification,
                         enabled = !uiState.isLoading,
                     ) {
-                        Text("Resend verification email")
+                        Text(stringResource(R.string.resend_verification_email))
                     }
                 }
 
@@ -156,7 +157,7 @@ fun SettingsScreen(
                         OutlinedTextField(
                             value = emailInput,
                             onValueChange = { emailInput = it },
-                            placeholder = { Text("Enter new email address") },
+                            placeholder = { Text(stringResource(R.string.enter_new_email)) },
                             singleLine = true,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -191,7 +192,7 @@ fun SettingsScreen(
                         enabled = !uiState.isLoading && emailInput.trim().isNotEmpty() && emailInput.trim() != user?.email,
                         modifier = Modifier.testTag("settings_saveEmail"),
                     ) {
-                        Text("Save")
+                        Text(stringResource(R.string.save))
                     }
                 }
             }
@@ -199,18 +200,18 @@ fun SettingsScreen(
 
         // Password section
         Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Password", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.section_password), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = if (user?.emailVerified != true) {
-                        "To use this feature, please verify your email address first."
+                        stringResource(R.string.password_requires_verification)
                     } else if (user.hasPassword == true) {
-                        "Send a password reset link to your email address."
+                        stringResource(R.string.password_reset_description)
                     } else {
-                        "Set a password so you can also sign in with email and password."
+                        stringResource(R.string.password_set_description)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -219,7 +220,7 @@ fun SettingsScreen(
                 if (passwordResetSent) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Password reset link sent. Please check your inbox.",
+                        text = stringResource(R.string.password_reset_sent),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF16A34A),
                     )
@@ -235,7 +236,7 @@ fun SettingsScreen(
                     modifier = Modifier.testTag("settings_passwordResetButton"),
                 ) {
                     Text(
-                        if (user?.hasPassword == true) "Send reset link" else "Send setup link"
+                        if (user?.hasPassword == true) stringResource(R.string.send_reset_link) else stringResource(R.string.send_setup_link)
                     )
                 }
             }
@@ -243,7 +244,7 @@ fun SettingsScreen(
 
         // Two-factor authentication section
         Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Two-factor authentication", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.mfa_title), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(modifier = Modifier.fillMaxWidth()) {
@@ -258,7 +259,7 @@ fun SettingsScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 Text(
-                                    text = "Status:",
+                                    text = stringResource(R.string.mfa_status),
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
                                 Box(
@@ -268,7 +269,7 @@ fun SettingsScreen(
                                         .padding(horizontal = 8.dp, vertical = 2.dp),
                                 ) {
                                     Text(
-                                        text = "Enabled",
+                                        text = stringResource(R.string.enabled),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = Color(0xFF16A34A),
                                     )
@@ -280,18 +281,18 @@ fun SettingsScreen(
                                     onClick = onStartDisableTotp,
                                     enabled = !uiState.isLoading,
                                 ) {
-                                    Text("Disable")
+                                    Text(stringResource(R.string.disable))
                                 }
                                 OutlinedButton(
                                     onClick = onStartRegenerateRecoveryCodes,
                                     enabled = !uiState.isLoading,
                                 ) {
-                                    Text("Regenerate recovery codes")
+                                    Text(stringResource(R.string.regenerate_recovery_codes))
                                 }
                             }
                         } else {
                             Text(
-                                text = "Add an extra layer of security to your account using a TOTP authenticator app.",
+                                text = stringResource(R.string.mfa_setup_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -300,7 +301,7 @@ fun SettingsScreen(
                                 onClick = onSetupTotp,
                                 enabled = !uiState.isLoading,
                             ) {
-                                Text("Enable")
+                                Text(stringResource(R.string.enable))
                             }
                         }
                     }
@@ -308,7 +309,7 @@ fun SettingsScreen(
                     MfaStep.SETUP -> {
                         uiState.totpSetupSecret?.let { secret ->
                             Text(
-                                text = "Scan the QR code or enter this secret in your authenticator app:",
+                                text = stringResource(R.string.mfa_scan_secret),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -329,7 +330,7 @@ fun SettingsScreen(
                             OutlinedTextField(
                                 value = totpCode,
                                 onValueChange = { if (it.length <= 6) totpCode = it },
-                                label = { Text("Verification code") },
+                                label = { Text(stringResource(R.string.verification_code)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
@@ -340,10 +341,10 @@ fun SettingsScreen(
                                     onClick = { onEnableTotp(totpCode) },
                                     enabled = !uiState.isLoading && totpCode.length == 6,
                                 ) {
-                                    Text("Verify and enable")
+                                    Text(stringResource(R.string.verify_and_enable))
                                 }
                                 OutlinedButton(onClick = onClearMfaStep) {
-                                    Text("Cancel")
+                                    Text(stringResource(R.string.cancel))
                                 }
                             }
                         }
@@ -351,7 +352,7 @@ fun SettingsScreen(
 
                     MfaStep.RECOVERY -> {
                         Text(
-                            text = "Save these recovery codes in a safe place. Each code can only be used once.",
+                            text = stringResource(R.string.mfa_recovery_save),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -371,13 +372,13 @@ fun SettingsScreen(
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = onClearMfaStep) {
-                            Text("I've saved these codes")
+                            Text(stringResource(R.string.saved_codes))
                         }
                     }
 
                     MfaStep.DISABLE -> {
                         Text(
-                            text = "Enter a code from your authenticator app to disable two-factor authentication.",
+                            text = stringResource(R.string.mfa_disable_prompt),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -385,7 +386,7 @@ fun SettingsScreen(
                         OutlinedTextField(
                             value = totpCode,
                             onValueChange = { if (it.length <= 6) totpCode = it },
-                            label = { Text("Code") },
+                            label = { Text(stringResource(R.string.mfa_code)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
@@ -396,17 +397,17 @@ fun SettingsScreen(
                                 onClick = { onDisableTotp(totpCode) },
                                 enabled = !uiState.isLoading && totpCode.length == 6,
                             ) {
-                                Text("Disable MFA")
+                                Text(stringResource(R.string.disable_mfa))
                             }
                             OutlinedButton(onClick = onClearMfaStep) {
-                                Text("Cancel")
+                                Text(stringResource(R.string.cancel))
                             }
                         }
                     }
 
                     MfaStep.REGENERATE -> {
                         Text(
-                            text = "Enter a code from your authenticator app to regenerate recovery codes.",
+                            text = stringResource(R.string.mfa_regenerate_prompt),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -414,7 +415,7 @@ fun SettingsScreen(
                         OutlinedTextField(
                             value = totpCode,
                             onValueChange = { if (it.length <= 6) totpCode = it },
-                            label = { Text("Code") },
+                            label = { Text(stringResource(R.string.mfa_code)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
@@ -425,10 +426,10 @@ fun SettingsScreen(
                                 onClick = { onRegenerateRecoveryCodes(totpCode) },
                                 enabled = !uiState.isLoading && totpCode.length == 6,
                             ) {
-                                Text("Regenerate")
+                                Text(stringResource(R.string.regenerate))
                             }
                             OutlinedButton(onClick = onClearMfaStep) {
-                                Text("Cancel")
+                                Text(stringResource(R.string.cancel))
                             }
                         }
                     }
@@ -438,7 +439,7 @@ fun SettingsScreen(
 
         // Linked Accounts section
         Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Linked Accounts", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.linked_accounts), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(modifier = Modifier.fillMaxWidth()) {
@@ -462,11 +463,11 @@ fun SettingsScreen(
                         Text(text = label)
                         if (isLinked) {
                             OutlinedButton(onClick = { onUnlinkProvider(key) }) {
-                                Text("Unlink")
+                                Text(stringResource(R.string.unlink))
                             }
                         } else {
                             Button(onClick = { onLinkProvider(key) }) {
-                                Text("Link")
+                                Text(stringResource(R.string.link))
                             }
                         }
                     }
@@ -475,7 +476,7 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Theme", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.theme), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -485,7 +486,7 @@ fun SettingsScreen(
                 FilterChip(
                     selected = uiState.themeMode == mode,
                     onClick = { onSetTheme(mode) },
-                    label = { Text(mode.label) },
+                    label = { Text(stringResource(mode.labelResId)) },
                     modifier = Modifier.testTag("theme_${mode.apiValue}"),
                 )
             }
@@ -501,10 +502,10 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Delete Account", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.delete_account), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Permanently delete your account and all associated data. This action cannot be undone.",
+            text = stringResource(R.string.delete_account_description),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -516,14 +517,14 @@ fun SettingsScreen(
             ),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
         ) {
-            Text("Delete Account")
+            Text(stringResource(R.string.delete_account))
         }
 
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Delete Account") },
-                text = { Text("Are you sure you want to delete your account? This cannot be undone.") },
+                title = { Text(stringResource(R.string.delete_account)) },
+                text = { Text(stringResource(R.string.delete_account_confirm)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -534,12 +535,12 @@ fun SettingsScreen(
                             contentColor = MaterialTheme.colorScheme.error,
                         ),
                     ) {
-                        Text("Delete")
+                        Text(stringResource(R.string.delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 },
             )

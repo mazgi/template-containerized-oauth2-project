@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
@@ -98,7 +99,7 @@ class MainActivity : ComponentActivity() {
                                         icon = {
                                             Icon(Icons.Filled.Person, contentDescription = null)
                                         },
-                                        label = { Text("Dashboard") },
+                                        label = { Text(stringResource(R.string.nav_dashboard)) },
                                     )
                                     NavigationBarItem(
                                         selected = currentRoute == "items",
@@ -111,7 +112,7 @@ class MainActivity : ComponentActivity() {
                                         icon = {
                                             Icon(Icons.Filled.Menu, contentDescription = null)
                                         },
-                                        label = { Text("Items") },
+                                        label = { Text(stringResource(R.string.nav_items)) },
                                     )
                                     NavigationBarItem(
                                         selected = currentRoute == "settings",
@@ -124,7 +125,7 @@ class MainActivity : ComponentActivity() {
                                         icon = {
                                             Icon(Icons.Filled.Settings, contentDescription = null)
                                         },
-                                        label = { Text("Settings") },
+                                        label = { Text(stringResource(R.string.nav_settings)) },
                                     )
                                 }
                             },
@@ -256,7 +257,7 @@ class MainActivity : ComponentActivity() {
                             .size(width = 64.dp, height = 32.dp),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
                     ) {
-                        Text("Debug", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.nav_debug), style = MaterialTheme.typography.labelSmall)
                     }
                     if (showDebugSettings) {
                         DebugSettingsDialog(onDismiss = { showDebugSettings = false })

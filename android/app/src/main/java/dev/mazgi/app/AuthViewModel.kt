@@ -14,10 +14,10 @@ import org.json.JSONObject
 
 enum class MfaStep { IDLE, SETUP, RECOVERY, DISABLE, REGENERATE }
 
-enum class ThemeMode(val label: String) {
-    SYSTEM("System"),
-    LIGHT("Light"),
-    DARK("Dark");
+enum class ThemeMode(val labelResId: Int) {
+    SYSTEM(R.string.theme_system),
+    LIGHT(R.string.theme_light),
+    DARK(R.string.theme_dark);
 
     val apiValue: String get() = name.lowercase()
 

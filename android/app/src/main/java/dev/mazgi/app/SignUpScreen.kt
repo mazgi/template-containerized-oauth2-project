@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun SignUpScreen(
@@ -52,13 +53,13 @@ fun SignUpScreen(
     ) {
         if (uiState.verificationSentEmail != null) {
             Text(
-                text = "Check your email",
+                text = stringResource(R.string.check_your_email),
                 style = MaterialTheme.typography.headlineMedium,
             )
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.",
+                text = stringResource(R.string.verification_sent_message),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -75,17 +76,17 @@ fun SignUpScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text("Resend verification email")
+                    Text(stringResource(R.string.resend_verification_email))
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = onNavigateToSignIn) {
-                Text("Sign In")
+                Text(stringResource(R.string.sign_in))
             }
         } else {
             Text(
-                text = "Sign Up",
+                text = stringResource(R.string.sign_up),
                 style = MaterialTheme.typography.headlineMedium,
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -93,7 +94,7 @@ fun SignUpScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -103,7 +104,7 @@ fun SignUpScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(stringResource(R.string.password)) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
@@ -112,7 +113,7 @@ fun SignUpScreen(
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                            contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password),
                         )
                     }
                 },
@@ -140,13 +141,13 @@ fun SignUpScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text("Sign Up")
+                    Text(stringResource(R.string.sign_up))
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = onNavigateToSignIn) {
-                Text("Already have an account? Sign In")
+                Text(stringResource(R.string.already_have_account))
             }
         }
     }
