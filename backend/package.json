@@ -29,6 +29,7 @@
     "dotenv": "^17.3.1",
     "express-session": "^1.19.0",
     "jsonwebtoken": "^9.0.3",
+    "nestjs-i18n": "^10.6.0",
     "nodemailer": "^8.0.3",
     "otpauth": "^9.5.0",
     "passport": "^0.7.0",
