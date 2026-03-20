@@ -14,15 +14,15 @@
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
             <TextBox
                 x:Name="NewNameBox"
+                x:Uid="NewItemNameBox"
                 Grid.Column="0"
-                PlaceholderText="Item name"
                 Margin="0,0,8,0"
                 KeyDown="NewNameBox_KeyDown"
                 AutomationProperties.AutomationId="items_nameTextBox" />
             <Button
                 x:Name="AddButton"
+                x:Uid="AddItemButton"
                 Grid.Column="1"
-                Content="Add"
                 Style="{StaticResource AccentButtonStyle}"
                 Click="AddButton_Click"
                 AutomationProperties.AutomationId="items_addButton" />
@@ -57,7 +57,7 @@
             <!-- Empty state -->
             <TextBlock
                 x:Name="EmptyText"
-                Text="No items yet."
+                x:Uid="EmptyItemsText"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"

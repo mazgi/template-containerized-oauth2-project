@@ -12,6 +12,7 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    <DefaultLanguage>en-US</DefaultLanguage>
   </PropertyGroup>
 
   <!-- Backend API base URL — override with: msbuild /p:ApiBaseUrl=http://host:4000 -->

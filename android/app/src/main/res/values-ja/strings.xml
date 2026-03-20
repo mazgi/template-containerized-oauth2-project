@@ -1,0 +1,95 @@
+<resources>
+    <!-- Navigation -->
+    <string name="nav_dashboard">ダッシュボード</string>
+    <string name="nav_items">アイテム</string>
+    <string name="nav_settings">設定</string>
+    <string name="nav_debug">デバッグ</string>
+
+    <!-- Sign In -->
+    <string name="sign_in">サインイン</string>
+    <string name="email">メールアドレス</string>
+    <string name="password">パスワード</string>
+    <string name="hide_password">パスワードを非表示</string>
+    <string name="show_password">パスワードを表示</string>
+    <string name="or_divider">" または "</string>
+    <string name="sign_in_with_apple">Appleでサインイン</string>
+    <string name="sign_in_with_discord">Discordでサインイン</string>
+    <string name="sign_in_with_github">GitHubでサインイン</string>
+    <string name="sign_in_with_google">Googleでサインイン</string>
+    <string name="sign_in_with_x">Xでサインイン</string>
+    <string name="no_account_sign_up">アカウントをお持ちでない方は新規登録</string>
+
+    <!-- MFA -->
+    <string name="mfa_title">二要素認証</string>
+    <string name="mfa_prompt">認証アプリの6桁のコードを入力してください</string>
+    <string name="mfa_code">コード</string>
+    <string name="mfa_verify">確認</string>
+    <string name="mfa_recovery_hint">リカバリーコードも使用できます</string>
+
+    <!-- Sign Up -->
+    <string name="sign_up">新規登録</string>
+    <string name="check_your_email">メールをご確認ください</string>
+    <string name="verification_sent_message">認証リンクをメールアドレスに送信しました。受信トレイを確認し、リンクをクリックしてアカウントを認証してください。</string>
+    <string name="resend_verification_email">認証メールを再送信</string>
+    <string name="already_have_account">すでにアカウントをお持ちの方はサインイン</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard">ダッシュボード</string>
+    <string name="user_icon">ユーザーアイコン</string>
+    <string name="user_icon_placeholder">ユーザーアイコンプレースホルダー</string>
+    <string name="upload_icon">アイコンをアップロード</string>
+    <string name="label_email">メールアドレス</string>
+    <string name="label_name">名前</string>
+    <string name="label_id">ID</string>
+    <string name="label_created">作成日時</string>
+    <string name="sign_out">サインアウト</string>
+
+    <!-- Items -->
+    <string name="item_name">アイテム名</string>
+    <string name="add">追加</string>
+    <string name="delete">削除</string>
+    <string name="no_items_yet">アイテムがありません。</string>
+
+    <!-- Settings -->
+    <string name="settings">設定</string>
+    <string name="not_set">未設定</string>
+    <string name="verified">認証済み</string>
+    <string name="unverified">未認証</string>
+    <string name="enter_new_email">新しいメールアドレスを入力</string>
+    <string name="save">保存</string>
+    <string name="section_password">パスワード</string>
+    <string name="password_requires_verification">この機能を利用するには、先にメールアドレスの認証が必要です。</string>
+    <string name="password_reset_description">パスワード再設定用のリンクをメールアドレスに送信します。</string>
+    <string name="password_set_description">パスワードを設定すると、メールアドレスとパスワードでもサインインできるようになります。</string>
+    <string name="password_reset_sent">パスワード再設定リンクを送信しました。受信トレイをご確認ください。</string>
+    <string name="send_reset_link">再設定リンクを送信</string>
+    <string name="send_setup_link">設定リンクを送信</string>
+    <string name="mfa_status">ステータス:</string>
+    <string name="enabled">有効</string>
+    <string name="disable">無効にする</string>
+    <string name="regenerate_recovery_codes">リカバリーコードを再生成</string>
+    <string name="mfa_setup_description">二要素認証を有効にして、アカウントにセキュリティレイヤーを追加します。</string>
+    <string name="enable">有効にする</string>
+    <string name="mfa_scan_secret">このシークレットを認証アプリに追加してください:</string>
+    <string name="verification_code">認証コード</string>
+    <string name="verify_and_enable">確認して有効にする</string>
+    <string name="cancel">キャンセル</string>
+    <string name="mfa_recovery_save">これらのリカバリーコードを安全な場所に保存してください。各コードは1回のみ使用できます。</string>
+    <string name="saved_codes">コードを保存しました</string>
+    <string name="mfa_disable_prompt">MFAを無効にするには、認証アプリのコードを入力してください。</string>
+    <string name="disable_mfa">MFAを無効にする</string>
+    <string name="mfa_regenerate_prompt">リカバリーコードを再生成するには、認証アプリのコードを入力してください。</string>
+    <string name="regenerate">再生成</string>
+    <string name="linked_accounts">連携アカウント</string>
+    <string name="unlink">解除</string>
+    <string name="link">連携</string>
+    <string name="theme">テーマ</string>
+    <string name="theme_system">システム</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
+    <string name="delete_account">アカウント削除</string>
+    <string name="delete_account_description">アカウントと関連するすべてのデータを完全に削除します。この操作は取り消せません。</string>
+    <string name="delete_account_confirm">本当にアカウントを削除しますか？この操作は取り消せません。</string>
+    <string name="account_deleted">アカウント削除完了</string>
+    <string name="ok">OK</string>
+</resources>

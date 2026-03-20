@@ -8,6 +8,8 @@ public sealed partial class SignUpPage : Page
     public SignUpPage()
     {
         InitializeComponent();
+        SignUpButton.Content = Strings.Get("SignUp");
+        ResendButton.Content = Strings.Get("ResendVerificationEmail");
         Loaded += (_, _) => UpdateUI();
     }
 
@@ -30,9 +32,9 @@ public sealed partial class SignUpPage : Page
         if (string.IsNullOrEmpty(email)) return;
 
         ResendButton.IsEnabled = false;
-        ResendButton.Content = "Sending...";
+        ResendButton.Content = Strings.Get("Sending");
         await App.Auth.ResendVerificationAsync(email);
-        ResendButton.Content = "Resend verification email";
+        ResendButton.Content = Strings.Get("ResendVerificationEmail");
         ResendButton.IsEnabled = true;
     }
 
@@ -60,7 +62,7 @@ public sealed partial class SignUpPage : Page
         SignUpButton.IsEnabled = !loading;
         EmailBox.IsEnabled = !loading;
         PasswordBox.IsEnabled = !loading;
-        SignUpButton.Content = loading ? "Signing up..." : "Sign Up";
+        SignUpButton.Content = loading ? Strings.Get("SigningUp") : Strings.Get("SignUp");
     }
 
     private void UpdateUI()

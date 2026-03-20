@@ -9,6 +9,8 @@ public sealed partial class SignInPage : Page
     public SignInPage()
     {
         InitializeComponent();
+        SignInButton.Content = Strings.Get("SignIn");
+        MfaVerifyButton.Content = Strings.Get("Verify");
         Loaded += (_, _) => UpdateUI();
     }
 
@@ -91,14 +93,14 @@ public sealed partial class SignInPage : Page
         SignInButton.IsEnabled = !loading;
         EmailBox.IsEnabled = !loading;
         PasswordBox.IsEnabled = !loading;
-        SignInButton.Content = loading ? "Signing in..." : "Sign In";
+        SignInButton.Content = loading ? Strings.Get("SigningIn") : Strings.Get("SignIn");
     }
 
     private void SetMfaLoading(bool loading)
     {
         MfaVerifyButton.IsEnabled = !loading;
         MfaCodeBox.IsEnabled = !loading;
-        MfaVerifyButton.Content = loading ? "Verifying..." : "Verify";
+        MfaVerifyButton.Content = loading ? Strings.Get("Verifying") : Strings.Get("Verify");
     }
 
     private void UpdateUI()

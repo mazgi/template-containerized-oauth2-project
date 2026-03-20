@@ -31,9 +31,9 @@ public sealed partial class DashboardPage : Page
             NameText.Visibility = Visibility.Visible;
         }
 
-        IdText.Text = $"ID: {user.Id}";
-        CreatedText.Text = $"Created: {FormatDate(user.CreatedAt)}";
-        UpdatedText.Text = $"Updated: {FormatDate(user.UpdatedAt)}";
+        IdText.Text = Strings.Format("DashboardIdFormat", user.Id);
+        CreatedText.Text = Strings.Format("DashboardCreatedFormat", FormatDate(user.CreatedAt));
+        UpdatedText.Text = Strings.Format("DashboardUpdatedFormat", FormatDate(user.UpdatedAt));
     }
 
     private static string FormatDate(string iso)

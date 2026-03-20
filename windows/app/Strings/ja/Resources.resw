@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ============ サインインページ (XAML x:Uid) ============ -->
+  <data name="SignInTitle.Text" xml:space="preserve">
+    <value>サインイン</value>
+  </data>
+  <data name="SignInEmailBox.Header" xml:space="preserve">
+    <value>メールアドレス</value>
+  </data>
+  <data name="SignInEmailBox.PlaceholderText" xml:space="preserve">
+    <value>email@example.com</value>
+  </data>
+  <data name="SignInPasswordBox.Header" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="SignInPasswordBox.PlaceholderText" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="OrDivider.Text" xml:space="preserve">
+    <value>または</value>
+  </data>
+  <data name="SignInAppleButton.Content" xml:space="preserve">
+    <value>Appleでサインイン</value>
+  </data>
+  <data name="SignInDiscordButton.Content" xml:space="preserve">
+    <value>Discordでサインイン</value>
+  </data>
+  <data name="SignInGitHubButton.Content" xml:space="preserve">
+    <value>GitHubでサインイン</value>
+  </data>
+  <data name="SignInGoogleButton.Content" xml:space="preserve">
+    <value>Googleでサインイン</value>
+  </data>
+  <data name="SignInXButton.Content" xml:space="preserve">
+    <value>Xでサインイン</value>
+  </data>
+  <data name="NoAccountText.Text" xml:space="preserve">
+    <value>アカウントをお持ちでない方は</value>
+  </data>
+  <data name="GoToSignUpLink.Content" xml:space="preserve">
+    <value>新規登録</value>
+  </data>
+  <data name="MfaTitle.Text" xml:space="preserve">
+    <value>二要素認証</value>
+  </data>
+  <data name="MfaPromptText.Text" xml:space="preserve">
+    <value>認証アプリの6桁のコードを入力してください</value>
+  </data>
+  <data name="SignInMfaCodeBox.Header" xml:space="preserve">
+    <value>コード</value>
+  </data>
+  <data name="SignInMfaCodeBox.PlaceholderText" xml:space="preserve">
+    <value>123456</value>
+  </data>
+  <data name="MfaRecoveryHint.Text" xml:space="preserve">
+    <value>リカバリーコードも使用できます</value>
+  </data>
+  <data name="MfaBackLink.Content" xml:space="preserve">
+    <value>サインインに戻る</value>
+  </data>
+
+  <!-- ============ 新規登録ページ (XAML x:Uid) ============ -->
+  <data name="CheckEmailTitle.Text" xml:space="preserve">
+    <value>メールをご確認ください</value>
+  </data>
+  <data name="VerificationSentMessage.Text" xml:space="preserve">
+    <value>認証リンクをメールアドレスに送信しました。受信トレイを確認し、リンクをクリックしてアカウントを認証してください。</value>
+  </data>
+  <data name="VerificationSignInLink.Content" xml:space="preserve">
+    <value>サインイン</value>
+  </data>
+  <data name="SignUpTitle.Text" xml:space="preserve">
+    <value>新規登録</value>
+  </data>
+  <data name="SignUpEmailBox.Header" xml:space="preserve">
+    <value>メールアドレス</value>
+  </data>
+  <data name="SignUpEmailBox.PlaceholderText" xml:space="preserve">
+    <value>email@example.com</value>
+  </data>
+  <data name="SignUpPasswordBox.Header" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="SignUpPasswordBox.PlaceholderText" xml:space="preserve">
+    <value>パスワード（8文字以上）</value>
+  </data>
+  <data name="AlreadyHaveAccountText.Text" xml:space="preserve">
+    <value>すでにアカウントをお持ちの方は</value>
+  </data>
+  <data name="GoToSignInLink.Content" xml:space="preserve">
+    <value>サインイン</value>
+  </data>
+
+  <!-- ============ ダッシュボードページ (XAML x:Uid) ============ -->
+  <data name="SignOutButton.Content" xml:space="preserve">
+    <value>サインアウト</value>
+  </data>
+
+  <!-- ============ アイテムページ (XAML x:Uid) ============ -->
+  <data name="NewItemNameBox.PlaceholderText" xml:space="preserve">
+    <value>アイテム名</value>
+  </data>
+  <data name="AddItemButton.Content" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="EmptyItemsText.Text" xml:space="preserve">
+    <value>アイテムがありません。</value>
+  </data>
+
+  <!-- ============ シェルページ (XAML x:Uid) ============ -->
+  <data name="NavDashboard.Content" xml:space="preserve">
+    <value>ダッシュボード</value>
+  </data>
+  <data name="NavItems.Content" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="NavSettings.Content" xml:space="preserve">
+    <value>設定</value>
+  </data>
+
+  <!-- ============ 設定ページ (XAML x:Uid) ============ -->
+  <data name="EmailSectionTitle.Text" xml:space="preserve">
+    <value>メールアドレス</value>
+  </data>
+  <data name="ResendVerificationButton.Content" xml:space="preserve">
+    <value>認証メールを再送信</value>
+  </data>
+  <data name="NewEmailInput.PlaceholderText" xml:space="preserve">
+    <value>新しいメールアドレスを入力</value>
+  </data>
+  <data name="SaveEmailButton.Content" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="PasswordSectionTitle.Text" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="PasswordResetSuccess.Text" xml:space="preserve">
+    <value>パスワード再設定リンクを送信しました。受信トレイをご確認ください。</value>
+  </data>
+  <data name="MfaSectionTitle.Text" xml:space="preserve">
+    <value>二要素認証</value>
+  </data>
+  <data name="MfaIdleDescription.Text" xml:space="preserve">
+    <value>二要素認証を有効にして、アカウントにセキュリティレイヤーを追加します。</value>
+  </data>
+  <data name="MfaEnableButton.Content" xml:space="preserve">
+    <value>有効にする</value>
+  </data>
+  <data name="MfaEnabledBadge.Text" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="MfaDisableButton.Content" xml:space="preserve">
+    <value>無効にする</value>
+  </data>
+  <data name="MfaRegenerateButton.Content" xml:space="preserve">
+    <value>リカバリーコードを再生成</value>
+  </data>
+  <data name="MfaSetupDescription.Text" xml:space="preserve">
+    <value>このシークレットを認証アプリに追加してください:</value>
+  </data>
+  <data name="MfaSetupCodeBox.Header" xml:space="preserve">
+    <value>認証コード</value>
+  </data>
+  <data name="MfaSetupCodeBox.PlaceholderText" xml:space="preserve">
+    <value>123456</value>
+  </data>
+  <data name="MfaVerifyEnableButton.Content" xml:space="preserve">
+    <value>確認して有効にする</value>
+  </data>
+  <data name="MfaSetupCancelButton.Content" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="MfaRecoverySaveDescription.Text" xml:space="preserve">
+    <value>これらのリカバリーコードを安全な場所に保存してください。各コードは1回のみ使用できます。</value>
+  </data>
+  <data name="MfaRecoverySavedButton.Content" xml:space="preserve">
+    <value>コードを保存しました</value>
+  </data>
+  <data name="MfaDisableDescription.Text" xml:space="preserve">
+    <value>MFAを無効にするには、認証アプリのコードを入力してください。</value>
+  </data>
+  <data name="MfaDisableCodeBox.Header" xml:space="preserve">
+    <value>コード</value>
+  </data>
+  <data name="MfaDisableCodeBox.PlaceholderText" xml:space="preserve">
+    <value>123456</value>
+  </data>
+  <data name="MfaDisableConfirmButton.Content" xml:space="preserve">
+    <value>MFAを無効にする</value>
+  </data>
+  <data name="MfaDisableCancelButton.Content" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="MfaRegenerateDescription.Text" xml:space="preserve">
+    <value>リカバリーコードを再生成するには、認証アプリのコードを入力してください。</value>
+  </data>
+  <data name="MfaRegenerateCodeBox.Header" xml:space="preserve">
+    <value>コード</value>
+  </data>
+  <data name="MfaRegenerateCodeBox.PlaceholderText" xml:space="preserve">
+    <value>123456</value>
+  </data>
+  <data name="MfaRegenerateConfirmButton.Content" xml:space="preserve">
+    <value>再生成</value>
+  </data>
+  <data name="MfaRegenerateCancelButton.Content" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="LinkedAccountsTitle.Text" xml:space="preserve">
+    <value>連携アカウント</value>
+  </data>
+  <data name="AppleProviderLabel.Text" xml:space="preserve">
+    <value>Apple</value>
+  </data>
+  <data name="DiscordProviderLabel.Text" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="GitHubProviderLabel.Text" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="GoogleProviderLabel.Text" xml:space="preserve">
+    <value>Google</value>
+  </data>
+  <data name="XProviderLabel.Text" xml:space="preserve">
+    <value>X (Twitter)</value>
+  </data>
+  <data name="ThemeSectionTitle.Text" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="ThemeSystemRadio.Content" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="ThemeLightRadio.Content" xml:space="preserve">
+    <value>ライト</value>
+  </data>
+  <data name="ThemeDarkRadio.Content" xml:space="preserve">
+    <value>ダーク</value>
+  </data>
+  <data name="DeleteAccountSectionTitle.Text" xml:space="preserve">
+    <value>アカウント削除</value>
+  </data>
+  <data name="DeleteAccountDescription.Text" xml:space="preserve">
+    <value>アカウントと関連するすべてのデータを完全に削除します。この操作は取り消せません。</value>
+  </data>
+  <data name="DeleteAccountButton.Content" xml:space="preserve">
+    <value>アカウント削除</value>
+  </data>
+
+  <!-- ============ メインウィンドウ (XAML x:Uid) ============ -->
+  <data name="DebugButton.Content" xml:space="preserve">
+    <value>デバッグ</value>
+  </data>
+
+  <!-- ============ C# 動的文字列 (ResourceLoader) ============ -->
+  <data name="SignIn" xml:space="preserve">
+    <value>サインイン</value>
+  </data>
+  <data name="SigningIn" xml:space="preserve">
+    <value>サインイン中...</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Verifying" xml:space="preserve">
+    <value>確認中...</value>
+  </data>
+  <data name="SignUp" xml:space="preserve">
+    <value>新規登録</value>
+  </data>
+  <data name="SigningUp" xml:space="preserve">
+    <value>登録中...</value>
+  </data>
+  <data name="Sending" xml:space="preserve">
+    <value>送信中...</value>
+  </data>
+  <data name="ResendVerificationEmail" xml:space="preserve">
+    <value>認証メールを再送信</value>
+  </data>
+  <data name="NotSet" xml:space="preserve">
+    <value>未設定</value>
+  </data>
+  <data name="Verified" xml:space="preserve">
+    <value>認証済み</value>
+  </data>
+  <data name="Unverified" xml:space="preserve">
+    <value>未認証</value>
+  </data>
+  <data name="PasswordRequiresVerification" xml:space="preserve">
+    <value>この機能を利用するには、先にメールアドレスの認証が必要です。</value>
+  </data>
+  <data name="PasswordResetDescription" xml:space="preserve">
+    <value>パスワード再設定用のリンクをメールアドレスに送信します。</value>
+  </data>
+  <data name="PasswordSetDescription" xml:space="preserve">
+    <value>パスワードを設定すると、メールアドレスとパスワードでもサインインできるようになります。</value>
+  </data>
+  <data name="SendResetLink" xml:space="preserve">
+    <value>再設定リンクを送信</value>
+  </data>
+  <data name="SendSetupLink" xml:space="preserve">
+    <value>設定リンクを送信</value>
+  </data>
+  <data name="LinkProvider" xml:space="preserve">
+    <value>連携</value>
+  </data>
+  <data name="UnlinkProvider" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="DeleteAccountDialogTitle" xml:space="preserve">
+    <value>アカウント削除</value>
+  </data>
+  <data name="DeleteAccountDialogContent" xml:space="preserve">
+    <value>本当にアカウントを削除しますか？この操作は取り消せません。</value>
+  </data>
+  <data name="DeleteDialogDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="DeleteDialogCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="DashboardIdFormat" xml:space="preserve">
+    <value>ID: {0}</value>
+  </data>
+  <data name="DashboardCreatedFormat" xml:space="preserve">
+    <value>作成日時: {0}</value>
+  </data>
+  <data name="DashboardUpdatedFormat" xml:space="preserve">
+    <value>更新日時: {0}</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>OAuth2 App</value>
+  </data>
+  <data name="DebugApiBaseUrl" xml:space="preserve">
+    <value>API ベースURL</value>
+  </data>
+  <data name="DebugLeaveEmpty" xml:space="preserve">
+    <value>空欄にするとデフォルトのURLが使用されます。</value>
+  </data>
+  <data name="DebugSettingsTitle" xml:space="preserve">
+    <value>デバッグ設定</value>
+  </data>
+  <data name="DebugSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="DebugCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+</root>

@@ -22,6 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+import { I18nContext } from 'nestjs-i18n';
 import { AuthService } from './auth.service';
 import { AppleTokenDto } from './dto/apple-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -50,6 +51,11 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
   ) {}
+
+  private t(key: string, args?: Record<string, unknown>): string {
+    const i18n = I18nContext.current();
+    return i18n ? i18n.t(key, { args }) : key;
+  }
 
   @Post('signup')
   @ApiOperation({ summary: 'Register a new user with email and password' })
@@ -583,14 +589,14 @@ export class AuthController {
   }
 
   private storeLinkState(token: string, req: any, platform: 'web' | 'native') {
-    if (!token) throw new UnauthorizedException('Missing token');
+    if (!token) throw new UnauthorizedException(this.t('auth.MISSING_TOKEN'));
     let payload: { sub: string };
     try {
       payload = this.jwtService.verify(token, {
         secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
       });
     } catch {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException(this.t('auth.INVALID_TOKEN'));
     }
     req.session.linkUserId = payload.sub;
     req.session.linkPlatform = platform;
@@ -602,14 +608,14 @@ export class AuthController {
    * when the session cookie (SameSite=Lax) is not sent on Apple's cross-site POST.
    */
   private buildAppleLinkState(token: string, platform: 'web' | 'native'): string {
-    if (!token) throw new UnauthorizedException('Missing token');
+    if (!token) throw new UnauthorizedException(this.t('auth.MISSING_TOKEN'));
     let payload: { sub: string };
     try {
       payload = this.jwtService.verify(token, {
         secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
       });
     } catch {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException(this.t('auth.INVALID_TOKEN'));
     }
     return this.jwtService.sign(
       { sub: payload.sub, platform, purpose: 'apple-link' },

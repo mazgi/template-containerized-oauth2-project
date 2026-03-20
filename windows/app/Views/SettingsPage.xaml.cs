@@ -26,7 +26,7 @@ public sealed partial class SettingsPage : Page
         var isInvalidEmail = user.Email.EndsWith(".invalid");
         if (isInvalidEmail)
         {
-            EmailAddressText.Text = "Not set";
+            EmailAddressText.Text = Strings.Get("NotSet");
             EmailAddressText.FontStyle = Windows.UI.Text.FontStyle.Italic;
             EmailAddressText.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
             EmailBadge.Visibility = Visibility.Collapsed;
@@ -41,7 +41,7 @@ public sealed partial class SettingsPage : Page
 
             if (user.EmailVerified)
             {
-                EmailBadgeText.Text = "Verified";
+                EmailBadgeText.Text = Strings.Get("Verified");
                 EmailBadgeText.Foreground = new SolidColorBrush(ColorHelper.FromArgb(255, 22, 163, 74));
                 EmailBadge.Background = new SolidColorBrush(ColorHelper.FromArgb(25, 34, 197, 94));
                 EmailBadge.BorderBrush = new SolidColorBrush(ColorHelper.FromArgb(76, 34, 197, 94));
@@ -49,7 +49,7 @@ public sealed partial class SettingsPage : Page
             }
             else
             {
-                EmailBadgeText.Text = "Unverified";
+                EmailBadgeText.Text = Strings.Get("Unverified");
                 EmailBadgeText.Foreground = new SolidColorBrush(ColorHelper.FromArgb(255, 202, 138, 4));
                 EmailBadge.Background = new SolidColorBrush(ColorHelper.FromArgb(25, 234, 179, 8));
                 EmailBadge.BorderBrush = new SolidColorBrush(ColorHelper.FromArgb(76, 234, 179, 8));
@@ -81,20 +81,22 @@ public sealed partial class SettingsPage : Page
         PasswordResetSuccessText.Visibility = Visibility.Collapsed;
         if (!user.EmailVerified)
         {
-            PasswordDescription.Text = "To use this feature, please verify your email address first.";
-            PasswordResetButton.Content = user.HasPassword == true ? "Send reset link" : "Send setup link";
+            PasswordDescription.Text = Strings.Get("PasswordRequiresVerification");
+            PasswordResetButton.Content = user.HasPassword == true
+                ? Strings.Get("SendResetLink")
+                : Strings.Get("SendSetupLink");
             PasswordResetButton.IsEnabled = false;
         }
         else if (user.HasPassword == true)
         {
-            PasswordDescription.Text = "Send a password reset link to your email address.";
-            PasswordResetButton.Content = "Send reset link";
+            PasswordDescription.Text = Strings.Get("PasswordResetDescription");
+            PasswordResetButton.Content = Strings.Get("SendResetLink");
             PasswordResetButton.IsEnabled = true;
         }
         else
         {
-            PasswordDescription.Text = "Set a password so you can also sign in with email and password.";
-            PasswordResetButton.Content = "Send setup link";
+            PasswordDescription.Text = Strings.Get("PasswordSetDescription");
+            PasswordResetButton.Content = Strings.Get("SendSetupLink");
             PasswordResetButton.IsEnabled = true;
         }
 
@@ -102,11 +104,11 @@ public sealed partial class SettingsPage : Page
         UpdateMfaUI(user);
 
         // Provider buttons
-        AppleButton.Content = user.AppleId is not null ? "Unlink" : "Link";
-        DiscordButton.Content = user.DiscordId is not null ? "Unlink" : "Link";
-        GithubButton.Content = user.GithubId is not null ? "Unlink" : "Link";
-        GoogleButton.Content = user.GoogleId is not null ? "Unlink" : "Link";
-        TwitterButton.Content = user.TwitterId is not null ? "Unlink" : "Link";
+        AppleButton.Content = user.AppleId is not null ? Strings.Get("UnlinkProvider") : Strings.Get("LinkProvider");
+        DiscordButton.Content = user.DiscordId is not null ? Strings.Get("UnlinkProvider") : Strings.Get("LinkProvider");
+        GithubButton.Content = user.GithubId is not null ? Strings.Get("UnlinkProvider") : Strings.Get("LinkProvider");
+        GoogleButton.Content = user.GoogleId is not null ? Strings.Get("UnlinkProvider") : Strings.Get("LinkProvider");
+        TwitterButton.Content = user.TwitterId is not null ? Strings.Get("UnlinkProvider") : Strings.Get("LinkProvider");
 
         UpdateThemeButtons();
         ErrorText.Visibility = Visibility.Collapsed;
@@ -342,10 +344,10 @@ public sealed partial class SettingsPage : Page
     {
         var dialog = new ContentDialog
         {
-            Title = "Delete Account",
-            Content = "Are you sure you want to delete your account? This cannot be undone.",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
+            Title = Strings.Get("DeleteAccountDialogTitle"),
+            Content = Strings.Get("DeleteAccountDialogContent"),
+            PrimaryButtonText = Strings.Get("DeleteDialogDelete"),
+            CloseButtonText = Strings.Get("DeleteDialogCancel"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = this.XamlRoot,
         };

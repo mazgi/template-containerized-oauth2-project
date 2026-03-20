@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -32,7 +33,7 @@ fun DashboardScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = "Dashboard",
+            text = stringResource(R.string.dashboard),
             style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -40,10 +41,10 @@ fun DashboardScreen(
         if (user != null) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    ProfileRow(label = "Email", value = user.email)
-                    user.name?.let { ProfileRow(label = "Name", value = it) }
-                    ProfileRow(label = "ID", value = user.id)
-                    ProfileRow(label = "Created", value = user.createdAt)
+                    ProfileRow(label = stringResource(R.string.label_email), value = user.email)
+                    user.name?.let { ProfileRow(label = stringResource(R.string.label_name), value = it) }
+                    ProfileRow(label = stringResource(R.string.label_id), value = user.id)
+                    ProfileRow(label = stringResource(R.string.label_created), value = user.createdAt)
                 }
             }
         }
@@ -53,7 +54,7 @@ fun DashboardScreen(
             onClick = onSignOut,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Sign Out")
+            Text(stringResource(R.string.sign_out))
         }
     }
 }

@@ -1,0 +1,531 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Sign In" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "サインイン" }
+        }
+      }
+    },
+    "Email" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "メールアドレス" }
+        }
+      }
+    },
+    "Password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "パスワード" }
+        }
+      }
+    },
+    "Show password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "パスワードを表示" }
+        }
+      }
+    },
+    "Hide password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "パスワードを非表示" }
+        }
+      }
+    },
+    "or" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "または" }
+        }
+      }
+    },
+    "Sign in with Apple" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "Appleでサインイン" }
+        }
+      }
+    },
+    "Sign in with Discord" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "Discordでサインイン" }
+        }
+      }
+    },
+    "Sign in with GitHub" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "GitHubでサインイン" }
+        }
+      }
+    },
+    "Sign in with Google" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "Googleでサインイン" }
+        }
+      }
+    },
+    "Sign in with X" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "Xでサインイン" }
+        }
+      }
+    },
+    "Don't have an account? Sign Up" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アカウントをお持ちでない方は新規登録" }
+        }
+      }
+    },
+    "Two-factor authentication" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "二要素認証" }
+        }
+      }
+    },
+    "Enter the 6-digit code from your authenticator app" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "認証アプリの6桁のコードを入力してください" }
+        }
+      }
+    },
+    "Verify" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "確認" }
+        }
+      }
+    },
+    "You can also use a recovery code" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "リカバリーコードも使用できます" }
+        }
+      }
+    },
+    "Create Account" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アカウント作成" }
+        }
+      }
+    },
+    "Check your email" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "メールをご確認ください" }
+        }
+      }
+    },
+    "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "認証リンクをメールアドレスに送信しました。受信トレイを確認し、リンクをクリックしてアカウントを認証してください。" }
+        }
+      }
+    },
+    "Resend verification email" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "認証メールを再送信" }
+        }
+      }
+    },
+    "Already have an account? Sign In" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "すでにアカウントをお持ちの方はサインイン" }
+        }
+      }
+    },
+    "Password (min 8 characters)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "パスワード（8文字以上）" }
+        }
+      }
+    },
+    "Dashboard" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "ダッシュボード" }
+        }
+      }
+    },
+    "ID: %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "ID: %@" }
+        }
+      }
+    },
+    "Created" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "作成日時" }
+        }
+      }
+    },
+    "Updated" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "更新日時" }
+        }
+      }
+    },
+    "Sign Out" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "サインアウト" }
+        }
+      }
+    },
+    "Items" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アイテム" }
+        }
+      }
+    },
+    "Item name" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アイテム名" }
+        }
+      }
+    },
+    "Add" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "追加" }
+        }
+      }
+    },
+    "No items yet." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アイテムがありません。" }
+        }
+      }
+    },
+    "Delete %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "%@を削除" }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "設定" }
+        }
+      }
+    },
+    "Not set" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "未設定" }
+        }
+      }
+    },
+    "Verified" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "認証済み" }
+        }
+      }
+    },
+    "Unverified" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "未認証" }
+        }
+      }
+    },
+    "Enter new email address" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "新しいメールアドレスを入力" }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "保存" }
+        }
+      }
+    },
+    "To use this feature, please verify your email address first." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "この機能を利用するには、先にメールアドレスの認証が必要です。" }
+        }
+      }
+    },
+    "Send a password reset link to your email address." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "パスワード再設定用のリンクをメールアドレスに送信します。" }
+        }
+      }
+    },
+    "Set a password so you can also sign in with email and password." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "パスワードを設定すると、メールアドレスとパスワードでもサインインできるようになります。" }
+        }
+      }
+    },
+    "Send reset link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "再設定リンクを送信" }
+        }
+      }
+    },
+    "Send setup link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "設定リンクを送信" }
+        }
+      }
+    },
+    "Password reset link sent. Please check your inbox." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "パスワード再設定リンクを送信しました。受信トレイをご確認ください。" }
+        }
+      }
+    },
+    "Status" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "ステータス" }
+        }
+      }
+    },
+    "Enabled" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "有効" }
+        }
+      }
+    },
+    "Disable" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "無効にする" }
+        }
+      }
+    },
+    "Regenerate recovery codes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "リカバリーコードを再生成" }
+        }
+      }
+    },
+    "Add an extra layer of security to your account by enabling two-factor authentication." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "二要素認証を有効にして、アカウントにセキュリティレイヤーを追加します。" }
+        }
+      }
+    },
+    "Enable" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "有効にする" }
+        }
+      }
+    },
+    "Add this secret to your authenticator app:" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "このシークレットを認証アプリに追加してください:" }
+        }
+      }
+    },
+    "Enter 6-digit code" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "6桁のコードを入力" }
+        }
+      }
+    },
+    "Verify and enable" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "確認して有効にする" }
+        }
+      }
+    },
+    "Save these recovery codes in a safe place. Each code can only be used once." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "これらのリカバリーコードを安全な場所に保存してください。各コードは1回のみ使用できます。" }
+        }
+      }
+    },
+    "I've saved these codes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "コードを保存しました" }
+        }
+      }
+    },
+    "Enter a code from your authenticator app to disable MFA." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "MFAを無効にするには、認証アプリのコードを入力してください。" }
+        }
+      }
+    },
+    "Disable MFA" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "MFAを無効にする" }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "キャンセル" }
+        }
+      }
+    },
+    "Enter a code from your authenticator app to regenerate recovery codes." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "リカバリーコードを再生成するには、認証アプリのコードを入力してください。" }
+        }
+      }
+    },
+    "Regenerate" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "再生成" }
+        }
+      }
+    },
+    "Linked Accounts" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "連携アカウント" }
+        }
+      }
+    },
+    "Unlink" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "解除" }
+        }
+      }
+    },
+    "Link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "連携" }
+        }
+      }
+    },
+    "Theme" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "テーマ" }
+        }
+      }
+    },
+    "System" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "システム" }
+        }
+      }
+    },
+    "Light" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "ライト" }
+        }
+      }
+    },
+    "Dark" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "ダーク" }
+        }
+      }
+    },
+    "Delete Account" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アカウント削除" }
+        }
+      }
+    },
+    "Permanently delete your account and all associated data. This action cannot be undone." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アカウントと関連するすべてのデータを完全に削除します。この操作は取り消せません。" }
+        }
+      }
+    },
+    "Are you sure you want to delete your account? This cannot be undone." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "本当にアカウントを削除しますか？この操作は取り消せません。" }
+        }
+      }
+    },
+    "Delete" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "削除" }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "OK" }
+        }
+      }
+    },
+    "Account Deleted" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "アカウント削除完了" }
+        }
+      }
+    },
+    "Debug" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "デバッグ" }
+        }
+      }
+    },
+    "Tab" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : { "state" : "translated", "value" : "タブ" }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

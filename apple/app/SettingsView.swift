@@ -45,6 +45,7 @@ struct SettingsView: View {
                                 .foregroundStyle(.green)
                                 .clipShape(Capsule())
                                 .overlay(Capsule().stroke(Color.green.opacity(0.3), lineWidth: 1))
+                                .accessibilityIdentifier("settings_verifiedBadge")
                         } else {
                             Text("Unverified")
                                 .font(.caption2)
@@ -55,6 +56,7 @@ struct SettingsView: View {
                                 .foregroundStyle(.orange)
                                 .clipShape(Capsule())
                                 .overlay(Capsule().stroke(Color.yellow.opacity(0.3), lineWidth: 1))
+                                .accessibilityIdentifier("settings_unverifiedBadge")
                         }
                     }
                 }
@@ -109,6 +111,7 @@ struct SettingsView: View {
                     Text("To use this feature, please verify your email address first.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("settings_passwordVerifyHint")
                 } else if auth.user?.hasPassword == true {
                     Text("Send a password reset link to your email address.")
                         .font(.caption)
@@ -123,6 +126,7 @@ struct SettingsView: View {
                     Text("Password reset link sent. Please check your inbox.")
                         .font(.caption)
                         .foregroundStyle(.green)
+                        .accessibilityIdentifier("settings_passwordResetSuccess")
                 }
 
                 Button(auth.user?.hasPassword == true ? "Send reset link" : "Send setup link") {

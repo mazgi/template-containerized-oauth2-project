@@ -29,9 +29,9 @@ struct ContentView: View {
                         // XCUITest synthesized taps, so this picker provides
                         // a reliable programmatic alternative.
                         Picker("Tab", selection: $selectedTab) {
-                            Text("Dashboard").tag(0)
-                            Text("Items").tag(1)
-                            Text("Settings").tag(2)
+                            Text(verbatim: "Dashboard").tag(0)
+                            Text(verbatim: "Items").tag(1)
+                            Text(verbatim: "Settings").tag(2)
                         }
                         .pickerStyle(.segmented)
                         .accessibilityIdentifier("test_tabPicker")
@@ -48,6 +48,7 @@ struct ContentView: View {
                             Label("Dashboard", systemImage: "person.circle")
                         }
                         .tag(0)
+                        .accessibilityIdentifier("tab_dashboard")
 
                         NavigationStack {
                             ItemsView()
@@ -56,6 +57,7 @@ struct ContentView: View {
                             Label("Items", systemImage: "list.bullet")
                         }
                         .tag(1)
+                        .accessibilityIdentifier("tab_items")
 
                         NavigationStack {
                             SettingsView()
@@ -64,6 +66,7 @@ struct ContentView: View {
                             Label("Settings", systemImage: "gear")
                         }
                         .tag(2)
+                        .accessibilityIdentifier("tab_settings")
                     }
                 }
             } else {

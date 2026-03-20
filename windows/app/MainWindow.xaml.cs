@@ -12,6 +12,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Title = Strings.Get("AppTitle");
         GitSHAText.Text = BuildConfig.GitSHA;
         FetchBackendSha();
         App.Auth.ThemeChanged += ApplyTheme;
@@ -31,11 +32,11 @@ public sealed partial class MainWindow : Window
             Margin = new Thickness(0, 8, 0, 0),
         };
         var panel = new StackPanel();
-        panel.Children.Add(new TextBlock { Text = "API Base URL" });
+        panel.Children.Add(new TextBlock { Text = Strings.Get("DebugApiBaseUrl") });
         panel.Children.Add(textBox);
         panel.Children.Add(new TextBlock
         {
-            Text = "Leave empty to use the default URL.",
+            Text = Strings.Get("DebugLeaveEmpty"),
             FontSize = 12,
             Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
             Margin = new Thickness(0, 8, 0, 0),
@@ -43,10 +44,10 @@ public sealed partial class MainWindow : Window
 
         var dialog = new ContentDialog
         {
-            Title = "Debug Settings",
+            Title = Strings.Get("DebugSettingsTitle"),
             Content = panel,
-            PrimaryButtonText = "Save",
-            CloseButtonText = "Cancel",
+            PrimaryButtonText = Strings.Get("DebugSave"),
+            CloseButtonText = Strings.Get("DebugCancel"),
             XamlRoot = Content.XamlRoot,
         };
 

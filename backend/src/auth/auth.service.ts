@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { randomBytes, randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import * as OTPAuth from 'otpauth';
+import { I18nContext } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { SignUpDto } from './dto/signup.dto';
@@ -54,12 +55,17 @@ export class AuthService {
     private readonly mailService: MailService,
   ) {}
 
+  private t(key: string, args?: Record<string, unknown>): string {
+    const i18n = I18nContext.current();
+    return i18n ? i18n.t(key, { args }) : key;
+  }
+
   async signUp(dto: SignUpDto) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
     if (existing) {
-      throw new ConflictException('Email already in use');
+      throw new ConflictException(this.t('auth.EMAIL_ALREADY_IN_USE'));
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -79,7 +85,7 @@ export class AuthService {
 
     await this.mailService.sendVerificationEmail(dto.email, token);
 
-    return { message: 'Verification email sent' };
+    return { message: this.t('auth.VERIFICATION_EMAIL_SENT') };
   }
 
   async verifyEmail(token: string) {
@@ -88,11 +94,11 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Invalid verification token');
+      throw new BadRequestException(this.t('auth.INVALID_VERIFICATION_TOKEN'));
     }
 
     if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
-      throw new BadRequestException('Verification token has expired');
+      throw new BadRequestException(this.t('auth.VERIFICATION_TOKEN_EXPIRED'));
     }
 
     await this.prisma.user.update({
@@ -104,7 +110,7 @@ export class AuthService {
       },
     });
 
-    return { message: 'Email verified successfully' };
+    return { message: this.t('auth.EMAIL_VERIFIED') };
   }
 
   async resendVerification(email: string) {
@@ -114,7 +120,7 @@ export class AuthService {
 
     if (!user || user.emailVerified) {
       // Return success even if user not found to prevent email enumeration
-      return { message: 'If the email is registered and unverified, a verification email has been sent' };
+      return { message: this.t('auth.RESEND_VERIFICATION_SUCCESS') };
     }
 
     const token = randomUUID();
@@ -138,16 +144,16 @@ export class AuthService {
       where: { email: dto.email },
     });
     if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(this.t('auth.INVALID_CREDENTIALS'));
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(this.t('auth.INVALID_CREDENTIALS'));
     }
 
     if (!user.emailVerified) {
-      throw new UnauthorizedException('Email not verified');
+      throw new UnauthorizedException(this.t('auth.EMAIL_NOT_VERIFIED'));
     }
 
     if (user.totpEnabled) {
@@ -171,14 +177,14 @@ export class AuthService {
         secret: process.env.AUTH_JWT_REFRESH_SECRET ?? 'change-me-refresh',
       });
     } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException(this.t('auth.INVALID_REFRESH_TOKEN'));
     }
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
     if (!user) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException(this.t('auth.INVALID_REFRESH_TOKEN'));
     }
 
     return this.buildTokenResponse(user);
@@ -384,7 +390,7 @@ export class AuthService {
     } | null;
 
     if (!decoded?.sub) {
-      throw new UnauthorizedException('Invalid Apple identity token');
+      throw new UnauthorizedException(this.t('auth.INVALID_APPLE_TOKEN'));
     }
 
     const name = [fullName?.givenName, fullName?.familyName]
@@ -422,7 +428,7 @@ export class AuthService {
       where: { email: newEmail },
     });
     if (existing && existing.id !== userId) {
-      throw new ConflictException('Email already in use');
+      throw new ConflictException(this.t('auth.EMAIL_ALREADY_IN_USE'));
     }
 
     const token = randomUUID();
@@ -456,7 +462,7 @@ export class AuthService {
 
     if (!user || !user.emailVerified) {
       // Return success even if user not found to prevent email enumeration
-      return { message: 'If the email is registered and verified, a password reset email has been sent' };
+      return { message: this.t('auth.FORGOT_PASSWORD_SUCCESS') };
     }
 
     const token = randomUUID();
@@ -481,11 +487,11 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Invalid password reset token');
+      throw new BadRequestException(this.t('auth.INVALID_PASSWORD_RESET_TOKEN'));
     }
 
     if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
-      throw new BadRequestException('Password reset token has expired');
+      throw new BadRequestException(this.t('auth.PASSWORD_RESET_TOKEN_EXPIRED'));
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -499,7 +505,7 @@ export class AuthService {
       },
     });
 
-    return { message: 'Password has been reset successfully' };
+    return { message: this.t('auth.PASSWORD_RESET_SUCCESS') };
   }
 
   // --- Account linking ---
@@ -509,7 +515,7 @@ export class AuthService {
       where: { providerId: profile.appleId },
     });
     if (existing && existing.userId !== userId) {
-      throw new ConflictException('This Apple account is already linked to another user');
+      throw new ConflictException(this.t('auth.APPLE_ALREADY_LINKED'));
     }
     await this.prisma.socialAccountApple.upsert({
       where: { userId },
@@ -523,7 +529,7 @@ export class AuthService {
       where: { providerId: profile.githubId },
     });
     if (existing && existing.userId !== userId) {
-      throw new ConflictException('This GitHub account is already linked to another user');
+      throw new ConflictException(this.t('auth.GITHUB_ALREADY_LINKED'));
     }
     await this.prisma.socialAccountGithub.upsert({
       where: { userId },
@@ -537,7 +543,7 @@ export class AuthService {
       where: { providerId: profile.googleId },
     });
     if (existing && existing.userId !== userId) {
-      throw new ConflictException('This Google account is already linked to another user');
+      throw new ConflictException(this.t('auth.GOOGLE_ALREADY_LINKED'));
     }
     await this.prisma.socialAccountGoogle.upsert({
       where: { userId },
@@ -551,7 +557,7 @@ export class AuthService {
       where: { providerId: profile.discordId },
     });
     if (existing && existing.userId !== userId) {
-      throw new ConflictException('This Discord account is already linked to another user');
+      throw new ConflictException(this.t('auth.DISCORD_ALREADY_LINKED'));
     }
     await this.prisma.socialAccountDiscord.upsert({
       where: { userId },
@@ -565,7 +571,7 @@ export class AuthService {
       where: { providerId: profile.twitterId },
     });
     if (existing && existing.userId !== userId) {
-      throw new ConflictException('This X account is already linked to another user');
+      throw new ConflictException(this.t('auth.X_ALREADY_LINKED'));
     }
     await this.prisma.socialAccountTwitter.upsert({
       where: { userId },
@@ -628,7 +634,7 @@ export class AuthService {
       excludeProvider !== 'discord' && user.socialDiscord != null,
     ];
     if (!authMethods.some(Boolean)) {
-      throw new ConflictException('Cannot unlink: this is your only authentication method');
+      throw new ConflictException(this.t('auth.CANNOT_UNLINK_ONLY_AUTH'));
     }
   }
 
@@ -689,7 +695,7 @@ export class AuthService {
   async totpSetup(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
-    if (user.totpEnabled) throw new ConflictException('TOTP is already enabled');
+    if (user.totpEnabled) throw new ConflictException(this.t('auth.TOTP_ALREADY_ENABLED'));
 
     const secret = new OTPAuth.Secret({ size: 20 });
     const totp = new OTPAuth.TOTP({
@@ -714,8 +720,8 @@ export class AuthService {
 
   async totpEnable(userId: string, code: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.totpSecret) throw new BadRequestException('TOTP not set up');
-    if (user.totpEnabled) throw new ConflictException('TOTP is already enabled');
+    if (!user || !user.totpSecret) throw new BadRequestException(this.t('auth.TOTP_NOT_SET_UP'));
+    if (user.totpEnabled) throw new ConflictException(this.t('auth.TOTP_ALREADY_ENABLED'));
 
     const totp = new OTPAuth.TOTP({
       secret: OTPAuth.Secret.fromBase32(user.totpSecret),
@@ -725,7 +731,7 @@ export class AuthService {
     });
 
     const delta = totp.validate({ token: code, window: 1 });
-    if (delta === null) throw new BadRequestException('Invalid TOTP code');
+    if (delta === null) throw new BadRequestException(this.t('auth.INVALID_TOTP_CODE'));
 
     const recoveryCodes = Array.from({ length: 8 }, () =>
       randomBytes(4).toString('hex'),
@@ -748,7 +754,7 @@ export class AuthService {
   async totpDisable(userId: string, code: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || !user.totpEnabled || !user.totpSecret)
-      throw new BadRequestException('TOTP is not enabled');
+      throw new BadRequestException(this.t('auth.TOTP_NOT_ENABLED'));
 
     const totp = new OTPAuth.TOTP({
       secret: OTPAuth.Secret.fromBase32(user.totpSecret),
@@ -757,14 +763,14 @@ export class AuthService {
       period: 30,
     });
     const delta = totp.validate({ token: code, window: 1 });
-    if (delta === null) throw new BadRequestException('Invalid TOTP code');
+    if (delta === null) throw new BadRequestException(this.t('auth.INVALID_TOTP_CODE'));
 
     await this.prisma.user.update({
       where: { id: userId },
       data: { totpEnabled: false, totpSecret: null, recoveryCodes: null },
     });
 
-    return { message: 'TOTP disabled' };
+    return { message: this.t('auth.TOTP_DISABLED') };
   }
 
   async totpVerify(mfaToken: string, code: string) {
@@ -774,15 +780,15 @@ export class AuthService {
         secret: process.env.AUTH_JWT_SECRET ?? 'change-me',
       });
     } catch {
-      throw new UnauthorizedException('Invalid or expired MFA token');
+      throw new UnauthorizedException(this.t('auth.INVALID_EXPIRED_MFA_TOKEN'));
     }
     if (payload.purpose !== 'mfa') {
-      throw new UnauthorizedException('Invalid MFA token');
+      throw new UnauthorizedException(this.t('auth.INVALID_MFA_TOKEN'));
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user || !user.totpEnabled || !user.totpSecret) {
-      throw new UnauthorizedException('Invalid MFA token');
+      throw new UnauthorizedException(this.t('auth.INVALID_MFA_TOKEN'));
     }
 
     // Try TOTP code first
@@ -814,13 +820,13 @@ export class AuthService {
       }
     }
 
-    throw new UnauthorizedException('Invalid TOTP or recovery code');
+    throw new UnauthorizedException(this.t('auth.INVALID_TOTP_OR_RECOVERY'));
   }
 
   async totpRegenerateRecoveryCodes(userId: string, code: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || !user.totpEnabled || !user.totpSecret)
-      throw new BadRequestException('TOTP is not enabled');
+      throw new BadRequestException(this.t('auth.TOTP_NOT_ENABLED'));
 
     const totp = new OTPAuth.TOTP({
       secret: OTPAuth.Secret.fromBase32(user.totpSecret),
@@ -829,7 +835,7 @@ export class AuthService {
       period: 30,
     });
     const delta = totp.validate({ token: code, window: 1 });
-    if (delta === null) throw new BadRequestException('Invalid TOTP code');
+    if (delta === null) throw new BadRequestException(this.t('auth.INVALID_TOTP_CODE'));
 
     const recoveryCodes = Array.from({ length: 8 }, () =>
       randomBytes(4).toString('hex'),
