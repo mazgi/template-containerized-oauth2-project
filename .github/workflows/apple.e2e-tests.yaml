@@ -173,11 +173,26 @@ jobs:
         # concurrently. On a single CI machine this causes CPU/memory contention between
         # simulator instances and the backend, leading to API timeouts and flaky failures.
         # Sequential execution eliminates this contention.
+        # When multiple simulators share the same name (e.g. parallel-testing clones),
+        # xcodebuild fails with "multiple devices matched". Resolve the UDID of the
+        # first match and pass id= to avoid ambiguity.
         run: |
+          SIM_UDID=$(xcrun simctl list devices available -j \
+            | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          for runtime, devices in data['devices'].items():
+              for d in devices:
+                  if d['name'] == 'iPhone 17' and d['isAvailable']:
+                      print(d['udid'])
+                      sys.exit(0)
+          sys.exit(1)
+          ")
+          echo "Using simulator UDID: $SIM_UDID"
           xcodebuild test \
             -project apple/app.xcodeproj \
             -scheme app \
-            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -destination "platform=iOS Simulator,id=$SIM_UDID" \
             -only-testing:appUITests \
             -parallel-testing-enabled NO \
             -resultBundlePath /tmp/ios-e2e-results.xcresult
