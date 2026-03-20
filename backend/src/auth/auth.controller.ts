@@ -24,6 +24,7 @@ import {
 import { Response } from 'express';
 import { I18nContext } from 'nestjs-i18n';
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { AppleTokenDto } from './dto/apple-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { RefreshDto } from './dto/refresh.dto';
@@ -50,6 +51,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
   ) {}
 
   private t(key: string, args?: Record<string, unknown>): string {
@@ -128,7 +130,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Current user profile' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMe(@Request() req: { user: { userId: string; email: string } }) {
-    return this.authService.getMe(req.user.userId);
+    return this.usersService.getMe(req.user.userId);
   }
 
   @Patch('email')
@@ -528,7 +530,7 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkApple(@Request() req: { user: { userId: string } }) {
     await this.authService.unlinkApple(req.user.userId);
-    return this.authService.getMe(req.user.userId);
+    return this.usersService.getMe(req.user.userId);
   }
 
   @Delete('link/discord')
@@ -539,7 +541,7 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkDiscord(@Request() req: { user: { userId: string } }) {
     await this.authService.unlinkDiscord(req.user.userId);
-    return this.authService.getMe(req.user.userId);
+    return this.usersService.getMe(req.user.userId);
   }
 
   @Delete('link/github')
@@ -550,7 +552,7 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkGithub(@Request() req: { user: { userId: string } }) {
     await this.authService.unlinkGithub(req.user.userId);
-    return this.authService.getMe(req.user.userId);
+    return this.usersService.getMe(req.user.userId);
   }
 
   @Delete('link/google')
@@ -561,7 +563,7 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkGoogle(@Request() req: { user: { userId: string } }) {
     await this.authService.unlinkGoogle(req.user.userId);
-    return this.authService.getMe(req.user.userId);
+    return this.usersService.getMe(req.user.userId);
   }
 
   @Delete('link/twitter')
@@ -572,7 +574,7 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkTwitter(@Request() req: { user: { userId: string } }) {
     await this.authService.unlinkTwitter(req.user.userId);
-    return this.authService.getMe(req.user.userId);
+    return this.usersService.getMe(req.user.userId);
   }
 
   // ── Private helpers ──

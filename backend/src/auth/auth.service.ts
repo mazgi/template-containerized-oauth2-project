@@ -11,6 +11,7 @@ import * as OTPAuth from 'otpauth';
 import { I18nContext } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { UsersService, UserRecord, UserWithSocial, SOCIAL_INCLUDES } from '../users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
 import { AppleProfile } from './strategies/apple.strategy';
@@ -19,40 +20,13 @@ import { TwitterProfile } from './strategies/twitter.strategy';
 import { GithubProfile } from './strategies/github.strategy';
 import { DiscordProfile } from './strategies/discord.strategy';
 
-type UserRecord = {
-  id: string;
-  email: string;
-  name: string | null;
-  passwordHash: string | null;
-  emailVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type SocialAccountRow = { providerId: string; email: string | null } | null;
-
-type UserWithSocial = UserRecord & {
-  socialApple: SocialAccountRow;
-  socialGithub: SocialAccountRow;
-  socialGoogle: SocialAccountRow;
-  socialTwitter: SocialAccountRow;
-  socialDiscord: SocialAccountRow;
-};
-
-const SOCIAL_INCLUDES = {
-  socialApple: true,
-  socialGithub: true,
-  socialGoogle: true,
-  socialTwitter: true,
-  socialDiscord: true,
-} as const;
-
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly usersService: UsersService,
   ) {}
 
   private t(key: string, args?: Record<string, unknown>): string {
@@ -407,22 +381,6 @@ export class AuthService {
     return this.findOrCreateAppleUser(profile);
   }
 
-  async getMe(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: SOCIAL_INCLUDES,
-    });
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret, recoveryCodes, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
-    return {
-      ...result,
-      ...this.socialToFlat(user),
-      hasPassword: passwordHash != null,
-    };
-  }
-
   async updateEmail(userId: string, newEmail: string) {
     const existing = await this.prisma.user.findUnique({
       where: { email: newEmail },
@@ -450,7 +408,7 @@ export class AuthService {
     const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret: _ts, recoveryCodes: _rc, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
     return {
       ...result,
-      ...this.socialToFlat(user),
+      ...this.usersService.socialToFlat(user),
       hasPassword: passwordHash != null,
     };
   }
@@ -638,25 +596,6 @@ export class AuthService {
     }
   }
 
-  private socialToFlat(user: UserWithSocial) {
-    const socialEmails: string[] = [];
-    const seen = new Set<string>();
-    for (const acct of [user.socialApple, user.socialGithub, user.socialGoogle, user.socialTwitter, user.socialDiscord]) {
-      if (acct?.email && !acct.email.endsWith('.invalid') && !seen.has(acct.email)) {
-        seen.add(acct.email);
-        socialEmails.push(acct.email);
-      }
-    }
-    return {
-      appleId: user.socialApple?.providerId ?? null,
-      githubId: user.socialGithub?.providerId ?? null,
-      googleId: user.socialGoogle?.providerId ?? null,
-      twitterId: user.socialTwitter?.providerId ?? null,
-      discordId: user.socialDiscord?.providerId ?? null,
-      socialEmails,
-    };
-  }
-
   private async buildTokenResponse(user: UserRecord) {
     const payload = { sub: user.id, email: user.email };
 
@@ -685,7 +624,7 @@ export class AuthService {
       refreshToken,
       user: {
         ...userWithoutPassword,
-        ...this.socialToFlat(userWithSocial as UserWithSocial),
+        ...this.usersService.socialToFlat(userWithSocial as UserWithSocial),
       },
     };
   }
