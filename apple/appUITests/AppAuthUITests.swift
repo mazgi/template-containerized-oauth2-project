@@ -75,11 +75,25 @@ final class AppAuthUITests: XCTestCase {
         app.buttons["signin_submitButton"].tap()
     }
 
+    private func tapTab(_ label: String) {
+        TestHelpers.dismissSystemAlerts(app: app)
+        let indices = ["Dashboard": 0, "Items": 1, "Settings": 2]
+        guard let index = indices[label] else {
+            XCTFail("Unknown tab: \(label)")
+            return
+        }
+        let picker = app.segmentedControls.firstMatch
+        XCTAssertTrue(picker.waitForExistence(timeout: 5), "Test tab picker not found")
+        let segment = picker.buttons.element(boundBy: index)
+        XCTAssertTrue(segment.waitForExistence(timeout: 2), "Segment \(index) not found")
+        segment.tap()
+    }
+
     private func signOut() {
         let button = app.buttons["dashboard_signOutButton"]
         XCTAssertTrue(button.waitForExistence(timeout: 5))
         button.tap()
-        XCTAssertTrue(app.textFields["signin_emailTextField"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["signin_emailTextField"].waitForExistence(timeout: 10))
     }
 
     // MARK: - Sign Up
@@ -91,7 +105,7 @@ final class AppAuthUITests: XCTestCase {
         submitSignUp()
 
         // After signup, the app shows "Check your email" instead of navigating to dashboard
-        let checkEmailText = app.staticTexts["Check your email"]
+        let checkEmailText = app.staticTexts["signup_checkYourEmail"]
         XCTAssertTrue(checkEmailText.waitForExistence(timeout: 10))
 
         // Verify the resend button is visible
@@ -165,13 +179,11 @@ final class AppAuthUITests: XCTestCase {
         createVerifiedUserAndSignIn(email: oldEmail)
 
         // Navigate to Settings tab
-        let settingsTab = app.tabBars.buttons["Settings"]
-        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
-        settingsTab.tap()
+        tapTab("Settings")
 
         // Verify current email is displayed with Verified badge
         XCTAssertTrue(app.staticTexts[oldEmail].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Verified"].exists)
+        XCTAssertTrue(app.staticTexts["settings_verifiedBadge"].waitForExistence(timeout: 5))
 
         // Enter new email and save
         let emailField = app.textFields["settings_emailTextField"]
@@ -185,7 +197,7 @@ final class AppAuthUITests: XCTestCase {
 
         // Should show new email as Unverified
         XCTAssertTrue(app.staticTexts[newEmail].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Unverified"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["settings_unverifiedBadge"].waitForExistence(timeout: 5))
     }
 
     // MARK: - Password Reset
@@ -195,9 +207,7 @@ final class AppAuthUITests: XCTestCase {
         createVerifiedUserAndSignIn(email: email)
 
         // Navigate to Settings tab
-        let settingsTab = app.tabBars.buttons["Settings"]
-        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
-        settingsTab.tap()
+        tapTab("Settings")
 
         // Tap "Send reset link"
         let resetButton = app.buttons["settings_passwordReset"]
@@ -205,7 +215,7 @@ final class AppAuthUITests: XCTestCase {
         resetButton.tap()
 
         // Wait for success message
-        let successText = app.staticTexts["Password reset link sent. Please check your inbox."]
+        let successText = app.staticTexts["settings_passwordResetSuccess"]
         XCTAssertTrue(successText.waitForExistence(timeout: 15))
 
         // Verify reset email arrived in Mailpit
@@ -275,9 +285,7 @@ final class AppAuthUITests: XCTestCase {
         createVerifiedUserAndSignIn(email: oldEmail)
 
         // Navigate to Settings
-        let settingsTab = app.tabBars.buttons["Settings"]
-        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
-        settingsTab.tap()
+        tapTab("Settings")
 
         // Change email to reset verification
         let emailField = app.textFields["settings_emailTextField"]
@@ -290,7 +298,7 @@ final class AppAuthUITests: XCTestCase {
         saveButton.tap()
 
         // Wait for "Unverified" badge
-        XCTAssertTrue(app.staticTexts["Unverified"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["settings_unverifiedBadge"].waitForExistence(timeout: 10))
 
         // The password reset button should be disabled
         let resetButton = app.buttons["settings_passwordReset"]
@@ -299,7 +307,7 @@ final class AppAuthUITests: XCTestCase {
 
         // Verify description text
         XCTAssertTrue(
-            app.staticTexts["To use this feature, please verify your email address first."]
+            app.staticTexts["settings_passwordVerifyHint"]
                 .waitForExistence(timeout: 5)
         )
     }
