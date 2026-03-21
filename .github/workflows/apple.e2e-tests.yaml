@@ -181,11 +181,15 @@ jobs:
             | python3 -c "
           import json, sys
           data = json.load(sys.stdin)
+          # Prefer the latest runtime – iterate in reverse so newer runtimes win.
+          best = None
           for runtime, devices in data['devices'].items():
               for d in devices:
                   if d['name'] == 'iPhone 17' and d['isAvailable']:
-                      print(d['udid'])
-                      sys.exit(0)
+                      best = d['udid']
+          if best:
+              print(best)
+              sys.exit(0)
           sys.exit(1)
           ")
           echo "Using simulator UDID: $SIM_UDID"
