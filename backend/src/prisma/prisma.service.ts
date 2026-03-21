@@ -16,24 +16,8 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.client.item;
   }
 
-  get socialAccountApple() {
-    return this.client.socialAccountApple;
-  }
-
-  get socialAccountGithub() {
-    return this.client.socialAccountGithub;
-  }
-
-  get socialAccountGoogle() {
-    return this.client.socialAccountGoogle;
-  }
-
-  get socialAccountTwitter() {
-    return this.client.socialAccountTwitter;
-  }
-
-  get socialAccountDiscord() {
-    return this.client.socialAccountDiscord;
+  get socialAccount() {
+    return this.client.socialAccount;
   }
 
   constructor() {

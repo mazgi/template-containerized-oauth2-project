@@ -24,7 +24,7 @@ import {
 import { Response } from 'express';
 import { I18nContext } from 'nestjs-i18n';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
+import { UsersService, OAuthProvider } from '../users/users.service';
 import { AppleTokenDto } from './dto/apple-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { RefreshDto } from './dto/refresh.dto';
@@ -42,7 +42,6 @@ import { GithubProfile } from './strategies/github.strategy';
 import { GoogleProfile } from './strategies/google.strategy';
 import { TwitterProfile } from './strategies/twitter.strategy';
 
-type OAuthProvider = 'apple' | 'discord' | 'github' | 'google' | 'twitter';
 type OAuthProfile = AppleProfile | DiscordProfile | GithubProfile | GoogleProfile | TwitterProfile;
 
 @ApiTags('auth')
@@ -529,7 +528,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkApple(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkApple(req.user.userId);
+    await this.authService.unlinkSocial('apple', req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -540,7 +539,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkDiscord(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkDiscord(req.user.userId);
+    await this.authService.unlinkSocial('discord', req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -551,7 +550,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkGithub(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkGithub(req.user.userId);
+    await this.authService.unlinkSocial('github', req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -562,7 +561,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkGoogle(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkGoogle(req.user.userId);
+    await this.authService.unlinkSocial('google', req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -573,7 +572,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkTwitter(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkTwitter(req.user.userId);
+    await this.authService.unlinkSocial('twitter', req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -671,23 +670,7 @@ export class AuthController {
 
     if (linkUserId) {
       // Account linking flow
-      switch (provider) {
-        case 'apple':
-          await this.authService.linkApple(linkUserId, profile as AppleProfile);
-          break;
-        case 'discord':
-          await this.authService.linkDiscord(linkUserId, profile as DiscordProfile);
-          break;
-        case 'github':
-          await this.authService.linkGithub(linkUserId, profile as GithubProfile);
-          break;
-        case 'google':
-          await this.authService.linkGoogle(linkUserId, profile as GoogleProfile);
-          break;
-        case 'twitter':
-          await this.authService.linkTwitter(linkUserId, profile as TwitterProfile);
-          break;
-      }
+      await this.authService.linkSocial(provider, linkUserId, profile);
       const redirectPlatform = linkPlatform ?? platform;
       if (redirectPlatform === 'native') {
         const scheme = process.env.NATIVE_APP_URL_SCHEME ?? 'oauth2app';
@@ -698,27 +681,10 @@ export class AuthController {
       }
     } else {
       // Normal sign-in flow — OAuth bypasses TOTP MFA (provider handles its own MFA)
-      let tokens: { accessToken: string; refreshToken: string };
-      switch (provider) {
-        case 'apple':
-          tokens = await this.authService.findOrCreateAppleUser(profile as AppleProfile);
-          break;
-        case 'discord':
-          tokens = await this.authService.findOrCreateDiscordUser(profile as DiscordProfile);
-          break;
-        case 'github':
-          tokens = await this.authService.findOrCreateGithubUser(profile as GithubProfile);
-          break;
-        case 'google':
-          tokens = await this.authService.findOrCreateGoogleUser(profile as GoogleProfile);
-          break;
-        case 'twitter':
-          tokens = await this.authService.findOrCreateTwitterUser(profile as TwitterProfile);
-          break;
-      }
+      const tokens = await this.authService.findOrCreateSocialUser(provider, profile);
       const params = new URLSearchParams({
-        accessToken: tokens!.accessToken,
-        refreshToken: tokens!.refreshToken,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       });
       if (platform === 'native') {
         const scheme = process.env.NATIVE_APP_URL_SCHEME ?? 'oauth2app';
