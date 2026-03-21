@@ -15,23 +15,18 @@ export type UserRecord = {
   updatedAt: Date;
 };
 
-type SocialAccountRow = { providerId: string; email: string | null } | null;
+export type SocialAccountRow = { provider: string; providerId: string; email: string | null };
 
 export type UserWithSocial = UserRecord & {
-  socialApple: SocialAccountRow;
-  socialGithub: SocialAccountRow;
-  socialGoogle: SocialAccountRow;
-  socialTwitter: SocialAccountRow;
-  socialDiscord: SocialAccountRow;
+  socialAccounts: SocialAccountRow[];
 };
 
 export const SOCIAL_INCLUDES = {
-  socialApple: true,
-  socialGithub: true,
-  socialGoogle: true,
-  socialTwitter: true,
-  socialDiscord: true,
+  socialAccounts: true,
 } as const;
+
+export const OAUTH_PROVIDERS = ['apple', 'discord', 'github', 'google', 'twitter'] as const;
+export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
 
 @Injectable()
 export class UsersService {
@@ -50,7 +45,7 @@ export class UsersService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret, recoveryCodes, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
+    const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret, recoveryCodes, socialAccounts, ...result } = user;
     return {
       ...result,
       ...this.socialToFlat(user),
@@ -61,18 +56,20 @@ export class UsersService {
   socialToFlat(user: UserWithSocial) {
     const socialEmails: string[] = [];
     const seen = new Set<string>();
-    for (const acct of [user.socialApple, user.socialGithub, user.socialGoogle, user.socialTwitter, user.socialDiscord]) {
-      if (acct?.email && !acct.email.endsWith('.invalid') && !seen.has(acct.email)) {
+    const byProvider = new Map<string, SocialAccountRow>();
+    for (const acct of user.socialAccounts) {
+      byProvider.set(acct.provider, acct);
+      if (acct.email && !acct.email.endsWith('.invalid') && !seen.has(acct.email)) {
         seen.add(acct.email);
         socialEmails.push(acct.email);
       }
     }
     return {
-      appleId: user.socialApple?.providerId ?? null,
-      githubId: user.socialGithub?.providerId ?? null,
-      googleId: user.socialGoogle?.providerId ?? null,
-      twitterId: user.socialTwitter?.providerId ?? null,
-      discordId: user.socialDiscord?.providerId ?? null,
+      appleId: byProvider.get('apple')?.providerId ?? null,
+      githubId: byProvider.get('github')?.providerId ?? null,
+      googleId: byProvider.get('google')?.providerId ?? null,
+      twitterId: byProvider.get('twitter')?.providerId ?? null,
+      discordId: byProvider.get('discord')?.providerId ?? null,
       socialEmails,
     };
   }

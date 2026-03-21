@@ -15,9 +15,5 @@ model User {
   createdAt                  DateTime              @default(now())
   updatedAt                  DateTime              @updatedAt
   items                      Item[]
-  socialApple                SocialAccountApple?
-  socialGithub               SocialAccountGithub?
-  socialGoogle               SocialAccountGoogle?
-  socialTwitter              SocialAccountTwitter?
-  socialDiscord              SocialAccountDiscord?
+  socialAccounts             SocialAccount[]
 }

@@ -65,9 +65,6 @@ export async function signInUser(
 export async function cleanDatabase(prisma: PrismaService) {
   // Delete in dependency order (children before parents)
   await prisma.item.deleteMany();
-  await prisma.socialAccountApple.deleteMany();
-  await prisma.socialAccountGithub.deleteMany();
-  await prisma.socialAccountGoogle.deleteMany();
-  await prisma.socialAccountTwitter.deleteMany();
+  await prisma.socialAccount.deleteMany();
   await prisma.user.deleteMany();
 }

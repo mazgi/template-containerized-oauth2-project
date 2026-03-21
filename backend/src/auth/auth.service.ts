@@ -11,7 +11,7 @@ import * as OTPAuth from 'otpauth';
 import { I18nContext } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
-import { UsersService, UserRecord, UserWithSocial, SOCIAL_INCLUDES } from '../users/users.service';
+import { UsersService, UserRecord, UserWithSocial, SOCIAL_INCLUDES, OAuthProvider } from '../users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
 import { AppleProfile } from './strategies/apple.strategy';
@@ -19,6 +19,30 @@ import { GoogleProfile } from './strategies/google.strategy';
 import { TwitterProfile } from './strategies/twitter.strategy';
 import { GithubProfile } from './strategies/github.strategy';
 import { DiscordProfile } from './strategies/discord.strategy';
+
+type OAuthProfile = AppleProfile | DiscordProfile | GithubProfile | GoogleProfile | TwitterProfile;
+
+/** Maps provider name to the profile's provider-specific ID field and fallback email domain. */
+const PROVIDER_CONFIG: Record<OAuthProvider, { idKey: string; emailDomain: string }> = {
+  apple:   { idKey: 'appleId',   emailDomain: 'apple.invalid' },
+  discord: { idKey: 'discordId', emailDomain: 'discord.invalid' },
+  github:  { idKey: 'githubId',  emailDomain: 'github.invalid' },
+  google:  { idKey: 'googleId',  emailDomain: '' },
+  twitter: { idKey: 'twitterId', emailDomain: 'x.invalid' },
+};
+
+function getProviderId(provider: OAuthProvider, profile: OAuthProfile): string {
+  return (profile as any)[PROVIDER_CONFIG[provider].idKey];
+}
+
+function getProfileEmail(profile: OAuthProfile): string | null {
+  return profile.email ?? null;
+}
+
+function getFallbackEmail(provider: OAuthProvider, providerId: string): string | null {
+  const domain = PROVIDER_CONFIG[provider].emailDomain;
+  return domain ? `${provider}_${providerId}@${domain}` : null;
+}
 
 @Injectable()
 export class AuthService {
@@ -164,10 +188,13 @@ export class AuthService {
     return this.buildTokenResponse(user);
   }
 
-  async findOrCreateAppleUser(profile: AppleProfile) {
+  async findOrCreateSocialUser(provider: OAuthProvider, profile: OAuthProfile) {
+    const providerId = getProviderId(provider, profile);
+    const profileEmail = getProfileEmail(profile);
+
     // 1. Look up by providerId (most stable identifier)
-    const social = await this.prisma.socialAccountApple.findUnique({
-      where: { providerId: profile.appleId },
+    const social = await this.prisma.socialAccount.findUnique({
+      where: { provider_providerId: { provider, providerId } },
       include: { user: true },
     });
     if (social) {
@@ -175,178 +202,27 @@ export class AuthService {
     }
 
     // 2. Fall back to email lookup, and link to existing account
-    if (profile.email) {
+    if (profileEmail) {
       const existingUser = await this.prisma.user.findUnique({
-        where: { email: profile.email },
+        where: { email: profileEmail },
       });
       if (existingUser) {
-        await this.prisma.socialAccountApple.create({
-          data: { providerId: profile.appleId, email: profile.email, userId: existingUser.id },
+        await this.prisma.socialAccount.create({
+          data: { provider, providerId, email: profileEmail, userId: existingUser.id },
         });
         return this.buildTokenResponse(existingUser);
       }
     }
 
     // 3. Create new user with linked social account
-    const email = profile.email ?? `apple_${profile.appleId}@apple.invalid`;
+    const email = profileEmail ?? getFallbackEmail(provider, providerId)!;
     const user = await this.prisma.user.create({
       data: {
         email,
         name: profile.name,
         passwordHash: null,
         emailVerified: !email.endsWith('.invalid'),
-        socialApple: { create: { providerId: profile.appleId, email: profile.email } },
-      },
-    });
-
-    return this.buildTokenResponse(user);
-  }
-
-  async findOrCreateGoogleUser(profile: GoogleProfile) {
-    // 1. Look up by providerId (most stable identifier)
-    const social = await this.prisma.socialAccountGoogle.findUnique({
-      where: { providerId: profile.googleId },
-      include: { user: true },
-    });
-    if (social) {
-      return this.buildTokenResponse(social.user);
-    }
-
-    // 2. Fall back to email lookup, and link to existing account
-    if (profile.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: profile.email },
-      });
-      if (existingUser) {
-        await this.prisma.socialAccountGoogle.create({
-          data: { providerId: profile.googleId, email: profile.email, userId: existingUser.id },
-        });
-        return this.buildTokenResponse(existingUser);
-      }
-    }
-
-    // 3. Create new user with linked social account
-    const user = await this.prisma.user.create({
-      data: {
-        email: profile.email,
-        name: profile.name,
-        passwordHash: null,
-        emailVerified: true,
-        socialGoogle: { create: { providerId: profile.googleId, email: profile.email } },
-      },
-    });
-
-    return this.buildTokenResponse(user);
-  }
-
-  async findOrCreateTwitterUser(profile: TwitterProfile) {
-    // 1. Look up by providerId (most stable identifier)
-    const social = await this.prisma.socialAccountTwitter.findUnique({
-      where: { providerId: profile.twitterId },
-      include: { user: true },
-    });
-    if (social) {
-      return this.buildTokenResponse(social.user);
-    }
-
-    // 2. Fall back to email lookup, and link to existing account
-    if (profile.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: profile.email },
-      });
-      if (existingUser) {
-        await this.prisma.socialAccountTwitter.create({
-          data: { providerId: profile.twitterId, email: profile.email, userId: existingUser.id },
-        });
-        return this.buildTokenResponse(existingUser);
-      }
-    }
-
-    // 3. Create new user with linked social account
-    const email = profile.email ?? `twitter_${profile.twitterId}@x.invalid`;
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        name: profile.name,
-        passwordHash: null,
-        emailVerified: !email.endsWith('.invalid'),
-        socialTwitter: { create: { providerId: profile.twitterId, email: profile.email } },
-      },
-    });
-
-    return this.buildTokenResponse(user);
-  }
-
-  async findOrCreateDiscordUser(profile: DiscordProfile) {
-    // 1. Look up by providerId (most stable identifier)
-    const social = await this.prisma.socialAccountDiscord.findUnique({
-      where: { providerId: profile.discordId },
-      include: { user: true },
-    });
-    if (social) {
-      return this.buildTokenResponse(social.user);
-    }
-
-    // 2. Fall back to email lookup, and link to existing account
-    if (profile.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: profile.email },
-      });
-      if (existingUser) {
-        await this.prisma.socialAccountDiscord.create({
-          data: { providerId: profile.discordId, email: profile.email, userId: existingUser.id },
-        });
-        return this.buildTokenResponse(existingUser);
-      }
-    }
-
-    // 3. Create new user with linked social account
-    const email = profile.email ?? `discord_${profile.discordId}@discord.invalid`;
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        name: profile.name,
-        passwordHash: null,
-        emailVerified: !email.endsWith('.invalid'),
-        socialDiscord: { create: { providerId: profile.discordId, email: profile.email } },
-      },
-    });
-
-    return this.buildTokenResponse(user);
-  }
-
-  async findOrCreateGithubUser(profile: GithubProfile) {
-    // 1. Look up by providerId (most stable identifier)
-    const social = await this.prisma.socialAccountGithub.findUnique({
-      where: { providerId: profile.githubId },
-      include: { user: true },
-    });
-    if (social) {
-      return this.buildTokenResponse(social.user);
-    }
-
-    // 2. Fall back to email lookup, and link to existing account
-    if (profile.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: profile.email },
-      });
-      if (existingUser) {
-        await this.prisma.socialAccountGithub.create({
-          data: { providerId: profile.githubId, email: profile.email, userId: existingUser.id },
-        });
-        return this.buildTokenResponse(existingUser);
-      }
-    }
-
-    // 3. Create new user with linked social account
-    const email = profile.email ?? `github_${profile.githubId}@github.invalid`;
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        name: profile.name,
-        passwordHash: null,
-        emailVerified: !email.endsWith('.invalid'),
-        socialGithub: { create: { providerId: profile.githubId, email: profile.email } },
+        socialAccounts: { create: { provider, providerId, email: profileEmail } },
       },
     });
 
@@ -378,7 +254,7 @@ export class AuthService {
       name,
     };
 
-    return this.findOrCreateAppleUser(profile);
+    return this.findOrCreateSocialUser('apple', profile);
   }
 
   async updateEmail(userId: string, newEmail: string) {
@@ -405,7 +281,7 @@ export class AuthService {
 
     await this.mailService.sendVerificationEmail(newEmail, token);
 
-    const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret: _ts, recoveryCodes: _rc, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...result } = user;
+    const { passwordHash, emailVerificationToken, emailVerificationExpires, totpSecret: _ts, recoveryCodes: _rc, socialAccounts, ...result } = user;
     return {
       ...result,
       ...this.usersService.socialToFlat(user),
@@ -468,73 +344,20 @@ export class AuthService {
 
   // --- Account linking ---
 
-  async linkApple(userId: string, profile: AppleProfile) {
-    const existing = await this.prisma.socialAccountApple.findUnique({
-      where: { providerId: profile.appleId },
-    });
-    if (existing && existing.userId !== userId) {
-      throw new ConflictException(this.t('auth.APPLE_ALREADY_LINKED'));
-    }
-    await this.prisma.socialAccountApple.upsert({
-      where: { userId },
-      create: { providerId: profile.appleId, email: profile.email, userId },
-      update: { providerId: profile.appleId, email: profile.email },
-    });
-  }
+  async linkSocial(provider: OAuthProvider, userId: string, profile: OAuthProfile) {
+    const providerId = getProviderId(provider, profile);
+    const profileEmail = getProfileEmail(profile);
 
-  async linkGithub(userId: string, profile: GithubProfile) {
-    const existing = await this.prisma.socialAccountGithub.findUnique({
-      where: { providerId: profile.githubId },
+    const existing = await this.prisma.socialAccount.findUnique({
+      where: { provider_providerId: { provider, providerId } },
     });
     if (existing && existing.userId !== userId) {
-      throw new ConflictException(this.t('auth.GITHUB_ALREADY_LINKED'));
+      throw new ConflictException(this.t('auth.SOCIAL_ALREADY_LINKED', { provider }));
     }
-    await this.prisma.socialAccountGithub.upsert({
-      where: { userId },
-      create: { providerId: profile.githubId, email: profile.email, userId },
-      update: { providerId: profile.githubId, email: profile.email },
-    });
-  }
-
-  async linkGoogle(userId: string, profile: GoogleProfile) {
-    const existing = await this.prisma.socialAccountGoogle.findUnique({
-      where: { providerId: profile.googleId },
-    });
-    if (existing && existing.userId !== userId) {
-      throw new ConflictException(this.t('auth.GOOGLE_ALREADY_LINKED'));
-    }
-    await this.prisma.socialAccountGoogle.upsert({
-      where: { userId },
-      create: { providerId: profile.googleId, email: profile.email, userId },
-      update: { providerId: profile.googleId, email: profile.email },
-    });
-  }
-
-  async linkDiscord(userId: string, profile: DiscordProfile) {
-    const existing = await this.prisma.socialAccountDiscord.findUnique({
-      where: { providerId: profile.discordId },
-    });
-    if (existing && existing.userId !== userId) {
-      throw new ConflictException(this.t('auth.DISCORD_ALREADY_LINKED'));
-    }
-    await this.prisma.socialAccountDiscord.upsert({
-      where: { userId },
-      create: { providerId: profile.discordId, email: profile.email, userId },
-      update: { providerId: profile.discordId, email: profile.email },
-    });
-  }
-
-  async linkTwitter(userId: string, profile: TwitterProfile) {
-    const existing = await this.prisma.socialAccountTwitter.findUnique({
-      where: { providerId: profile.twitterId },
-    });
-    if (existing && existing.userId !== userId) {
-      throw new ConflictException(this.t('auth.X_ALREADY_LINKED'));
-    }
-    await this.prisma.socialAccountTwitter.upsert({
-      where: { userId },
-      create: { providerId: profile.twitterId, email: profile.email, userId },
-      update: { providerId: profile.twitterId, email: profile.email },
+    await this.prisma.socialAccount.upsert({
+      where: { provider_userId: { provider, userId } },
+      create: { provider, providerId, email: profileEmail, userId },
+      update: { providerId, email: profileEmail },
     });
   }
 
@@ -552,46 +375,19 @@ export class AuthService {
 
   // --- Account unlinking ---
 
-  async unlinkApple(userId: string) {
-    await this.ensureAlternativeAuthExists(userId, 'apple');
-    await this.prisma.socialAccountApple.deleteMany({ where: { userId } });
+  async unlinkSocial(provider: OAuthProvider, userId: string) {
+    await this.ensureAlternativeAuthExists(userId, provider);
+    await this.prisma.socialAccount.deleteMany({ where: { provider, userId } });
   }
 
-  async unlinkGithub(userId: string) {
-    await this.ensureAlternativeAuthExists(userId, 'github');
-    await this.prisma.socialAccountGithub.deleteMany({ where: { userId } });
-  }
-
-  async unlinkGoogle(userId: string) {
-    await this.ensureAlternativeAuthExists(userId, 'google');
-    await this.prisma.socialAccountGoogle.deleteMany({ where: { userId } });
-  }
-
-  async unlinkTwitter(userId: string) {
-    await this.ensureAlternativeAuthExists(userId, 'twitter');
-    await this.prisma.socialAccountTwitter.deleteMany({ where: { userId } });
-  }
-
-  async unlinkDiscord(userId: string) {
-    await this.ensureAlternativeAuthExists(userId, 'discord');
-    await this.prisma.socialAccountDiscord.deleteMany({ where: { userId } });
-  }
-
-  private async ensureAlternativeAuthExists(userId: string, excludeProvider: string) {
+  private async ensureAlternativeAuthExists(userId: string, excludeProvider: OAuthProvider) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: SOCIAL_INCLUDES,
     });
     if (!user) throw new UnauthorizedException();
-    const authMethods = [
-      user.passwordHash != null,
-      excludeProvider !== 'apple' && user.socialApple != null,
-      excludeProvider !== 'github' && user.socialGithub != null,
-      excludeProvider !== 'google' && user.socialGoogle != null,
-      excludeProvider !== 'twitter' && user.socialTwitter != null,
-      excludeProvider !== 'discord' && user.socialDiscord != null,
-    ];
-    if (!authMethods.some(Boolean)) {
+    const hasOtherSocial = user.socialAccounts.some(a => a.provider !== excludeProvider);
+    if (!user.passwordHash && !hasOtherSocial) {
       throw new ConflictException(this.t('auth.CANNOT_UNLINK_ONLY_AUTH'));
     }
   }
@@ -617,7 +413,7 @@ export class AuthService {
       include: SOCIAL_INCLUDES,
     });
 
-    const { passwordHash: _pw, emailVerificationToken: _evt, emailVerificationExpires: _eve, passwordResetToken: _prt, passwordResetExpires: _pre, totpSecret: _ts, recoveryCodes: _rc, socialApple, socialGithub, socialGoogle, socialTwitter, socialDiscord, ...userWithoutPassword } = userWithSocial!;
+    const { passwordHash: _pw, emailVerificationToken: _evt, emailVerificationExpires: _eve, passwordResetToken: _prt, passwordResetExpires: _pre, totpSecret: _ts, recoveryCodes: _rc, socialAccounts, ...userWithoutPassword } = userWithSocial!;
 
     return {
       accessToken,
