@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -8,7 +8,7 @@ import { resetPassword } from '../../lib/api'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import { PasswordInput } from '../../components/PasswordInput'
 
-export default function ResetPasswordPage() {
+function ResetPasswordInner() {
   const t = useTranslations('ResetPassword')
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -86,5 +86,13 @@ export default function ResetPasswordPage() {
         <LanguageSwitcher />
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordInner />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -9,7 +9,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import { PasswordInput } from '../../components/PasswordInput'
 
-export default function SignInPage() {
+function SignInInner() {
   const t = useTranslations('SignIn')
   const { user, loading, login } = useAuth()
   const router = useRouter()
@@ -199,5 +199,13 @@ export default function SignInPage() {
         <LanguageSwitcher />
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInInner />
+    </Suspense>
   )
 }

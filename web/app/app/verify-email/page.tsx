@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { verifyEmail } from '../../lib/api'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 
-export default function VerifyEmailPage() {
+function VerifyEmailInner() {
   const t = useTranslations('VerifyEmail')
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -58,5 +58,13 @@ export default function VerifyEmailPage() {
         <LanguageSwitcher />
       </div>
     </div>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense>
+      <VerifyEmailInner />
+    </Suspense>
   )
 }
