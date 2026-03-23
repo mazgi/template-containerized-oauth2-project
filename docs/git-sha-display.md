@@ -7,7 +7,7 @@ Every client displays the current Git short SHA as a small, semi-transparent ove
 | Platform | Mechanism | Key file(s) |
 |----------|-----------|-------------|
 | **Backend** | `GIT_SHA` env var (Dockerfile `ARG`/`ENV` in production). `GET /health` returns `{ status, gitSha }`. | `backend/src/app.service.ts` |
-| **Web** | `next.config.js` runs `execSync('git rev-parse --short HEAD')` → `NEXT_PUBLIC_GIT_SHA` baked into static export. | `web/app/next.config.js`, `web/app/pages/_app.tsx` |
+| **Web** | `next.config.js` runs `execSync('git rev-parse --short HEAD')` → `NEXT_PUBLIC_GIT_SHA` baked into static export. | `web/app/next.config.js`, `web/app/app/layout.tsx` |
 | **Android** | `build.gradle.kts` `providers.exec` → `BuildConfig.GIT_SHA`. | `android/app/build.gradle.kts`, `MainActivity.kt` |
 | **iOS/macOS** | Run Script build phase → `BuildConfig.generated.swift` (git-ignored). | `apple/app.xcodeproj/project.pbxproj` |
 | **Windows** | MSBuild `Target` → `GitSHA.g.cs` (partial `BuildConfig`). | `windows/app/app.csproj` |

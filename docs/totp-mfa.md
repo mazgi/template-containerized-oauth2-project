@@ -97,7 +97,7 @@ TOTP MFA is fully implemented across all platforms:
 
 | Platform | Sign-in MFA challenge | Settings setup/disable | Recovery codes |
 |----------|----------------------|----------------------|----------------|
-| Web (Next.js) | `pages/signin.tsx` | `pages/settings.tsx` | Display + regenerate |
+| Web (Next.js) | `app/signin/page.tsx` | `app/settings/page.tsx` | Display + regenerate |
 | Android (Compose) | `SignInScreen.kt` | `SettingsScreen.kt` | Display + regenerate |
 | iOS/macOS (SwiftUI) | `SignInView.swift` | `SettingsView.swift` | Display + regenerate |
 | Windows (WinUI 3) | `SignInPage.xaml` | `SettingsPage.xaml` | Display + regenerate |
