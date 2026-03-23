@@ -1,31 +1,32 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { resetPassword } from '../lib/api'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
-import { PasswordInput } from '../components/PasswordInput'
+import { resetPassword } from '../../lib/api'
+import { LanguageSwitcher } from '../../components/LanguageSwitcher'
+import { PasswordInput } from '../../components/PasswordInput'
 
 export default function ResetPasswordPage() {
   const t = useTranslations('ResetPassword')
-  const router = useRouter()
-  const { token } = router.query
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
 
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<'form' | 'submitting' | 'success' | 'error'>('form')
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!router.isReady) return
-    if (!token || typeof token !== 'string') {
+    if (!token) {
       setStatus('error')
       setError(t('invalidToken'))
     }
-  }, [router.isReady, token, t])
+  }, [token, t])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!token || typeof token !== 'string') return
+    if (!token) return
     setStatus('submitting')
     setError('')
     try {

@@ -1,29 +1,27 @@
+'use client'
+
 import { useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { getMe } from '../../lib/api'
-import { useAuth } from '../../contexts/AuthContext'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { getMe } from '../../../lib/api'
+import { useAuth } from '../../../contexts/AuthContext'
 
 export default function OAuthCallbackPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { login, refreshUser } = useAuth()
 
   useEffect(() => {
-    if (!router.isReady) return
-
-    const { accessToken, refreshToken, linked } = router.query
+    const accessToken = searchParams.get('accessToken')
+    const refreshToken = searchParams.get('refreshToken')
+    const linked = searchParams.get('linked')
 
     // Account linking callback — refresh user and redirect to settings
-    if (typeof linked === 'string') {
+    if (linked !== null) {
       refreshUser().then(() => router.replace('/settings'))
       return
     }
 
-    if (
-      typeof accessToken !== 'string' ||
-      typeof refreshToken !== 'string' ||
-      !accessToken ||
-      !refreshToken
-    ) {
+    if (!accessToken || !refreshToken) {
       router.replace('/signin')
       return
     }
@@ -36,7 +34,7 @@ export default function OAuthCallbackPage() {
       .catch(() => {
         router.replace('/signin')
       })
-  }, [router.isReady, router.query])
+  }, [searchParams, router, login, refreshUser])
 
   return null
 }

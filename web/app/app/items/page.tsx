@@ -1,14 +1,17 @@
+'use client'
+
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useAuth } from '../contexts/AuthContext'
-import { AppHeader } from '../components/AppHeader'
-import { Item, getItems, createItem, deleteItem } from '../lib/api'
+import { useAuth } from '../../contexts/AuthContext'
+import { AppHeader } from '../../components/AppHeader'
+import { Item, getItems, createItem, deleteItem } from '../../lib/api'
 
 export default function ItemsPage() {
   const t = useTranslations('Items')
   const { user, accessToken, loading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
   const [items, setItems] = useState<Item[]>([])
   const [newName, setNewName] = useState('')
@@ -17,9 +20,9 @@ export default function ItemsPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push(`/signin?callbackUrl=${router.asPath}`)
+      router.push(`/signin?callbackUrl=${pathname}`)
     }
-  }, [user, loading, router])
+  }, [user, loading, router, pathname])
 
   useEffect(() => {
     if (!loading && user && accessToken) {

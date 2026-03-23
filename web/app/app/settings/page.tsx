@@ -1,10 +1,12 @@
+'use client'
+
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useAuth } from '../contexts/AuthContext'
-import { useTheme, Theme } from '../contexts/ThemeContext'
-import { AppHeader } from '../components/AppHeader'
-import { unlinkProvider, deleteAccount, updateEmail, resendVerification, forgotPassword, totpSetup, totpEnable, totpDisable, totpRegenerateRecoveryCodes } from '../lib/api'
+import { useAuth } from '../../contexts/AuthContext'
+import { useTheme, Theme } from '../../contexts/ThemeContext'
+import { AppHeader } from '../../components/AppHeader'
+import { unlinkProvider, deleteAccount, updateEmail, resendVerification, forgotPassword, totpSetup, totpEnable, totpDisable, totpRegenerateRecoveryCodes } from '../../lib/api'
 
 const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
   { value: 'system', labelKey: 'themeSystem' },
@@ -25,6 +27,7 @@ export default function SettingsPage() {
   const { user, accessToken, loading, refreshUser, logout } = useAuth()
   const { theme, changeTheme } = useTheme()
   const router = useRouter()
+  const pathname = usePathname()
   const [error, setError] = useState<string | null>(null)
   const [emailInput, setEmailInput] = useState('')
   const [emailSaving, setEmailSaving] = useState(false)
@@ -40,9 +43,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push(`/signin?callbackUrl=${router.asPath}`)
+      router.push(`/signin?callbackUrl=${pathname}`)
     }
-  }, [user, loading, router])
+  }, [user, loading, router, pathname])
 
   // Refresh user on mount (picks up newly linked provider after OAuth redirect)
   useEffect(() => {

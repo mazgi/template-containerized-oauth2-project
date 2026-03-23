@@ -1,6 +1,7 @@
+'use client'
+
 import '../styles/globals.css'
-import type { AppProps } from 'next/app'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ReactNode } from 'react'
 import { NextIntlClientProvider } from 'next-intl'
 import { AuthProvider } from '../contexts/AuthContext'
 import { ThemeProvider } from '../contexts/ThemeContext'
@@ -33,7 +34,7 @@ function GitShaOverlay() {
   return <span className="git-sha">{label}</span>
 }
 
-export default function MyApp({ Component, pageProps }: AppProps) {
+function Providers({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<Locale>('en')
 
   useEffect(() => {
@@ -55,11 +56,21 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       <LocaleContext.Provider value={{ locale, changeLocale }}>
         <AuthProvider>
           <ThemeProvider>
-            <Component {...pageProps} />
+            {children}
             <GitShaOverlay />
           </ThemeProvider>
         </AuthProvider>
       </LocaleContext.Provider>
     </NextIntlClientProvider>
+  )
+}
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
   )
 }

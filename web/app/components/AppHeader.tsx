@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '../contexts/AuthContext'
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -13,6 +13,7 @@ export function AppHeader() {
   const t = useTranslations('Nav')
   const { logout } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
   function handleSignOut() {
     logout()
@@ -26,7 +27,7 @@ export function AppHeader() {
           <a
             key={href}
             href={href}
-            className={`app-nav-link${router.pathname === href ? ' app-nav-link-active' : ''}`}
+            className={`app-nav-link${pathname === href ? ' app-nav-link-active' : ''}`}
           >
             {t(labelKey)}
           </a>

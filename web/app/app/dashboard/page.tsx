@@ -1,21 +1,24 @@
+'use client'
+
 import { useEffect } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useAuth } from '../contexts/AuthContext'
-import { useLocale } from '../contexts/LocaleContext'
-import { AppHeader } from '../components/AppHeader'
+import { useAuth } from '../../contexts/AuthContext'
+import { useLocale } from '../../contexts/LocaleContext'
+import { AppHeader } from '../../components/AppHeader'
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard')
   const { user, loading } = useAuth()
   const { locale } = useLocale()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push(`/signin?callbackUrl=${router.asPath}`)
+      router.push(`/signin?callbackUrl=${pathname}`)
     }
-  }, [user, loading, router])
+  }, [user, loading, router, pathname])
 
   if (loading || !user) return null
 

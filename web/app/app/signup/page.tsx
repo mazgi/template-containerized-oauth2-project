@@ -1,11 +1,13 @@
+'use client'
+
 import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { signup, resendVerification } from '../lib/api'
-import { useAuth } from '../contexts/AuthContext'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
-import { PasswordInput } from '../components/PasswordInput'
+import { signup, resendVerification } from '../../lib/api'
+import { useAuth } from '../../contexts/AuthContext'
+import { LanguageSwitcher } from '../../components/LanguageSwitcher'
+import { PasswordInput } from '../../components/PasswordInput'
 
 export default function SignUpPage() {
   const t = useTranslations('SignUp')

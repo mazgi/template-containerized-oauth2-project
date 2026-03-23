@@ -14,6 +14,9 @@ module.exports = {
     NEXT_PUBLIC_GIT_SHA: gitSHA,
   },
   reactStrictMode: true,
+  // Allow the Playwright container (web-e2e-tests) to reach the dev server
+  // via the Docker service name "web".
+  allowedDevOrigins: ['web'],
   // Static export-friendly; suitable for SPA static hosting
   output: 'export',
   // Proxy API requests through the dev server so both browsers (host) and

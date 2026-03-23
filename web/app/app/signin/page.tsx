@@ -1,16 +1,19 @@
+'use client'
+
 import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { signin, totpVerify, AuthResponse } from '../lib/api'
-import { useAuth } from '../contexts/AuthContext'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
-import { PasswordInput } from '../components/PasswordInput'
+import { signin, totpVerify, AuthResponse } from '../../lib/api'
+import { useAuth } from '../../contexts/AuthContext'
+import { LanguageSwitcher } from '../../components/LanguageSwitcher'
+import { PasswordInput } from '../../components/PasswordInput'
 
 export default function SignInPage() {
   const t = useTranslations('SignIn')
   const { user, loading, login } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,7 +22,7 @@ export default function SignInPage() {
   const [mfaToken, setMfaToken] = useState<string | null>(null)
   const [mfaCode, setMfaCode] = useState('')
 
-  const callbackUrl = (router.query.callbackUrl as string) || '/dashboard'
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
   useEffect(() => {
     if (!loading && user) router.replace(callbackUrl)

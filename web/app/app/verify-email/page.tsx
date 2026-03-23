@@ -1,21 +1,22 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { verifyEmail } from '../lib/api'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { verifyEmail } from '../../lib/api'
+import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 
 export default function VerifyEmailPage() {
   const t = useTranslations('VerifyEmail')
-  const router = useRouter()
-  const { token } = router.query
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!router.isReady) return
-    if (!token || typeof token !== 'string') {
+    if (!token) {
       setStatus('error')
       setError(t('invalidToken'))
       return
@@ -27,7 +28,7 @@ export default function VerifyEmailPage() {
         setStatus('error')
         setError(err instanceof Error ? err.message : t('errorFallback'))
       })
-  }, [router.isReady, token, t])
+  }, [token, t])
 
   return (
     <div className="page-center">
