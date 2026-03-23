@@ -156,8 +156,8 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
       '@types/pg':
-        specifier: ^8.18.0
-        version: 8.18.0
+        specifier: ^8.20.0
+        version: 8.20.0
       '@types/supertest':
         specifier: ^7.2.0
         version: 7.2.0
@@ -1034,8 +1034,8 @@ packages:
   '@types/pg@8.11.11':
     resolution: {integrity: sha512-kGT1qKM8wJQ5qlawUrEkXgvMSXoV213KfMGXcwfDwUIfUHXqXYXOfS1nE1LINRJVVVx5wCm70XnFlMHaIcQAfw==}
 
-  '@types/pg@8.18.0':
-    resolution: {integrity: sha512-gT+oueVQkqnj6ajGJXblFR4iavIXWsGAFCk3dP4Kki5+a9R4NMt0JARdk6s8cUKcfUoqP5dAtDSLU8xYUTFV+Q==}
+  '@types/pg@8.20.0':
+    resolution: {integrity: sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow==}
 
   '@types/qs@6.14.0':
     resolution: {integrity: sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ==}
@@ -2713,9 +2713,6 @@ packages:
     peerDependencies:
       pg: '>=8.0'
 
-  pg-protocol@1.11.0:
-    resolution: {integrity: sha512-pfsxk2M9M3BuGgDOfuy37VNRRX3jmKgMjcvAcWqNDpZSf4cUmv8HSOl5ViRQFsfARFn0KuUQTgLxVMbNq5NW3g==}
-
   pg-protocol@1.13.0:
     resolution: {integrity: sha512-zzdvXfS6v89r6v7OcFCHfHlyG/wvry1ALxZo4LqgUoy7W9xhBDMaqOuMiF3qEV45VqsN6rdlcehHrfDtlCPc8w==}
 
@@ -4389,7 +4386,7 @@ snapshots:
     dependencies:
       '@types/express': 5.0.6
       '@types/express-session': 1.18.2
-      '@types/pg': 8.18.0
+      '@types/pg': 8.20.0
 
   '@types/connect@3.4.38':
     dependencies:
@@ -4510,10 +4507,10 @@ snapshots:
       pg-protocol: 1.13.0
       pg-types: 4.1.0
 
-  '@types/pg@8.18.0':
+  '@types/pg@8.20.0':
     dependencies:
       '@types/node': 25.5.0
-      pg-protocol: 1.11.0
+      pg-protocol: 1.13.0
       pg-types: 2.2.0
 
   '@types/qs@6.14.0': {}
@@ -6360,8 +6357,6 @@ snapshots:
   pg-pool@3.13.0(pg@8.20.0):
     dependencies:
       pg: 8.20.0
-
-  pg-protocol@1.11.0: {}
 
   pg-protocol@1.13.0: {}
 
