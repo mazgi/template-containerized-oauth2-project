@@ -11,7 +11,7 @@ import * as OTPAuth from 'otpauth';
 import { I18nContext } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
-import { UsersService, UserRecord, UserWithSocial, SOCIAL_INCLUDES, OAuthProvider } from '../users/users.service';
+import { UsersService, UserRecord, UserWithSocial, SOCIAL_INCLUDES, OAuthProvider, OAuthProviders } from '../users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { SignInDto } from './dto/signin.dto';
 import { AppleProfile } from './strategies/apple.strategy';
@@ -24,11 +24,11 @@ type OAuthProfile = AppleProfile | DiscordProfile | GithubProfile | GoogleProfil
 
 /** Maps provider name to the profile's provider-specific ID field and fallback email domain. */
 const PROVIDER_CONFIG: Record<OAuthProvider, { idKey: string; emailDomain: string }> = {
-  apple:   { idKey: 'appleId',   emailDomain: 'apple.invalid' },
-  discord: { idKey: 'discordId', emailDomain: 'discord.invalid' },
-  github:  { idKey: 'githubId',  emailDomain: 'github.invalid' },
-  google:  { idKey: 'googleId',  emailDomain: '' },
-  twitter: { idKey: 'twitterId', emailDomain: 'x.invalid' },
+  [OAuthProviders.Apple]:   { idKey: 'appleId',   emailDomain: 'apple.invalid' },
+  [OAuthProviders.Discord]: { idKey: 'discordId', emailDomain: 'discord.invalid' },
+  [OAuthProviders.GitHub]:  { idKey: 'githubId',  emailDomain: 'github.invalid' },
+  [OAuthProviders.Google]:  { idKey: 'googleId',  emailDomain: '' },
+  [OAuthProviders.Twitter]: { idKey: 'twitterId', emailDomain: 'x.invalid' },
 };
 
 function getProviderId(provider: OAuthProvider, profile: OAuthProfile): string {
@@ -254,7 +254,7 @@ export class AuthService {
       name,
     };
 
-    return this.findOrCreateSocialUser('apple', profile);
+    return this.findOrCreateSocialUser(OAuthProviders.Apple, profile);
   }
 
   async updateEmail(userId: string, newEmail: string) {

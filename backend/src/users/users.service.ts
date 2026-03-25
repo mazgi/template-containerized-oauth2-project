@@ -4,6 +4,7 @@ import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { OAuthProviders } from '../oauth-providers';
 
 export type UserRecord = {
   id: string;
@@ -25,8 +26,7 @@ export const SOCIAL_INCLUDES = {
   socialAccounts: true,
 } as const;
 
-export const OAUTH_PROVIDERS = ['apple', 'discord', 'github', 'google', 'twitter'] as const;
-export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
+export { OAuthProviders, type OAuthProvider } from '../oauth-providers';
 
 @Injectable()
 export class UsersService {
@@ -65,11 +65,11 @@ export class UsersService {
       }
     }
     return {
-      appleId: byProvider.get('apple')?.providerId ?? null,
-      githubId: byProvider.get('github')?.providerId ?? null,
-      googleId: byProvider.get('google')?.providerId ?? null,
-      twitterId: byProvider.get('twitter')?.providerId ?? null,
-      discordId: byProvider.get('discord')?.providerId ?? null,
+      appleId: byProvider.get(OAuthProviders.Apple)?.providerId ?? null,
+      githubId: byProvider.get(OAuthProviders.GitHub)?.providerId ?? null,
+      googleId: byProvider.get(OAuthProviders.Google)?.providerId ?? null,
+      twitterId: byProvider.get(OAuthProviders.Twitter)?.providerId ?? null,
+      discordId: byProvider.get(OAuthProviders.Discord)?.providerId ?? null,
       socialEmails,
     };
   }

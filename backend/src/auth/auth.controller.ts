@@ -24,7 +24,7 @@ import {
 import { Response } from 'express';
 import { I18nContext } from 'nestjs-i18n';
 import { AuthService } from './auth.service';
-import { UsersService, OAuthProvider } from '../users/users.service';
+import { UsersService, OAuthProvider, OAuthProviders } from '../users/users.service';
 import { AppleTokenDto } from './dto/apple-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { RefreshDto } from './dto/refresh.dto';
@@ -239,7 +239,7 @@ export class AuthController {
     @Request() req: { user: AppleProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('apple', req.user, req, res, 'web');
+    return this.handleOAuthCallback(OAuthProviders.Apple, req.user, req, res, 'web');
   }
 
   @Get('apple/native')
@@ -258,7 +258,7 @@ export class AuthController {
     @Request() req: { user: AppleProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('apple', req.user, req, res, 'native');
+    return this.handleOAuthCallback(OAuthProviders.Apple, req.user, req, res, 'native');
   }
 
   @Post('apple/token')
@@ -287,7 +287,7 @@ export class AuthController {
     @Request() req: { user: DiscordProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('discord', req.user, req, res, 'web');
+    return this.handleOAuthCallback(OAuthProviders.Discord, req.user, req, res, 'web');
   }
 
   @Get('discord/native')
@@ -306,7 +306,7 @@ export class AuthController {
     @Request() req: { user: DiscordProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('discord', req.user, req, res, 'native');
+    return this.handleOAuthCallback(OAuthProviders.Discord, req.user, req, res, 'native');
   }
 
   // ── GitHub OAuth2 ──
@@ -327,7 +327,7 @@ export class AuthController {
     @Request() req: { user: GithubProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('github', req.user, req, res, 'web');
+    return this.handleOAuthCallback(OAuthProviders.GitHub, req.user, req, res, 'web');
   }
 
   @Get('github/native')
@@ -346,7 +346,7 @@ export class AuthController {
     @Request() req: { user: GithubProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('github', req.user, req, res, 'native');
+    return this.handleOAuthCallback(OAuthProviders.GitHub, req.user, req, res, 'native');
   }
 
   // ── Google OAuth2 ──
@@ -367,7 +367,7 @@ export class AuthController {
     @Request() req: { user: GoogleProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('google', req.user, req, res, 'web');
+    return this.handleOAuthCallback(OAuthProviders.Google, req.user, req, res, 'web');
   }
 
   @Get('google/native')
@@ -386,7 +386,7 @@ export class AuthController {
     @Request() req: { user: GoogleProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('google', req.user, req, res, 'native');
+    return this.handleOAuthCallback(OAuthProviders.Google, req.user, req, res, 'native');
   }
 
   // ── Twitter (X) OAuth2 ──
@@ -407,7 +407,7 @@ export class AuthController {
     @Request() req: { user: TwitterProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('twitter', req.user, req, res, 'web');
+    return this.handleOAuthCallback(OAuthProviders.Twitter, req.user, req, res, 'web');
   }
 
   @Get('twitter/native')
@@ -426,7 +426,7 @@ export class AuthController {
     @Request() req: { user: TwitterProfile; session?: any },
     @Res() res: Response,
   ) {
-    return this.handleOAuthCallback('twitter', req.user, req, res, 'native');
+    return this.handleOAuthCallback(OAuthProviders.Twitter, req.user, req, res, 'native');
   }
 
   // ── Account linking initiation (web) ──
@@ -528,7 +528,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkApple(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkSocial('apple', req.user.userId);
+    await this.authService.unlinkSocial(OAuthProviders.Apple, req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -539,7 +539,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkDiscord(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkSocial('discord', req.user.userId);
+    await this.authService.unlinkSocial(OAuthProviders.Discord, req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -550,7 +550,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkGithub(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkSocial('github', req.user.userId);
+    await this.authService.unlinkSocial(OAuthProviders.GitHub, req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -561,7 +561,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkGoogle(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkSocial('google', req.user.userId);
+    await this.authService.unlinkSocial(OAuthProviders.Google, req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
@@ -572,7 +572,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns updated user profile' })
   @ApiResponse({ status: 409, description: 'Cannot unlink: only authentication method' })
   async unlinkTwitter(@Request() req: { user: { userId: string } }) {
-    await this.authService.unlinkSocial('twitter', req.user.userId);
+    await this.authService.unlinkSocial(OAuthProviders.Twitter, req.user.userId);
     return this.usersService.getMe(req.user.userId);
   }
 
