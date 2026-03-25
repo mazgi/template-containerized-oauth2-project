@@ -1,18 +1,14 @@
-# Wolfi-based image with shell, apk, and corepack included
-FROM cgr.dev/chainguard/node:latest-dev
-
-# Default user is nonroot; switch to root for global installs
-USER root
+FROM node:24-bookworm-slim
 
 RUN corepack enable \
     && npm install -g npm-check-updates sort-package-json
 
 ARG UID=1000
 ARG GID=1000
-# Create a user matching the host user's UID/GID so that files written to
-# bind-mounted volumes are owned by the correct user, and Node.js
-# os.userInfo() resolves the user natively without /etc/passwd workarounds.
-RUN apk add --no-cache shadow \
+# Remove the default node user/group (UID/GID 1000) shipped with the base
+# image, then create a developer user matching the host UID/GID so that files
+# written to bind-mounted volumes have correct ownership on Linux hosts.
+RUN userdel --remove node \
     && groupadd --gid ${GID} developer \
     && useradd --uid ${UID} --gid ${GID} --create-home developer
 

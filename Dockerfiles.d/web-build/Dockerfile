@@ -7,11 +7,7 @@
 #   3. runner       — Google Distroless: just the binary + static files
 
 # --- web build stage -------------------------------------------------------
-# Wolfi-based image with shell, apk, and corepack included
-FROM cgr.dev/chainguard/node:latest-dev AS web-builder
-
-# Default user is nonroot; switch to root for global installs
-USER root
+FROM node:24-bookworm-slim AS web-builder
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
