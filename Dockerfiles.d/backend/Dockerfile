@@ -1,6 +1,6 @@
 FROM node:24-bookworm-slim
 
-RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl git \
     && rm -rf /var/lib/apt/lists/* \
     && corepack enable \
     && npm install -g npm-check-updates sort-package-json
