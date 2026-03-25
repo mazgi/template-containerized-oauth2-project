@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
-import * as session from 'express-session';
-import * as connectPgSimple from 'connect-pg-simple';
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 
