@@ -1,6 +1,8 @@
 FROM node:24-bookworm-slim
 
-RUN corepack enable \
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable \
     && npm install -g npm-check-updates sort-package-json
 
 ARG UID=1000
