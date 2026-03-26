@@ -70,14 +70,14 @@ jobs:
           echo "AUTH_DISCORD_CLIENT_SECRET=${{ secrets.AUTH_DISCORD_CLIENT_SECRET }}" >> .secrets.env
 
       - name: Build images
-        run: docker compose --profile web-e2e-tests build
+        run: docker compose --profile e2e-tests build
 
       - name: Run E2E tests
-        # The web-e2e-tests profile starts db → backend (runs
+        # The e2e-tests profile starts db → backend (runs
         # prisma db push automatically) → web → web-e2e-tests in order,
         # waiting for each healthcheck before proceeding.
         run: |
-          docker compose --profile web-e2e-tests up \
+          docker compose --profile e2e-tests up \
             --exit-code-from web-e2e-tests \
             --abort-on-container-exit
 
@@ -91,4 +91,4 @@ jobs:
 
       - name: Stop all services
         if: always()
-        run: docker compose --profile web-e2e-tests down -v
+        run: docker compose --profile e2e-tests down -v

@@ -185,7 +185,7 @@ services:
       # container rebuilds and is shared between backend and web containers.
       PNPM_HOME: /work/.pnpm-store
     profiles:
-      - web-e2e-tests
+      - e2e-tests
     volumes:
       - .:/work
     working_dir: /work/web/e2e-tests

@@ -70,8 +70,8 @@ Containers auto-upgrade dependencies, apply DB schema, and start in watch mode.
 ### Web (Playwright)
 
 ```sh
-docker compose --profile=web-e2e-tests run --rm web-e2e-tests
-docker compose --profile=web-e2e-tests down --remove-orphans
+docker compose --profile=e2e-tests run --rm web-e2e-tests
+docker compose --profile=e2e-tests down --remove-orphans
 ```
 
 ### Android (Espresso)
