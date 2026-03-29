@@ -144,6 +144,14 @@ jobs:
             sleep 5
           done
 
+      - name: Install iOS Simulator runtime
+        # Starting with Xcode 26, the iOS Simulator runtime is a separate
+        # downloadable component and is no longer bundled with Xcode.
+        # Install it so that simulator destinations are available for testing.
+        run: |
+          xcodebuild -downloadPlatform iOS
+          xcrun simctl list runtimes
+
       - name: List available iOS simulators
         # Print available simulators so the destination can be adjusted if needed.
         run: xcrun simctl list devices available | grep -i iphone
