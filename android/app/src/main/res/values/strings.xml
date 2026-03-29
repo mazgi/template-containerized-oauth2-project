@@ -20,6 +20,8 @@
     <string name="sign_in_with_google">Sign in with Google</string>
     <string name="sign_in_with_x">Sign in with X</string>
     <string name="no_account_sign_up">Don\'t have an account? Sign Up</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="password_reset_sent_signin">Password reset link sent. Please check your inbox.</string>
 
     <!-- MFA -->
     <string name="mfa_title">Two-factor authentication</string>

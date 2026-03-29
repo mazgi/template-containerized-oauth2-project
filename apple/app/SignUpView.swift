@@ -137,6 +137,12 @@ struct SignUpView: View {
                 }
                 .font(.callout)
                 .accessibilityIdentifier("signup_goToSignInButton")
+
+                Button("Forgot password?") {
+                    dismiss()
+                }
+                .font(.callout)
+                .accessibilityIdentifier("signup_forgotPasswordButton")
             }
 
             Spacer()

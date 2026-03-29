@@ -76,6 +76,22 @@ public sealed partial class SignInPage : Page
         await App.Auth.SignInWithTwitterAsync();
     }
 
+    private async void ForgotPasswordLink_Click(object sender, RoutedEventArgs e)
+    {
+        var email = EmailBox.Text.Trim();
+        if (string.IsNullOrEmpty(email))
+        {
+            App.Auth.ErrorMessage = Strings.Get("ForgotPasswordEnterEmail");
+            UpdateUI();
+            return;
+        }
+
+        ForgotPasswordLink.IsEnabled = false;
+        await App.Auth.ForgotPasswordFromSignInAsync(email);
+        ForgotPasswordLink.IsEnabled = true;
+        UpdateUI();
+    }
+
     private void SignUpLink_Click(object sender, RoutedEventArgs e)
     {
         App.Auth.ClearError();
@@ -108,6 +124,8 @@ public sealed partial class SignInPage : Page
         var hasMfa = App.Auth.MfaToken is not null;
         SignInPanel.Visibility = hasMfa ? Visibility.Collapsed : Visibility.Visible;
         MfaPanel.Visibility = hasMfa ? Visibility.Visible : Visibility.Collapsed;
+
+        ResetSentText.Visibility = App.Auth.PasswordResetSent ? Visibility.Visible : Visibility.Collapsed;
 
         if (hasMfa)
         {

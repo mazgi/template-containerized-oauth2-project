@@ -44,6 +44,7 @@ data class AuthUiState(
     val totpSetupSecret: String? = null,
     val recoveryCodes: List<String>? = null,
     val mfaStep: MfaStep = MfaStep.IDLE,
+    val passwordResetSent: Boolean = false,
 )
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -202,6 +203,21 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message, isLoading = false)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknown error", isLoading = false)
+            }
+        }
+    }
+
+    fun forgotPasswordFromSignIn(email: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                api.forgotPassword(email)
+                _uiState.value = _uiState.value.copy(passwordResetSent = true, isLoading = false)
+            } catch (e: APIException) {
+                // Always show success to prevent email enumeration
+                _uiState.value = _uiState.value.copy(passwordResetSent = true, isLoading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(passwordResetSent = true, isLoading = false)
             }
         }
     }
@@ -407,7 +423,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     fun signOut() {
         prefs.edit().remove("access_token").remove("refresh_token").apply()
-        _uiState.value = AuthUiState(isRestoringSession = false)
+        _uiState.value = AuthUiState(isRestoringSession = false, passwordResetSent = false)
     }
 
     fun clearError() {

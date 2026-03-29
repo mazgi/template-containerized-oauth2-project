@@ -68,6 +68,12 @@
   <data name="MfaRecoveryHint.Text" xml:space="preserve">
     <value>リカバリーコードも使用できます</value>
   </data>
+  <data name="ForgotPasswordLink.Content" xml:space="preserve">
+    <value>パスワードをお忘れですか？</value>
+  </data>
+  <data name="PasswordResetSentSignIn.Text" xml:space="preserve">
+    <value>パスワード再設定リンクを送信しました。受信トレイをご確認ください。</value>
+  </data>
   <data name="MfaBackLink.Content" xml:space="preserve">
     <value>サインインに戻る</value>
   </data>
@@ -102,6 +108,9 @@
   </data>
   <data name="GoToSignInLink.Content" xml:space="preserve">
     <value>サインイン</value>
+  </data>
+  <data name="SignUpForgotPasswordLink.Content" xml:space="preserve">
+    <value>パスワードをお忘れですか？</value>
   </data>
 
   <!-- ============ ダッシュボードページ (XAML x:Uid) ============ -->
@@ -339,6 +348,9 @@
   </data>
   <data name="DashboardUpdatedFormat" xml:space="preserve">
     <value>更新日時: {0}</value>
+  </data>
+  <data name="ForgotPasswordEnterEmail" xml:space="preserve">
+    <value>先にメールアドレスを入力してください。</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
     <value>OAuth2 App</value>

@@ -219,6 +219,9 @@ class MainActivity : ComponentActivity() {
                                     onSignInWithX = {
                                         authViewModel.signInWithTwitter(this@MainActivity)
                                     },
+                                    onForgotPassword = { email ->
+                                        authViewModel.forgotPasswordFromSignIn(email)
+                                    },
                                     onNavigateToSignUp = {
                                         authViewModel.clearError()
                                         navController.navigate("signup")

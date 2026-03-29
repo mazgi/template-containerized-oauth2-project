@@ -149,6 +149,10 @@ fun SignUpScreen(
             TextButton(onClick = onNavigateToSignIn) {
                 Text(stringResource(R.string.already_have_account))
             }
+
+            TextButton(onClick = onNavigateToSignIn) {
+                Text(stringResource(R.string.forgot_password))
+            }
         }
     }
 }

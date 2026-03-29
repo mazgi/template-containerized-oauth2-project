@@ -142,6 +142,32 @@ struct SignInView: View {
                 }
             }
 
+            HStack {
+                Spacer()
+                Button {
+                    if email.isEmpty {
+                        auth.errorMessage = "Please enter your email address first."
+                    } else {
+                        Task { await auth.requestPasswordResetFromSignIn(email: email) }
+                    }
+                } label: {
+                    Text("Forgot password?")
+                        .font(.callout)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
+                .disabled(auth.isLoading)
+                .accessibilityIdentifier("signin_forgotPasswordButton")
+            }
+
+            if auth.passwordResetSent {
+                Text("Password reset link sent. Please check your inbox.")
+                    .font(.callout)
+                    .foregroundStyle(.green)
+                    .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("signin_resetSentMessage")
+            }
+
             Button {
                 Task { await auth.signIn(email: email, password: password) }
             } label: {

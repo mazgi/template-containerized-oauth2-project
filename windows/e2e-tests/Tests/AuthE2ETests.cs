@@ -121,6 +121,104 @@ public class AuthE2ETests : BaseTest
         WaitForElement("signin_emailTextBox", 5);
     }
 
+    // --- Forgot Password from Sign In ---
+
+    [Test]
+    public void ForgotPassword_ShowsButtonOnSignInPage()
+    {
+        var button = ScrollToElement("signin_forgotPasswordButton", 10);
+        Assert.That(button, Is.Not.Null);
+    }
+
+    [Test]
+    public void ForgotPassword_ShowsErrorWithoutEmail()
+    {
+        var button = ScrollToElement("signin_forgotPasswordButton", 10);
+        button.Click();
+
+        var errorText = WaitForElement("signin_errorText", 10);
+        Assert.That(errorText.Displayed, Is.True);
+    }
+
+    [Test]
+    public void ForgotPassword_ShowsSuccessMessage()
+    {
+        var email = TestHelpers.UniqueEmail("forgotpw");
+        TestHelpers.CreateVerifiedUser(email);
+
+        var emailBox = FindByAutomationId("signin_emailTextBox");
+        emailBox.Clear();
+        emailBox.SendKeys(email);
+
+        var button = ScrollToElement("signin_forgotPasswordButton", 10);
+        button.Click();
+
+        var successText = WaitForElement("signin_resetSentText", 15);
+        Assert.That(successText.Displayed, Is.True);
+    }
+
+    [Test]
+    public void ForgotPassword_FullResetFlow()
+    {
+        var email = TestHelpers.UniqueEmail("forgotflow");
+        var newPassword = "ResetFromLogin1!";
+        TestHelpers.CreateVerifiedUser(email);
+
+        // Request reset from sign-in page
+        var emailBox = FindByAutomationId("signin_emailTextBox");
+        emailBox.Clear();
+        emailBox.SendKeys(email);
+
+        var button = ScrollToElement("signin_forgotPasswordButton", 10);
+        button.Click();
+
+        WaitForElement("signin_resetSentText", 15);
+
+        // Get reset token and reset password via API
+        var token = TestHelpers.GetPasswordResetToken(email);
+        TestHelpers.PostJson("http://localhost:4000/auth/reset-password",
+            $"{{\"token\":\"{token}\",\"password\":\"{newPassword}\"}}");
+
+        // Sign in with new password
+        emailBox = FindByAutomationId("signin_emailTextBox");
+        emailBox.Clear();
+        emailBox.SendKeys(email);
+
+        var passwordBox = FindByAutomationId("signin_passwordBox");
+        passwordBox.Clear();
+        passwordBox.SendKeys(newPassword);
+
+        FindByAutomationId("signin_submitButton").Click();
+
+        var userEmail = WaitForElement("dashboard_userEmail", 15);
+        Assert.That(userEmail.Text, Is.EqualTo(email));
+    }
+
+    [Test]
+    public void ForgotPassword_SuccessForNonExistentEmail()
+    {
+        var email = TestHelpers.UniqueEmail("noexist_forgot");
+
+        var emailBox = FindByAutomationId("signin_emailTextBox");
+        emailBox.Clear();
+        emailBox.SendKeys(email);
+
+        var button = ScrollToElement("signin_forgotPasswordButton", 10);
+        button.Click();
+
+        // Should still show success to prevent email enumeration
+        var successText = WaitForElement("signin_resetSentText", 15);
+        Assert.That(successText.Displayed, Is.True);
+    }
+
+    [Test]
+    public void SignUpPage_HasForgotPasswordLink()
+    {
+        NavigateToSignUp();
+        var link = ScrollToElement("signup_forgotPasswordButton", 10);
+        Assert.That(link, Is.Not.Null);
+    }
+
     // --- Change Email ---
 
     [Test]

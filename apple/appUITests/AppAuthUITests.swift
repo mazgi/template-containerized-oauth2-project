@@ -312,9 +312,100 @@ final class AppAuthUITests: XCTestCase {
         )
     }
 
+    // MARK: - Forgot Password from Sign In
+
+    func testForgotPassword_ShowsButtonOnSignInPage() throws {
+        XCTAssertTrue(app.buttons["signin_forgotPasswordButton"].waitForExistence(timeout: 5))
+    }
+
+    func testForgotPassword_ShowsErrorWithoutEmail() throws {
+        let button = app.buttons["signin_forgotPasswordButton"]
+        XCTAssertTrue(button.waitForExistence(timeout: 5))
+        button.tap()
+
+        let errorMessage = app.staticTexts["signin_errorMessage"]
+        XCTAssertTrue(errorMessage.waitForExistence(timeout: 10))
+    }
+
+    func testForgotPassword_ShowsSuccessMessage() throws {
+        let email = Self.uniqueEmail("forgotpw")
+        TestHelpers.createVerifiedUser(email: email, password: defaultPassword)
+
+        let emailField = app.textFields["signin_emailTextField"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 5))
+        emailField.tap()
+        emailField.typeText(email)
+
+        app.buttons["signin_forgotPasswordButton"].tap()
+
+        let successText = app.staticTexts["signin_resetSentMessage"]
+        XCTAssertTrue(successText.waitForExistence(timeout: 15))
+    }
+
+    func testForgotPassword_FullResetFlow() throws {
+        let email = Self.uniqueEmail("forgotflow")
+        let newPassword = "resetfromlogin123"
+        TestHelpers.createVerifiedUser(email: email, password: defaultPassword)
+
+        // Request reset from sign-in page
+        let emailField = app.textFields["signin_emailTextField"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 5))
+        emailField.tap()
+        emailField.typeText(email)
+
+        app.buttons["signin_forgotPasswordButton"].tap()
+
+        let successText = app.staticTexts["signin_resetSentMessage"]
+        XCTAssertTrue(successText.waitForExistence(timeout: 15))
+
+        // Get reset token from Mailpit and reset password via API
+        let token = try TestHelpers.getPasswordResetToken(email: email)
+        try TestHelpers.postJSON(
+            url: "\(TestHelpers.backendURL)/auth/reset-password",
+            body: #"{"token":"\#(token)","password":"\#(newPassword)"}"#
+        )
+
+        // Sign in with new password
+        // Clear fields first
+        let emailField2 = app.textFields["signin_emailTextField"]
+        emailField2.tap()
+        emailField2.press(forDuration: 1.0)
+        app.menuItems["Select All"].tap()
+        emailField2.typeText(email)
+
+        let passwordField = app.secureTextFields["signin_passwordTextField"]
+        passwordField.tap()
+        passwordField.typeText(newPassword)
+
+        app.buttons["signin_submitButton"].tap()
+        TestHelpers.dismissSystemAlerts(app: app)
+
+        let userEmail = app.staticTexts["dashboard_userEmail"]
+        XCTAssertTrue(userEmail.waitForExistence(timeout: 10))
+        XCTAssertEqual(userEmail.label, email)
+    }
+
+    func testForgotPassword_SuccessForNonExistentEmail() throws {
+        let emailField = app.textFields["signin_emailTextField"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 5))
+        emailField.tap()
+        emailField.typeText("nonexistent.\(Int(Date().timeIntervalSince1970))@example.com")
+
+        app.buttons["signin_forgotPasswordButton"].tap()
+
+        // Should still show success to prevent email enumeration
+        let successText = app.staticTexts["signin_resetSentMessage"]
+        XCTAssertTrue(successText.waitForExistence(timeout: 15))
+    }
+
     // MARK: - Navigation
 
     func testSignInHasSignUpLink() throws {
         XCTAssertTrue(app.buttons["signin_goToSignUpButton"].waitForExistence(timeout: 5))
+    }
+
+    func testSignUpHasForgotPasswordLink() throws {
+        openSignUp()
+        XCTAssertTrue(app.buttons["signup_forgotPasswordButton"].waitForExistence(timeout: 5))
     }
 }

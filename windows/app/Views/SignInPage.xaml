@@ -47,6 +47,22 @@
                     KeyDown="PasswordBox_KeyDown"
                     AutomationProperties.AutomationId="signin_passwordBox" />
 
+                <HyperlinkButton
+                    x:Name="ForgotPasswordLink"
+                    x:Uid="ForgotPasswordLink"
+                    HorizontalAlignment="Right"
+                    Click="ForgotPasswordLink_Click"
+                    AutomationProperties.AutomationId="signin_forgotPasswordButton" />
+
+                <TextBlock
+                    x:Name="ResetSentText"
+                    x:Uid="PasswordResetSentSignIn"
+                    Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    Visibility="Collapsed"
+                    AutomationProperties.AutomationId="signin_resetSentText" />
+
                 <Button
                     x:Name="SignInButton"
                     HorizontalAlignment="Stretch"

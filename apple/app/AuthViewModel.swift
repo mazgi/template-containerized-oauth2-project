@@ -41,6 +41,7 @@ final class AuthViewModel {
     private(set) var totpSetupSecret: String?
     private(set) var recoveryCodes: [String]?
     private(set) var mfaStep: MfaStep = .idle
+    private(set) var passwordResetSent = false
 
     private let api: APIClient
     private let tokensKey = "auth_tokens"
@@ -212,6 +213,13 @@ final class AuthViewModel {
         }
     }
 
+    func requestPasswordResetFromSignIn(email: String) async {
+        await perform {
+            _ = try await self.api.forgotPassword(email: email)
+            self.passwordResetSent = true
+        }
+    }
+
     func deleteAccount() async {
         guard let token = accessToken else { return }
         isLoading = true
@@ -324,6 +332,7 @@ final class AuthViewModel {
         totpSetupUri = nil
         totpSetupSecret = nil
         recoveryCodes = nil
+        passwordResetSent = false
     }
 
     // MARK: - Session restore

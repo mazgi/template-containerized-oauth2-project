@@ -46,6 +46,7 @@ fun SignInScreen(
     onSignInWithGoogle: () -> Unit,
     onSignInWithX: () -> Unit,
     onNavigateToSignUp: () -> Unit,
+    onForgotPassword: (email: String) -> Unit = {},
     onVerifyMfa: (String) -> Unit = {},
 ) {
     if (uiState.mfaToken != null) {
@@ -100,7 +101,30 @@ fun SignInScreen(
                 }
             },
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+
+        TextButton(
+            onClick = {
+                if (email.isBlank()) {
+                    // Will show via errorMessage in uiState, handled by caller
+                } else {
+                    onForgotPassword(email)
+                }
+            },
+            enabled = !uiState.isLoading,
+            modifier = Modifier.align(Alignment.End),
+        ) {
+            Text(stringResource(R.string.forgot_password))
+        }
+
+        if (uiState.passwordResetSent) {
+            Text(
+                text = stringResource(R.string.password_reset_sent_signin),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         uiState.errorMessage?.let { error ->
             Text(

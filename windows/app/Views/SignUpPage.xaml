@@ -89,11 +89,18 @@
                     Click="SignUpButton_Click"
                     AutomationProperties.AutomationId="signup_submitButton" />
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,8,0,32">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
                     <TextBlock x:Uid="AlreadyHaveAccountText" VerticalAlignment="Center" />
                     <HyperlinkButton x:Uid="GoToSignInLink" Click="SignInLink_Click"
                                     AutomationProperties.AutomationId="signup_goToSignInButton" />
                 </StackPanel>
+
+                <HyperlinkButton
+                    x:Uid="SignUpForgotPasswordLink"
+                    HorizontalAlignment="Center"
+                    Click="SignInLink_Click"
+                    Margin="0,0,0,32"
+                    AutomationProperties.AutomationId="signup_forgotPasswordButton" />
 
             </StackPanel>
 

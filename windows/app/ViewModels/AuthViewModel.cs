@@ -92,6 +92,9 @@ public partial class AuthViewModel : ObservableObject
     [ObservableProperty]
     private MfaStep _mfaStep = MfaStep.Idle;
 
+    [ObservableProperty]
+    private bool _passwordResetSent;
+
     public event Action? AuthStateChanged;
     public event Action? ThemeChanged;
 
@@ -247,6 +250,26 @@ public partial class AuthViewModel : ObservableObject
         {
             await _api.ResendVerificationAsync(User.Email);
         });
+    }
+
+    public async Task ForgotPasswordFromSignInAsync(string email)
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+        try
+        {
+            await _api.ForgotPasswordAsync(email);
+            PasswordResetSent = true;
+        }
+        catch
+        {
+            // Always show success to prevent email enumeration
+            PasswordResetSent = true;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     public async Task RequestPasswordResetAsync()
@@ -413,6 +436,7 @@ public partial class AuthViewModel : ObservableObject
         IsAuthenticated = false;
         ErrorMessage = null;
         ThemeMode = ThemeMode.System;
+        PasswordResetSent = false;
         ThemeChanged?.Invoke();
         AuthStateChanged?.Invoke();
     }

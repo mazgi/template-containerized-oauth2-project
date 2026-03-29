@@ -371,6 +371,87 @@ class AuthE2ETest {
     }
 
     // -------------------------------------------------------------------------
+    // Forgot Password from Sign In tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun forgotPassword_showsButtonOnSignInPage() {
+        waitForSignInScreen()
+        composeRule.onNodeWithText("Forgot password?").assertIsDisplayed()
+    }
+
+    @Test
+    fun forgotPassword_showsSuccessMessage() {
+        waitForSignInScreen()
+        val email = uniqueEmail()
+        createVerifiedUser(email)
+
+        composeRule.onNodeWithText("Email").performTextInput(email)
+        composeRule.onNodeWithText("Forgot password?").performClick()
+
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Password reset link sent. Please check your inbox.")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    @Test
+    fun forgotPassword_fullResetFlow() {
+        waitForSignInScreen()
+        val email = uniqueEmail()
+        val newPassword = "ResetFromLogin1!"
+        createVerifiedUser(email)
+
+        // Request reset from sign-in page
+        composeRule.onNodeWithText("Email").performTextInput(email)
+        composeRule.onNodeWithText("Forgot password?").performClick()
+
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Password reset link sent. Please check your inbox.")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Get reset token and reset password via API
+        val token = getPasswordResetToken(email)
+        postJson("$BACKEND_URL/auth/reset-password", """{"token":"$token","password":"$newPassword"}""")
+
+        // Clear fields and sign in with new password
+        // Navigate away and back to clear state
+        navigateToSignUp()
+        composeRule.onNodeWithText("Already have an account? Sign In").performClick()
+        waitForSignInScreen()
+
+        composeRule.onNodeWithText("Email").performTextInput(email)
+        composeRule.onNodeWithText("Password").performTextInput(newPassword)
+        composeRule.onAllNodesWithText("Sign In").filterToOne(hasClickAction()).performClick()
+        waitForDashboard()
+
+        composeRule.onNodeWithText(email).assertIsDisplayed()
+    }
+
+    @Test
+    fun forgotPassword_successForNonExistentEmail() {
+        waitForSignInScreen()
+
+        composeRule.onNodeWithText("Email")
+            .performTextInput("nonexistent_${System.currentTimeMillis()}@example.com")
+        composeRule.onNodeWithText("Forgot password?").performClick()
+
+        // Should still show success to prevent email enumeration
+        composeRule.waitUntil(15_000L) {
+            composeRule.onAllNodesWithText("Password reset link sent. Please check your inbox.")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    @Test
+    fun signUpPage_hasForgotPasswordLink() {
+        waitForSignInScreen()
+        navigateToSignUp()
+        composeRule.onNodeWithText("Forgot password?").assertIsDisplayed()
+    }
+
+    // -------------------------------------------------------------------------
     // Change Email test
     // -------------------------------------------------------------------------
 
