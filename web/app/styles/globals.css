@@ -228,6 +228,26 @@ button {
   text-decoration: underline;
 }
 
+.link-button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.link-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* App header with navigation */
 
 .app-header {

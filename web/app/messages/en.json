@@ -21,7 +21,11 @@
     "mfaCode": "Authentication code",
     "mfaVerify": "Verify",
     "mfaVerifying": "Verifying…",
-    "mfaRecoveryHint": "You can also use a recovery code"
+    "mfaRecoveryHint": "You can also use a recovery code",
+    "forgotPasswordLink": "Forgot password?",
+    "forgotPasswordSending": "Sending…",
+    "forgotPasswordSent": "Password reset link sent. Please check your inbox.",
+    "forgotPasswordEnterEmail": "Please enter your email address first."
   },
   "SignUp": {
     "title": "Create account",
@@ -37,7 +41,8 @@
     "verificationSentTitle": "Check your email",
     "verificationSentMessage": "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.",
     "resendVerification": "Resend verification email",
-    "resending": "Sending…"
+    "resending": "Sending…",
+    "forgotPasswordLink": "Forgot password?"
   },
   "VerifyEmail": {
     "title": "Email Verification",

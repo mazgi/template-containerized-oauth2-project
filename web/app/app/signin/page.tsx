@@ -4,7 +4,7 @@ import { FormEvent, Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { signin, totpVerify, AuthResponse } from '../../lib/api'
+import { signin, totpVerify, forgotPassword, AuthResponse } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import { PasswordInput } from '../../components/PasswordInput'
@@ -21,6 +21,8 @@ function SignInInner() {
   const [submitting, setSubmitting] = useState(false)
   const [mfaToken, setMfaToken] = useState<string | null>(null)
   const [mfaCode, setMfaCode] = useState('')
+  const [resetSent, setResetSent] = useState(false)
+  const [resetSending, setResetSending] = useState(false)
 
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
@@ -44,6 +46,24 @@ function SignInInner() {
       setError(err instanceof Error ? err.message : t('errorFallback'))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setError(t('forgotPasswordEnterEmail'))
+      return
+    }
+    setResetSending(true)
+    setError('')
+    try {
+      await forgotPassword(email)
+      setResetSent(true)
+    } catch {
+      // Always show success to prevent email enumeration
+      setResetSent(true)
+    } finally {
+      setResetSending(false)
     }
   }
 
@@ -132,6 +152,21 @@ function SignInInner() {
             showLabel={t('showPassword')}
             hideLabel={t('hidePassword')}
           />
+
+          <div style={{ textAlign: 'right', marginTop: '-0.5rem' }}>
+            <button
+              type="button"
+              className="link-button"
+              onClick={handleForgotPassword}
+              disabled={resetSending}
+            >
+              {resetSending ? t('forgotPasswordSending') : t('forgotPasswordLink')}
+            </button>
+          </div>
+
+          {resetSent && (
+            <div className="success-msg">{t('forgotPasswordSent')}</div>
+          )}
 
           <button type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? t('submitting') : t('submit')}

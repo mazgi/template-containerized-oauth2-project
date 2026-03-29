@@ -115,6 +115,8 @@ export default function SignUpPage() {
 
         <p className="form-footer">
           {t('hasAccount')} <Link href="/signin">{t('signInLink')}</Link>
+          <br />
+          <Link href="/signin">{t('forgotPasswordLink')}</Link>
         </p>
 
         <LanguageSwitcher />

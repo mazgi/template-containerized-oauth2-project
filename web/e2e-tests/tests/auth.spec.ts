@@ -432,6 +432,69 @@ test.describe('Password reset', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Forgot password from sign-in page
+// ---------------------------------------------------------------------------
+test.describe('Forgot password from sign-in page', () => {
+  test('shows forgot password link on sign-in page', async ({ page }) => {
+    await page.goto('/signin')
+    await expect(page.getByRole('button', { name: 'Forgot password?' })).toBeVisible()
+  })
+
+  test('shows error when clicking forgot password without entering email', async ({ page }) => {
+    await page.goto('/signin')
+    await page.getByRole('button', { name: 'Forgot password?' }).click()
+    await expect(page.locator('.error-msg')).toBeVisible()
+  })
+
+  test('shows success message after requesting password reset', async ({ page }) => {
+    const email = uniqueEmail('forgotpw')
+    await createVerifiedUser(email)
+
+    await page.goto('/signin')
+    await page.locator('#email').fill(email)
+    await page.getByRole('button', { name: 'Forgot password?' }).click()
+
+    await expect(page.locator('.success-msg')).toBeVisible()
+  })
+
+  test('sends reset email and allows password reset from sign-in page', async ({ page }) => {
+    const email = uniqueEmail('forgotflow')
+    const newPassword = 'resetfromlogin123'
+    await createVerifiedUser(email)
+
+    // Request reset from sign-in page
+    await page.goto('/signin')
+    await page.locator('#email').fill(email)
+    await page.getByRole('button', { name: 'Forgot password?' }).click()
+    await expect(page.locator('.success-msg')).toBeVisible()
+
+    // Get reset token from Mailpit and reset password
+    const token = await getPasswordResetToken(email)
+    await page.goto(`/reset-password?token=${token}`)
+    await expect(page.getByRole('heading', { name: 'Reset Password' })).toBeVisible()
+    await page.locator('#password').fill(newPassword)
+    await page.locator('button[type="submit"]').click()
+    await expect(page.getByText('reset successfully')).toBeVisible()
+
+    // Sign in with new password
+    await page.goto('/signin')
+    await page.locator('#email').fill(email)
+    await page.locator('#password').fill(newPassword)
+    await page.locator('button[type="submit"]').click()
+    await expect(page).toHaveURL(/\/dashboard/)
+  })
+
+  test('shows success even for non-existent email (no enumeration)', async ({ page }) => {
+    await page.goto('/signin')
+    await page.locator('#email').fill(`nonexistent.${Date.now()}@example.com`)
+    await page.getByRole('button', { name: 'Forgot password?' }).click()
+
+    // Should still show success to prevent email enumeration
+    await expect(page.locator('.success-msg')).toBeVisible()
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Page navigation
 // ---------------------------------------------------------------------------
 test.describe('Page navigation', () => {
@@ -442,6 +505,11 @@ test.describe('Page navigation', () => {
 
   test('sign-up page has a link to sign-in', async ({ page }) => {
     await page.goto('/signup')
-    await expect(page.locator('a[href="/signin"]')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
+  })
+
+  test('sign-up page has a forgot password link', async ({ page }) => {
+    await page.goto('/signup')
+    await expect(page.getByRole('link', { name: 'Forgot password?' })).toBeVisible()
   })
 })

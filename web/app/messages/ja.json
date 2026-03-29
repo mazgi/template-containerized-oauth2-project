@@ -21,7 +21,11 @@
     "mfaCode": "認証コード",
     "mfaVerify": "確認",
     "mfaVerifying": "確認中…",
-    "mfaRecoveryHint": "リカバリーコードも使用できます"
+    "mfaRecoveryHint": "リカバリーコードも使用できます",
+    "forgotPasswordLink": "パスワードをお忘れですか？",
+    "forgotPasswordSending": "送信中…",
+    "forgotPasswordSent": "パスワード再設定リンクを送信しました。受信トレイをご確認ください。",
+    "forgotPasswordEnterEmail": "先にメールアドレスを入力してください。"
   },
   "SignUp": {
     "title": "アカウント作成",
@@ -37,7 +41,8 @@
     "verificationSentTitle": "メールをご確認ください",
     "verificationSentMessage": "認証リンクをメールアドレスに送信しました。受信トレイを確認し、リンクをクリックしてアカウントを認証してください。",
     "resendVerification": "認証メールを再送信",
-    "resending": "送信中…"
+    "resending": "送信中…",
+    "forgotPasswordLink": "パスワードをお忘れですか？"
   },
   "VerifyEmail": {
     "title": "メール認証",
