@@ -26,9 +26,6 @@ resource "aws_ecs_express_gateway_service" "backend" {
     image          = "${local.persistent.ecr_backend_repository_url}:${var.image_tag}"
     container_port = 4000
 
-    # Environment variables MUST be sorted alphabetically by name.
-    # The AWS API returns them sorted, and the provider will report
-    # "inconsistent result after apply" if the declared order differs.
     environment {
       name  = "AUTH_APPLE_CLIENT_ID"
       value = var.apple_client_id
