@@ -5,6 +5,11 @@ resource "aws_ecs_express_gateway_service" "web" {
   cpu                     = "256"
   memory                  = "512"
 
+  custom_domain {
+    domain_name     = "web.${local.persistent.dns_zone_name}"
+    certificate_arn = local.persistent.acm_wildcard_certificate_arn
+  }
+
   network_configuration {
     subnets         = [local.persistent.subnet_public_a_id, local.persistent.subnet_public_b_id]
     security_groups = [local.persistent.sg_ecs_web_id]

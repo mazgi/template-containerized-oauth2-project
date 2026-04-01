@@ -10,6 +10,11 @@ resource "aws_ecs_express_gateway_service" "backend" {
   memory                  = "512"
   health_check_path       = "/api"
 
+  custom_domain {
+    domain_name     = "backend.${local.persistent.dns_zone_name}"
+    certificate_arn = local.persistent.acm_wildcard_certificate_arn
+  }
+
   network_configuration {
     subnets         = [local.persistent.subnet_private_a_id, local.persistent.subnet_private_b_id]
     security_groups = [local.persistent.sg_ecs_backend_id]
