@@ -4,6 +4,7 @@ resource "aws_ecs_express_gateway_service" "web" {
   infrastructure_role_arn = local.persistent.ecs_infrastructure_role_arn
   cpu                     = "256"
   memory                  = "512"
+  wait_for_steady_state   = true
 
   network_configuration {
     subnets         = [local.persistent.subnet_public_a_id, local.persistent.subnet_public_b_id]
