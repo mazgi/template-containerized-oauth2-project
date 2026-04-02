@@ -7,11 +7,11 @@
 # -----------------------------------------------------------------------------
 
 data "awscc_ecs_express_gateway_service" "web" {
-  service_arn = aws_ecs_express_gateway_service.web.service_arn
+  id = aws_ecs_express_gateway_service.web.service_arn
 }
 
 data "awscc_ecs_express_gateway_service" "backend" {
-  service_arn = aws_ecs_express_gateway_service.backend.service_arn
+  id = aws_ecs_express_gateway_service.backend.service_arn
 }
 
 # --- Web service ---
