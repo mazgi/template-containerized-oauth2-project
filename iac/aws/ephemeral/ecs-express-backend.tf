@@ -9,7 +9,6 @@ resource "aws_ecs_express_gateway_service" "backend" {
   cpu                     = "256"
   memory                  = "512"
   health_check_path       = "/api"
-  wait_for_steady_state   = true
 
   network_configuration {
     subnets         = [local.persistent.subnet_private_a_id, local.persistent.subnet_private_b_id]
