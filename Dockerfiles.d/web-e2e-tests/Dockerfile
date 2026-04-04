@@ -24,10 +24,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Without PLAYWRIGHT_BROWSERS_PATH the default is ~/.cache/ms-playwright, which
 # differs between root (build time) and the node user (run time).
 ENV PLAYWRIGHT_BROWSERS_PATH=/usr/local/ms-playwright
+COPY package.json /tmp/package.json
 RUN corepack enable \
     && npm install -g npm-check-updates sort-package-json \
-    && npx playwright install --with-deps chromium \
-    && chmod -R a+rx ${PLAYWRIGHT_BROWSERS_PATH}
+    && cd /tmp && pnpm install --ignore-workspace \
+    && pnpm exec playwright install --with-deps chromium \
+    && chmod -R a+rx ${PLAYWRIGHT_BROWSERS_PATH} \
+    && rm -rf /tmp/package.json /tmp/node_modules /tmp/pnpm-lock.yaml
 
 ARG UID=1000
 ARG GID=1000
