@@ -11,7 +11,7 @@ ARG GID=1000
 # image, then create a developer user matching the host UID/GID so that files
 # written to bind-mounted volumes have correct ownership on Linux hosts.
 RUN userdel --remove node \
-    && groupadd --gid ${GID} developer \
+    && groupadd --force --gid ${GID} developer \
     && useradd --uid ${UID} --gid ${GID} --create-home developer
 
 USER developer
