@@ -11,7 +11,7 @@ resource "aws_ecs_express_gateway_service" "backend" {
   health_check_path       = "/api"
 
   network_configuration {
-    subnets         = [local.persistent.subnet_private_a_id, local.persistent.subnet_private_b_id]
+    subnets         = [local.persistent.subnet_public_a_id, local.persistent.subnet_public_b_id]
     security_groups = [local.persistent.sg_ecs_backend_id]
   }
 
