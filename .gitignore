@@ -13,6 +13,7 @@ node_modules/
 
 # Generated build info
 apple/app/BuildConfig.generated.swift
+*.tsbuildinfo
 
 # VSCode
 .vscode/
