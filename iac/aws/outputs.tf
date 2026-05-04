@@ -154,11 +154,11 @@ output "dns_zone_name_servers" {
   value       = aws_route53_zone.main.name_servers
 }
 
-# -----------------------------------------------------------------------------
-# ACM (referenced by ephemeral layer)
-# -----------------------------------------------------------------------------
+# # -----------------------------------------------------------------------------
+# # ACM (referenced by ephemeral layer)
+# # -----------------------------------------------------------------------------
 
-output "acm_wildcard_certificate_arn" {
-  description = "ACM wildcard certificate ARN for custom domains"
-  value       = aws_acm_certificate.wildcard.arn
-}
+# output "acm_wildcard_certificate_arn" {
+#   description = "ACM wildcard certificate ARN for custom domains"
+#   value       = aws_acm_certificate.wildcard.arn
+# }
