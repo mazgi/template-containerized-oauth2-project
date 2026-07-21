@@ -38,7 +38,7 @@ jobs:
     outputs:
       providers: ${{ steps.set-providers.outputs.providers }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Detect changed providers
         if: github.event_name != 'workflow_dispatch'

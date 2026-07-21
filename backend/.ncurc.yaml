@@ -1,0 +1,4 @@
+reject:
+  # TypeScript 7.0 dropped the programmatic compiler API that the Nest CLI needs
+  # (expected to return in 7.1). Keep backend on TS 6 until then.
+  - typescript
