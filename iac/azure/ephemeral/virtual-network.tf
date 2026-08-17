@@ -51,8 +51,7 @@ resource "azurerm_private_dns_zone" "postgresql" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "postgresql" {
-  name                  = "${var.app_unique_id}-dns-link"
-  private_dns_zone_name = azurerm_private_dns_zone.postgresql.name
-  resource_group_name   = azurerm_resource_group.main.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${var.app_unique_id}-dns-link"
+  private_dns_zone_id = azurerm_private_dns_zone.postgresql.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 }
