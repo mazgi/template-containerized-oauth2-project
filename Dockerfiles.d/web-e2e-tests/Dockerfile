@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.62.1
+FROM mcr.microsoft.com/playwright:v1.63.0
 
 RUN corepack enable \
     && npm install -g npm-check-updates sort-package-json
